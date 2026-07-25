@@ -279,6 +279,28 @@ function markTokenReuse() {
   // implícito, que es una decisión y no un olvido.
 }
 
+// ───────────────────────── SITIOS PUBLICADOS (estático) ─────────────────────────
+// GET /sites/:slug y /sites/:slug/:file -- sirve el HTML que publish.js deja
+// en SITES_DIR. PUNTO DE EXTENSIÓN: esto es un placeholder mínimo para poder
+// ver la web publicada ya mismo; el dominio/subdominio real del cliente
+// sigue pendiente de la reunión técnica (ver README y publish.js).
+const SITES_DIR = process.env.SITES_DIR || path.join(__dirname, '..', 'sites');
+
+function sendSiteFile(res, slug, file) {
+  const filePath = path.join(SITES_DIR, slug, file);
+  // Evita path traversal (../..) fuera de SITES_DIR/slug.
+  if (!filePath.startsWith(path.join(SITES_DIR, slug))) {
+    return sendJson(res, 400, { error: 'Ruta inválida.' });
+  }
+  if (!fs.existsSync(filePath)) {
+    return sendHtml(res, 404, '<h1>Página no encontrada</h1><p>Todavía no se ha publicado esta web.</p>');
+  }
+  sendHtml(res, 200, fs.readFileSync(filePath, 'utf-8'));
+}
+
+router.get('/sites/:slug', async (req, res, params) => sendSiteFile(res, params.slug, 'index.html'));
+router.get('/sites/:slug/:file', async (req, res, params) => sendSiteFile(res, params.slug, params.file));
+
 // ───────────────────────── PÁGINA DE GRACIAS (mínima) ─────────────────────────
 router.get('/gracias', async (req, res) => {
   sendHtml(res, 200, '<!doctype html><meta charset="utf-8"><body style="font-family:sans-serif;padding:3rem;text-align:center"><h1>Gracias, pago confirmado</h1><p>Tu web se está publicando automáticamente. Te avisaremos en cuanto esté lista.</p></body>');
