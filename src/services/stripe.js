@@ -15,7 +15,10 @@ const https = require('https');
 const crypto = require('crypto');
 
 const STRIPE_API_URL = 'api.stripe.com';
-const STRIPE_API_VERSION = '2024-06-20';
+// managed_payments (ver más abajo) solo se reconoce en API version
+// 2025-03-31.basil o posterior -- con una versión anterior, Stripe ignora
+// el parámetro y aplica el comportamiento por defecto de la cuenta.
+const STRIPE_API_VERSION = '2025-03-31.basil';
 
 function toFormUrlEncoded(obj, prefix) {
   const parts = [];
