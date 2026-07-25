@@ -62,9 +62,10 @@ algo que se pueda automatizar por seguridad:
      `checkout.session.completed`, y copia el "Signing secret" a
      `STRIPE_WEBHOOK_SECRET`.
 3. **Supabase**: ver "Base de datos (Supabase)" más abajo.
-4. **Hosting**: elige dónde vive este backend (ver siguiente sección —
+4. **Resend**: ver "Email (Resend)" más abajo.
+5. **Hosting**: elige dónde vive este backend (ver siguiente sección —
    importante, Hostinger no vale para esto).
-5. Arranca con `node src/server.js` (o `npm start` si añades ese script).
+6. Arranca con `node src/server.js` (o `npm start` si añades ese script).
 
 ## Base de datos (Supabase)
 
@@ -93,6 +94,29 @@ algo que se pueda automatizar por seguridad:
 4. Ponlas en `.env` (desarrollo local) o en las variables de entorno de
    Render (producción).
 
+## Email (Resend)
+
+Envía el enlace mágico permanente (`/mi-pagina/:token`) al cliente justo
+después de su primer pago (`src/server.js`, webhook de Stripe → `src/services/email.js`).
+
+1. Crea una cuenta gratuita en https://resend.com (100 emails/día, 3.000/mes
+   gratis — de sobra para este volumen).
+2. En **API Keys**, crea una clave y ponla en `RESEND_API_KEY`.
+3. Sin verificar un dominio propio, Resend solo deja enviar al email con el
+   que te registraste — vale para probar, no para clientes reales. Para
+   enviar a cualquier cliente:
+   - En **Domains**, añade `valentiams.com` (o el dominio que prefieras).
+   - Resend te da 3-4 registros DNS (SPF, DKIM, y opcionalmente un
+     `MX`/`CNAME` de tracking) — añádelos en el mismo sitio donde ya
+     configuraste el `CNAME` de `autoventa.valentiams.com` (ver "Configurar
+     registro DNS", tarea ya resuelta para el subdominio).
+   - Cuando Resend marque el dominio como verificado (puede tardar hasta
+     unas horas por la propagación DNS), cambia `EMAIL_FROM` a algo del
+     estilo `Valentia <no-reply@valentiams.com>`.
+4. Si `RESEND_API_KEY` falta o el envío falla, el webhook no se rompe: la
+   web se publica igual y el enlace queda guardado en Supabase, solo que no
+   se envía por email (se registra el error en los logs de Render).
+
 ## Elegir hosting — importante
 
 **El hosting compartido de Hostinger donde viven hoy las plantillas
@@ -114,16 +138,10 @@ código, en el sitio exacto donde hay que engancharlo:
   `/sites/:slug` en este mismo backend — no lo sube a un hosting aparte ni
   activa un dominio propio del cliente, porque eso depende del proveedor
   que se decida en la reunión técnica.
-- **Envío del enlace mágico por email** (`src/server.js`, dentro del
-  webhook). El enlace se genera correctamente y queda en la base de datos,
-  pero no hay proveedor de email configurado para enviarlo automáticamente.
-- **Formulario campo a campo completo.** `public/alta.html` implementa la
-  vía "IA desde cero" con el patrón de repetidores ya validado (tarjetas
-  apilables + acordeón de categorías para la carta), y simplifica la vía
-  "propio"/"mejora IA" a un campo de JSON en bruto, para no duplicar en
-  código un diseño que ya está completamente especificado en "Formulario de
-  Alta — Sectores MVP". El HTML/CSS de ese documento es la referencia para
-  construir el formulario definitivo campo a campo.
+- **Envío del enlace mágico por email**: resuelto, ver "Email (Resend)" más
+  arriba. Solo falta que verifiques tu propio dominio en Resend cuando
+  quieras enviar a clientes reales (mientras tanto, `RESEND_API_KEY` sin
+  dominio verificado solo entrega al email de tu cuenta Resend).
 
 ## Antes de producción
 

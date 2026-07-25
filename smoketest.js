@@ -14,6 +14,8 @@ process.env.STRIPE_PRICE_SUPLEMENTO_PAGINA = 'price_suplemento_fake';
 process.env.ANTHROPIC_API_KEY = 'sk-ant-fake';
 process.env.SUPABASE_URL = 'https://fake-smoketest.supabase.co';
 process.env.SUPABASE_SERVICE_KEY = 'fake-service-key';
+process.env.RESEND_API_KEY = 're_fake_key';
+process.env.EMAIL_FROM = 'Valentia <onboarding@resend.dev>';
 process.env.PORT = '3999';
 
 // ---- Interceptar https.request para simular Stripe, Anthropic y Supabase ----
@@ -28,6 +30,7 @@ const EventEmitter = require('events');
 
 let fakeStripeSessionCounter = 0;
 const fakeSupabaseRows = []; // { collection, id, data, created_at, updated_at }
+const fakeSentEmails = []; // { to, subject, html }
 
 function parseQuery(path) {
   const qIndex = path.indexOf('?');
@@ -127,6 +130,11 @@ https.request = function (options, callback) {
         const result = handleSupabase(options, bodyStr);
         statusCode = result.statusCode;
         responseBody = result.body;
+      } else if (options.hostname === 'api.resend.com') {
+        const payload = JSON.parse(bodyStr);
+        fakeSentEmails.push(payload);
+        statusCode = 200;
+        responseBody = JSON.stringify({ id: 'fake-email-' + fakeSentEmails.length });
       } else {
         statusCode = 599;
         responseBody = JSON.stringify({ error: 'host no simulado: ' + options.hostname });
@@ -236,6 +244,13 @@ async function main() {
   console.log('5) enlace mágico creado tras el pago:', tokens.length === 1 ? 'SI (' + tokens[0].token.slice(0,10) + '...)' : 'NO (' + tokens.length + ')');
   if (tokens.length !== 1) throw new Error('No se generó el enlace mágico');
   const magicToken = tokens[0].token;
+
+  // 5b) Email con el enlace mágico enviado en el mismo webhook (vía Resend, simulado)
+  const emailOk = fakeSentEmails.length === 1
+    && fakeSentEmails[0].to[0] === 'info@smoke.test'
+    && fakeSentEmails[0].html.includes(magicToken);
+  console.log('5b) email con el enlace mágico enviado:', emailOk ? 'SI (' + fakeSentEmails.length + ' envío/s)' : 'NO (' + JSON.stringify(fakeSentEmails) + ')');
+  if (!emailOk) throw new Error('No se envió (o se envió mal) el email del enlace mágico');
 
   // 6) Abrir el enlace mágico (mini-formulario)
   const miPaginaResp = await request('GET', '/mi-pagina/' + magicToken);
