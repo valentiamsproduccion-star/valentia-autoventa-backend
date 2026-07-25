@@ -60,9 +60,16 @@ function extractJson(text) {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start === -1 || end === -1 || end < start) {
-    throw new Error('La respuesta de la IA no contiene un JSON reconocible.');
+    // Se incluye un fragmento de la respuesta real en el error -- sin esto,
+    // un fallo aquí es indepurable (no hay forma de saber si el modelo
+    // rehusó, devolvió prosa, o la llamada a la API falló de otra forma).
+    throw new Error('La respuesta de la IA no contiene un JSON reconocible. Respuesta recibida: ' + JSON.stringify((text || '').slice(0, 400)));
   }
-  return JSON.parse(text.slice(start, end + 1));
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch (e) {
+    throw new Error('La respuesta de la IA no es JSON válido (' + e.message + '). Fragmento: ' + JSON.stringify(text.slice(start, start + 400)));
+  }
 }
 
 // datosEnBruto: el objeto con los campos de la "Tabla B" del sector
@@ -88,12 +95,15 @@ async function generarContenido(sector, datosEnBruto) {
     { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
     {
       model: DEFAULT_MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: sistema,
       messages: [{ role: 'user', content: mensajeUsuario }],
     }
   );
 
+  if (respuesta.type === 'error') {
+    throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
+  }
   const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
   return extractJson(textoModelo);
 }
@@ -127,12 +137,15 @@ async function mejorarContenido(sector, textoClientePorBloque) {
     { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
     {
       model: DEFAULT_MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: sistema,
       messages: [{ role: 'user', content: mensajeUsuario }],
     }
   );
 
+  if (respuesta.type === 'error') {
+    throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
+  }
   const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
   return extractJson(textoModelo);
 }
