@@ -1,48 +1,27 @@
-// Base de datos mínima basada en un archivo JSON, sin dependencias nativas.
+// Base de datos respaldada por Supabase (Postgres real, persistente) vía la
+// REST API de PostgREST -- ver src/services/supabase.js.
 //
-// Por qué así: el hosting compartido de Hostinger (donde viven hoy las
-// plantillas estáticas) no puede ejecutar un backend Node con una base de
-// datos real, y el sandbox de desarrollo no tiene acceso a npm para
-// instalar better-sqlite3/pg. Esto es deliberadamente lo más simple posible
-// para que el flujo funcione de principio a fin ya, sabiendo que hay que
-// sustituirlo por Postgres o SQLite real antes de manejar tráfico de
-// producción (ver README, sección "Antes de producción").
+// Antes esto era un archivo JSON en disco local (ver historial de git);
+// se sustituyó porque el disco del plan gratuito de Render es efímero y
+// puede perder datos cuando el contenedor se reinicia (comprobado en
+// pruebas reales: un pedido pagado desapareció tras ~40 min de inactividad).
+// Supabase da un Postgres gratuito de verdad, sin caducidad ni tarjeta.
 //
-// Escritura atómica: escribe en un archivo temporal y hace rename, para no
-// dejar el JSON a medias si el proceso se cae a mitad de una escritura.
+// Se mantiene la MISMA API pública que tenía la versión con JSON (mismos
+// nombres de función, mismos objetos de vuelta) para no tener que tocar
+// server.js/publish.js más que añadiendo `await` -- lo único que cambia es
+// que ahora todas las funciones son asíncronas.
+//
+// Modelo de almacenamiento: una única tabla "kv_store" (collection, id,
+// data jsonb) en vez de una tabla por entidad -- ver README.md, sección
+// "Base de datos (Supabase)", para el SQL de creación. `data` contiene el
+// objeto completo (incluido su propio `id`), así que el código que consume
+// estos registros no necesita cambiar.
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
-
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', '..', 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
-
-const EMPTY = { clients: [], orders: [], pages: [], magic_tokens: [] };
-
-function ensure() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify(EMPTY, null, 2));
-}
-
-function load() {
-  ensure();
-  const raw = fs.readFileSync(DB_FILE, 'utf-8');
-  try {
-    return JSON.parse(raw);
-  } catch (e) {
-    throw new Error('db.json corrupto: ' + e.message);
-  }
-}
-
-function save(data) {
-  ensure();
-  const tmp = DB_FILE + '.' + process.pid + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
-  fs.renameSync(tmp, DB_FILE);
-}
+const { kvSelect, kvSelectOne, kvInsert, kvUpdate } = require('../services/supabase');
 
 function id() {
   return crypto.randomUUID();
@@ -52,73 +31,95 @@ function now() {
   return new Date().toISOString();
 }
 
+function slugify(str) {
+  return String(str || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'cliente';
+}
+
 // ---------- clients ----------
 
-function createClient(fields) {
-  const db = load();
+async function createClient(fields) {
   const client = Object.assign({ id: id(), created_at: now() }, fields);
-  db.clients.push(client);
-  save(db);
+  if (!client.slug) client.slug = slugify(client.nombre_negocio);
+  await kvInsert('clients', client.id, client);
   return client;
 }
 
-function getClient(clientId) {
-  return load().clients.find(c => c.id === clientId) || null;
+async function getClient(clientId) {
+  return kvSelectOne({ collection: 'clients', id: clientId });
+}
+
+async function updateClient(clientId, patch) {
+  const client = await getClient(clientId);
+  if (!client) throw new Error('Cliente no encontrado: ' + clientId);
+  Object.assign(client, patch, { updated_at: now() });
+  await kvUpdate('clients', clientId, client);
+  return client;
 }
 
 // ---------- orders ----------
 
-function createOrder(fields) {
-  const db = load();
+async function createOrder(fields) {
   const order = Object.assign({ id: id(), status: 'draft', created_at: now() }, fields);
-  db.orders.push(order);
-  save(db);
+  await kvInsert('orders', order.id, order);
   return order;
 }
 
-function getOrder(orderId) {
-  return load().orders.find(o => o.id === orderId) || null;
+async function getOrder(orderId) {
+  return kvSelectOne({ collection: 'orders', id: orderId });
 }
 
-function findOrderByStripeSession(sessionId) {
-  return load().orders.find(o => o.stripe_session_id === sessionId) || null;
+async function findOrderByStripeSession(sessionId) {
+  return kvSelectOne({ collection: 'orders', 'data->>stripe_session_id': sessionId });
 }
 
-function updateOrder(orderId, patch) {
-  const db = load();
-  const order = db.orders.find(o => o.id === orderId);
+async function updateOrder(orderId, patch) {
+  const order = await getOrder(orderId);
   if (!order) throw new Error('Pedido no encontrado: ' + orderId);
   Object.assign(order, patch, { updated_at: now() });
-  save(db);
+  await kvUpdate('orders', orderId, order);
   return order;
 }
 
 // ---------- pages ----------
+// slot: 'principal' | 'adicional'. Se guarda también el slug del cliente
+// (denormalizado) para poder resolver /sites/:slug directamente en una sola
+// consulta, sin tener que buscar primero el cliente.
 
-function upsertPage(fields) {
-  const db = load();
-  let page = db.pages.find(p => p.client_id === fields.client_id && p.slot === (fields.slot || 'principal'));
+async function upsertPage(fields) {
+  const slot = fields.slot || 'principal';
+  let page = await kvSelectOne({
+    collection: 'pages',
+    'data->>client_id': fields.client_id,
+    'data->>slot': slot,
+  });
   if (page) {
-    Object.assign(page, fields, { updated_at: now() });
+    Object.assign(page, fields, { slot, updated_at: now() });
+    await kvUpdate('pages', page.id, page);
   } else {
-    page = Object.assign({ id: id(), slot: 'principal', created_at: now() }, fields);
-    db.pages.push(page);
+    page = Object.assign({ id: id(), slot, created_at: now() }, fields);
+    await kvInsert('pages', page.id, page);
   }
-  save(db);
   return page;
 }
 
-function getPagesForClient(clientId) {
-  return load().pages.filter(p => p.client_id === clientId);
+async function getPagesForClient(clientId) {
+  return kvSelect({ collection: 'pages', 'data->>client_id': clientId });
+}
+
+async function getPageBySlug(slug, slot) {
+  return kvSelectOne({ collection: 'pages', 'data->>slug': slug, 'data->>slot': slot || 'principal' });
 }
 
 // ---------- magic tokens ----------
 // Enlace mágico para añadir la página adicional después de la compra
 // (decisión documentada en "Flujo de Autoventa y Panel de Cliente", sección 3).
 
-function createMagicToken(clientId, opts) {
+async function createMagicToken(clientId, opts) {
   opts = opts || {};
-  const db = load();
   const token = crypto.randomBytes(24).toString('hex');
   const record = {
     id: id(),
@@ -130,33 +131,34 @@ function createMagicToken(clientId, opts) {
       : null, // null = sin caducidad, es un enlace permanente por diseño (ver Flujo, sección 3)
     used_at: null,
   };
-  db.magic_tokens.push(record);
-  save(db);
+  await kvInsert('magic_tokens', record.id, record);
   return record;
 }
 
-function findValidMagicToken(token) {
-  const db = load();
-  const record = db.magic_tokens.find(t => t.token === token);
+async function findValidMagicToken(token) {
+  const record = await kvSelectOne({ collection: 'magic_tokens', 'data->>token': token });
   if (!record) return null;
   if (record.expires_at && new Date(record.expires_at) < new Date()) return null;
   return record;
 }
 
-function markMagicTokenUsed(token) {
-  const db = load();
-  const record = db.magic_tokens.find(t => t.token === token);
+async function markMagicTokenUsed(token) {
+  const record = await kvSelectOne({ collection: 'magic_tokens', 'data->>token': token });
   if (record) {
     record.used_at = now();
-    save(db);
+    await kvUpdate('magic_tokens', record.id, record);
   }
   return record;
 }
 
+async function findMagicTokensForClient(clientId) {
+  return kvSelect({ collection: 'magic_tokens', 'data->>client_id': clientId });
+}
+
 module.exports = {
-  createClient, getClient,
+  createClient, getClient, updateClient,
   createOrder, getOrder, findOrderByStripeSession, updateOrder,
-  upsertPage, getPagesForClient,
-  createMagicToken, findValidMagicToken, markMagicTokenUsed,
-  _load: load, _save: save, // exportado para tests
+  upsertPage, getPagesForClient, getPageBySlug,
+  createMagicToken, findValidMagicToken, markMagicTokenUsed, findMagicTokensForClient,
+  slugify,
 };
