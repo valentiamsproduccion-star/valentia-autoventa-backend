@@ -105,6 +105,13 @@ async function generarContenido(sector, datosEnBruto) {
     throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
   }
   const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
+  if (!textoModelo) {
+    // Diagnóstico: qué tipos de bloque llegaron y por qué se paró la
+    // respuesta (p. ej. "max_tokens" si el modelo gastó todo el presupuesto
+    // en razonamiento interno antes de escribir el JSON).
+    const tipos = (respuesta.content || []).map(b => b.type).join(',');
+    throw new Error('La IA no devolvió texto. stop_reason=' + respuesta.stop_reason + ', tipos_de_bloque=[' + tipos + '], usage=' + JSON.stringify(respuesta.usage));
+  }
   return extractJson(textoModelo);
 }
 
@@ -147,6 +154,10 @@ async function mejorarContenido(sector, textoClientePorBloque) {
     throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
   }
   const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
+  if (!textoModelo) {
+    const tipos = (respuesta.content || []).map(b => b.type).join(',');
+    throw new Error('La IA no devolvió texto. stop_reason=' + respuesta.stop_reason + ', tipos_de_bloque=[' + tipos + '], usage=' + JSON.stringify(respuesta.usage));
+  }
   return extractJson(textoModelo);
 }
 
