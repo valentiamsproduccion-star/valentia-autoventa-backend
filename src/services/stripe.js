@@ -100,6 +100,13 @@ async function crearSesionCheckout({ priceMensualId, priceInicialId, priceSuplem
     client_reference_id: clientReferenceId,
     line_items: [{ price: priceMensualId, quantity: 1 }],
     metadata: metadata || {},
+    // Cuentas nuevas de Stripe traen "Managed Payments" activado por
+    // defecto, que exige un tax_code en cada producto para poder cobrar.
+    // Los precios de este proyecto no lo tienen configurado, así que se
+    // desactiva explícitamente para esta sesión -- si en el futuro se
+    // quiere usar Managed Payments, hay que fijar tax_code en cada
+    // producto de Stripe y quitar esta línea.
+    managed_payments: { enabled: false },
   };
   if (priceInicialId) {
     // La cuota inicial se cobra como line item adicional de un solo pago,
