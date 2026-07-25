@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Añadir página — __NOMBRE_NEGOCIO__</title>
+<style>
+  body{font-family:-apple-system,'Instrument Sans',Arial,sans-serif;max-width:640px;margin:0 auto;padding:32px 20px 80px;color:#20242E;line-height:1.5}
+  h1{font-size:22px}
+  textarea{width:100%;min-height:200px;font-family:monospace;font-size:12.5px;padding:10px;border:1px solid #D1D5DB;border-radius:6px}
+  button{background:#20242E;color:#fff;border:none;border-radius:6px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+  #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
+  .hint{font-size:12.5px;color:#6B7280}
+</style>
+</head>
+<body>
+  <h1>Añadir una página a __NOMBRE_NEGOCIO__</h1>
+  <p class="hint">Suplemento de 5€/mes sobre tu cuota — se publica junto a tu web principal (ver "Flujo de Autoventa y Panel de Cliente", sección 3). Sector: __SECTOR__.</p>
+
+  <label style="font-weight:600;font-size:13.5px;display:block;margin-top:16px">Contenido de la página (JSON)</label>
+  <p class="hint">Usa el mismo formato de salida del prompt de este sector (ver "Prompts de Redacción IA"). En producción esto sería el mismo formulario campo a campo de la web principal.</p>
+  <textarea id="contenido-json"></textarea>
+
+  <button id="btn-pagar">Pagar suplemento (5€/mes) y publicar</button>
+  <div id="error"></div>
+
+  <script>
+    document.getElementById('btn-pagar').addEventListener('click', async () => {
+      const errorDiv = document.getElementById('error');
+      errorDiv.style.display = 'none';
+      let contenido;
+      try {
+        contenido = JSON.parse(document.getElementById('contenido-json').value);
+      } catch (e) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = 'El JSON no es válido: ' + e.message;
+        return;
+      }
+      try {
+        const resp = await fetch('/api/mi-pagina/__TOKEN__', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ viaTexto: 'propio', contenido }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error + (data.detalles ? '\n- ' + data.detalles.join('\n- ') : ''));
+        window.location.href = data.checkoutUrl;
+      } catch (e) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = e.message;
+      }
+    });
+  </script>
+</body>
+</html>

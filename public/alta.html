@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea tu web — Valentia</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,'Instrument Sans',Arial,sans-serif;max-width:760px;margin:0 auto;padding:32px 20px 80px;color:#20242E;line-height:1.5}
+  h1{font-size:26px;margin-bottom:4px}
+  h2{font-size:18px;margin:32px 0 12px;padding-top:16px;border-top:1px solid #E5E7EB}
+  label{display:block;font-weight:600;font-size:13.5px;margin:14px 0 6px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;font-size:14.5px;font-family:inherit}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:flex;gap:12px}
+  .row > *{flex:1}
+  .hint{font-size:12px;color:#6B7280;margin-top:4px}
+  .card{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-top:10px;position:relative}
+  .card button.del{position:absolute;top:10px;right:10px;background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:13px}
+  button.add{margin-top:10px;background:#fff;border:1px solid #D1D5DB;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:13.5px}
+  button.primary{background:#20242E;color:#fff;border:none;border-radius:6px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:24px}
+  button.primary:disabled{opacity:.5;cursor:default}
+  .via{display:flex;gap:10px;margin-top:8px}
+  .via label{display:flex;align-items:center;gap:6px;font-weight:500;border:1px solid #D1D5DB;border-radius:100px;padding:8px 14px;cursor:pointer;margin:0;font-size:13.5px}
+  .via input{width:auto}
+  #resultado{margin-top:28px;padding:18px;border-radius:8px;background:#F0FDF4;border:1px solid #BBF7D0;display:none}
+  #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
+  iframe{width:100%;height:480px;border:1px solid #E5E7EB;border-radius:8px;margin-top:12px}
+</style>
+</head>
+<body>
+
+<h1>Crea tu web</h1>
+<p class="hint">Formulario de alta — ver el diseño completo campo a campo en "Formulario de Alta — Sectores MVP".</p>
+
+<label>Sector</label>
+<select id="sector">
+  <option value="servicios-profesionales">Servicios profesionales</option>
+  <option value="salud-bienestar">Salud y bienestar</option>
+  <option value="hosteleria-restauracion">Hostelería y restauración</option>
+</select>
+
+<h2>Datos del negocio</h2>
+<div class="row">
+  <div><label>Nombre del negocio</label><input id="nombre_negocio" placeholder="Tu negocio"></div>
+  <div><label id="label_tipo">Tipo</label><select id="tipo_negocio"></select></div>
+</div>
+<div class="row">
+  <div><label>Ciudad</label><input id="ciudad" placeholder="Valencia"></div>
+  <div><label>Teléfono / WhatsApp</label><input id="telefono" placeholder="600 111 222"></div>
+</div>
+<label>Email de contacto</label>
+<input id="email" type="email" placeholder="hola@tunegocio.com">
+
+<label style="margin-top:20px">¿Cómo quieres el texto?</label>
+<div class="via">
+  <label><input type="radio" name="via" value="ia" checked> Que lo redacte la IA</label>
+  <label><input type="radio" name="via" value="propio"> Lo escribo yo</label>
+</div>
+<p class="hint">La vía "mejora IA" y el detalle completo de cada campo están en el Formulario de Alta — aquí se simplifica a estas dos para probar el flujo de principio a fin.</p>
+
+<div id="campos-ia"></div>
+<div id="campos-propio" style="display:none">
+  <h2>Contenido (JSON)</h2>
+  <p class="hint">Pega aquí el JSON con el mismo formato de salida que usa el prompt de IA de este sector (ver "Prompts de Redacción IA"). En producción esto sería el formulario campo a campo con contador de caracteres ya diseñado.</p>
+  <textarea id="contenido-json" style="min-height:220px;font-family:monospace;font-size:12.5px"></textarea>
+</div>
+
+<label style="display:flex;align-items:center;gap:8px;margin-top:22px;font-weight:500">
+  <input type="checkbox" id="pagina_adicional" style="width:auto">
+  Añadir página adicional (+5€/mes)
+</label>
+
+<label style="display:flex;align-items:flex-start;gap:8px;margin-top:14px;font-weight:400;font-size:12.5px;color:#6B7280">
+  <input type="checkbox" id="rgpd" style="width:auto;margin-top:2px">
+  Acepto que mis datos se usen para generar y publicar mi web, conforme al RGPD.
+</label>
+
+<button class="primary" id="btn-generar">Generar vista previa</button>
+<div id="error"></div>
+<div id="resultado">
+  <strong>Vista previa generada.</strong>
+  <iframe id="preview-frame"></iframe>
+  <button class="primary" id="btn-pagar">Continuar al pago</button>
+</div>
+
+<script>
+const SECTORES = {
+  'servicios-profesionales': {
+    tipoLabel: 'Tipo de servicio',
+    tipoOptions: ['Abogacía','Asesoría fiscal','Inmobiliaria','Arquitectura e interiorismo','Consultoría','Coaching'],
+    camposIA: [
+      {key:'especialidades', label:'3 a 5 áreas o especialidades (una por línea)', type:'lines'},
+      {key:'equipo', label:'Equipo', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Credencial real'}]},
+      {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
+    ],
+  },
+  'salud-bienestar': {
+    tipoLabel: 'Tipo de centro',
+    tipoOptions: ['Clínica','Centro de belleza','Gimnasio'],
+    camposIA: [
+      {key:'tratamientos', label:'Hasta 6 tratamientos o servicios (uno por línea)', type:'lines'},
+      {key:'equipo', label:'Profesionales', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Colegiado / titulación real'}]},
+      {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
+    ],
+  },
+  'hosteleria-restauracion': {
+    tipoLabel: 'Tipo de local',
+    tipoOptions: ['Restaurante','Cafetería','Bar','Food truck','Catering'],
+    camposIA: [
+      {key:'tipo_cocina', label:'Tipo de cocina', type:'text'},
+      {key:'menu_cats', label:'Carta por categorías', type:'menu'},
+      {key:'historia', label:'Un par de datos para "nuestra historia"', type:'text'},
+    ],
+  },
+};
+
+const sectorSel = document.getElementById('sector');
+const tipoSel = document.getElementById('tipo_negocio');
+const labelTipo = document.getElementById('label_tipo');
+const camposIADiv = document.getElementById('campos-ia');
+
+function renderTipoOptions() {
+  const cfg = SECTORES[sectorSel.value];
+  labelTipo.textContent = cfg.tipoLabel;
+  tipoSel.innerHTML = cfg.tipoOptions.map(o => `<option>${o}</option>`).join('');
+}
+
+function repeaterField(field) {
+  const wrap = document.createElement('div');
+  wrap.dataset.key = field.key;
+  wrap.dataset.type = 'repeater';
+  const label = document.createElement('label');
+  label.textContent = field.label;
+  wrap.appendChild(label);
+  const list = document.createElement('div');
+  wrap.appendChild(list);
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button'; addBtn.className = 'add'; addBtn.textContent = '+ Añadir';
+  addBtn.onclick = () => addCard(list, field.sub);
+  wrap.appendChild(addBtn);
+  addCard(list, field.sub);
+  return wrap;
+}
+
+function addCard(list, subFields) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const del = document.createElement('button');
+  del.type = 'button'; del.className = 'del'; del.textContent = 'Quitar';
+  del.onclick = () => card.remove();
+  card.appendChild(del);
+  subFields.forEach(sf => {
+    const l = document.createElement('label');
+    l.textContent = sf.label; l.style.marginTop = '6px';
+    const inp = document.createElement('input');
+    inp.dataset.sub = sf.key;
+    card.appendChild(l);
+    card.appendChild(inp);
+  });
+  list.appendChild(card);
+}
+
+function menuField(field) {
+  const wrap = document.createElement('div');
+  wrap.dataset.key = field.key;
+  wrap.dataset.type = 'menu';
+  const label = document.createElement('label');
+  label.textContent = field.label;
+  wrap.appendChild(label);
+  const cats = document.createElement('div');
+  wrap.appendChild(cats);
+  const addCatBtn = document.createElement('button');
+  addCatBtn.type = 'button'; addCatBtn.className = 'add'; addCatBtn.textContent = '+ Añadir categoría';
+  addCatBtn.onclick = () => addCategoria(cats);
+  wrap.appendChild(addCatBtn);
+  addCategoria(cats);
+  return wrap;
+}
+
+function addCategoria(cats) {
+  const cat = document.createElement('div');
+  cat.className = 'card';
+  cat.dataset.cat = '1';
+  const del = document.createElement('button');
+  del.type = 'button'; del.className = 'del'; del.textContent = 'Quitar categoría';
+  del.onclick = () => cat.remove();
+  cat.appendChild(del);
+  const nombreCat = document.createElement('input');
+  nombreCat.placeholder = 'Nombre de la categoría (p. ej. Entrantes)';
+  nombreCat.dataset.role = 'categoria';
+  cat.appendChild(nombreCat);
+  const platos = document.createElement('div');
+  platos.style.marginTop = '8px';
+  cat.appendChild(platos);
+  const addPlatoBtn = document.createElement('button');
+  addPlatoBtn.type = 'button'; addPlatoBtn.className = 'add'; addPlatoBtn.textContent = '+ Añadir plato';
+  addPlatoBtn.style.fontSize = '12.5px';
+  addPlatoBtn.onclick = () => addPlato(platos);
+  cat.appendChild(addPlatoBtn);
+  addPlato(platos);
+  cats.appendChild(cat);
+}
+
+function addPlato(platos) {
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.style.marginTop = '6px';
+  row.dataset.plato = '1';
+  const nombre = document.createElement('input'); nombre.placeholder = 'Plato'; nombre.dataset.role = 'nombre';
+  const precio = document.createElement('input'); precio.placeholder = '9 €'; precio.dataset.role = 'precio'; precio.style.maxWidth='90px';
+  const desc = document.createElement('input'); desc.placeholder = 'Descripción (opcional)'; desc.dataset.role = 'descripcion';
+  row.appendChild(nombre); row.appendChild(desc); row.appendChild(precio);
+  platos.appendChild(row);
+}
+
+function renderCamposIA() {
+  camposIADiv.innerHTML = '<h2>Datos para que la IA redacte el texto</h2>';
+  const cfg = SECTORES[sectorSel.value];
+  cfg.camposIA.forEach(field => {
+    if (field.type === 'text') {
+      const l = document.createElement('label'); l.textContent = field.label;
+      const inp = document.createElement('input'); inp.dataset.key = field.key; inp.dataset.type = 'text';
+      camposIADiv.appendChild(l); camposIADiv.appendChild(inp);
+    } else if (field.type === 'lines') {
+      const l = document.createElement('label'); l.textContent = field.label;
+      const ta = document.createElement('textarea'); ta.dataset.key = field.key; ta.dataset.type = 'lines';
+      camposIADiv.appendChild(l); camposIADiv.appendChild(ta);
+    } else if (field.type === 'repeater') {
+      camposIADiv.appendChild(repeaterField(field));
+    } else if (field.type === 'menu') {
+      camposIADiv.appendChild(menuField(field));
+    }
+  });
+}
+
+function collectDatosBrutos() {
+  const out = {};
+  camposIADiv.querySelectorAll(':scope > [data-key]').forEach(el => {
+    const key = el.dataset.key, type = el.dataset.type;
+    if (type === 'text') out[key] = el.value;
+    else if (type === 'lines') out[key] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+    else if (type === 'repeater') {
+      out[key] = Array.from(el.querySelectorAll('.card')).map(card => {
+        const item = {};
+        card.querySelectorAll('[data-sub]').forEach(inp => item[inp.dataset.sub] = inp.value);
+        return item;
+      });
+    } else if (type === 'menu') {
+      out[key] = Array.from(el.querySelectorAll(':scope > div > .card')).map(cat => ({
+        categoria: cat.querySelector('[data-role=categoria]').value,
+        platos: Array.from(cat.querySelectorAll('[data-plato]')).map(row => ({
+          nombre: row.querySelector('[data-role=nombre]').value,
+          descripcion: row.querySelector('[data-role=descripcion]').value,
+          precio: row.querySelector('[data-role=precio]').value,
+        })),
+      }));
+    }
+  });
+  return out;
+}
+
+sectorSel.addEventListener('change', () => { renderTipoOptions(); renderCamposIA(); });
+document.querySelectorAll('input[name=via]').forEach(r => r.addEventListener('change', () => {
+  const via = document.querySelector('input[name=via]:checked').value;
+  document.getElementById('campos-ia').style.display = via === 'ia' ? '' : 'none';
+  document.getElementById('campos-propio').style.display = via === 'propio' ? '' : 'none';
+}));
+
+renderTipoOptions();
+renderCamposIA();
+
+let ultimoOrderId = null;
+
+document.getElementById('btn-generar').addEventListener('click', async () => {
+  const errorDiv = document.getElementById('error');
+  errorDiv.style.display = 'none';
+  if (!document.getElementById('rgpd').checked) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = 'Marca la casilla de RGPD para continuar.';
+    return;
+  }
+  const via = document.querySelector('input[name=via]:checked').value;
+  const payload = {
+    sector: sectorSel.value,
+    datosBase: {
+      nombre_negocio: document.getElementById('nombre_negocio').value,
+      ciudad: document.getElementById('ciudad').value,
+      telefono: document.getElementById('telefono').value,
+      email: document.getElementById('email').value,
+    },
+    viaTexto: via,
+    paginaAdicional: document.getElementById('pagina_adicional').checked,
+  };
+  if (via === 'ia') {
+    payload.datosBrutos = collectDatosBrutos();
+  } else {
+    try {
+      payload.contenido = JSON.parse(document.getElementById('contenido-json').value);
+    } catch (e) {
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = 'El JSON de contenido no es válido: ' + e.message;
+      return;
+    }
+  }
+
+  try {
+    const resp = await fetch('/api/alta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error + (data.detalles ? '\n- ' + data.detalles.join('\n- ') : ''));
+    ultimoOrderId = data.orderId;
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('preview-frame').src = data.previewUrl;
+  } catch (e) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = e.message;
+  }
+});
+
+document.getElementById('btn-pagar').addEventListener('click', async () => {
+  const resp = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: ultimoOrderId }) });
+  const data = await resp.json();
+  if (!resp.ok) { alert(data.error); return; }
+  window.location.href = data.checkoutUrl;
+});
+</script>
+</body>
+</html>
