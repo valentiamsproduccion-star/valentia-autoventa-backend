@@ -96,6 +96,13 @@ async function generarContenido(sector, datosEnBruto) {
     {
       model: DEFAULT_MODEL,
       max_tokens: 4096,
+      // claude-sonnet-5 activa razonamiento extendido por defecto, y ese
+      // razonamiento consume el mismo presupuesto de max_tokens -- con
+      // prompts largos se gastaba todo en "thinking" y no quedaba nada para
+      // el JSON de salida (stop_reason: "max_tokens", sin bloque de texto).
+      // Lo desactivamos explícitamente: aquí no hace falta razonamiento,
+      // solo redacción siguiendo reglas ya cerradas en el prompt de sistema.
+      thinking: { type: 'disabled' },
       system: sistema,
       messages: [{ role: 'user', content: mensajeUsuario }],
     }
@@ -145,6 +152,7 @@ async function mejorarContenido(sector, textoClientePorBloque) {
     {
       model: DEFAULT_MODEL,
       max_tokens: 4096,
+      thinking: { type: 'disabled' },
       system: sistema,
       messages: [{ role: 'user', content: mensajeUsuario }],
     }
