@@ -103,8 +103,8 @@ router.post('/api/alta', async (req, res) => {
     }
   }
 
-  const client = db.createClient({ sector, ...datosBase });
-  const order = db.createOrder({
+  const client = await db.createClient({ sector, ...datosBase });
+  const order = await db.createOrder({
     client_id: client.id,
     sector,
     via_texto: viaTexto,
@@ -127,9 +127,9 @@ router.post('/api/alta', async (req, res) => {
 // GET /preview/:orderId -- paso 5 del flujo: el cliente ve su web generada
 // antes de pagar.
 router.get('/preview/:orderId', async (req, res, params) => {
-  const order = db.getOrder(params.orderId);
+  const order = await db.getOrder(params.orderId);
   if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
-  const client = db.getClient(order.client_id);
+  const client = await db.getClient(order.client_id);
   const datosBase = { nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email };
   const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true });
   sendHtml(res, 200, html);
@@ -140,7 +140,7 @@ router.get('/preview/:orderId', async (req, res, params) => {
 // con el suplemento de página adicional ya incluido si se eligió en el alta.
 router.post('/api/checkout', async (req, res) => {
   const { orderId } = await readJsonBody(req);
-  const order = db.getOrder(orderId);
+  const order = await db.getOrder(orderId);
   if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
   if (!PRICE_INICIAL || !PRICE_MENSUAL) {
     return sendJson(res, 500, {
@@ -166,7 +166,7 @@ router.post('/api/checkout', async (req, res) => {
     metadata: { order_id: order.id, client_id: order.client_id },
   });
 
-  db.updateOrder(order.id, { stripe_session_id: session.id, status: 'pending_payment' });
+  await db.updateOrder(order.id, { stripe_session_id: session.id, status: 'pending_payment' });
   sendJson(res, 200, { checkoutUrl: session.url });
 });
 
@@ -184,11 +184,11 @@ router.post('/api/webhook/stripe', async (req, res) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const order = db.findOrderByStripeSession(session.id);
+    const order = await db.findOrderByStripeSession(session.id);
     if (!order) return sendJson(res, 200, { received: true, warning: 'Pedido no encontrado para esta sesión.' });
 
-    db.updateOrder(order.id, { status: 'paid', paid_at: new Date().toISOString() });
-    const client = db.getClient(order.client_id);
+    await db.updateOrder(order.id, { status: 'paid', paid_at: new Date().toISOString() });
+    const client = await db.getClient(order.client_id);
 
     const result = await publicarCliente(client, {
       contenidoPrincipal: order.contenido_principal,
@@ -198,9 +198,9 @@ router.post('/api/webhook/stripe', async (req, res) => {
     // Enlace mágico permanente para añadir la página adicional más adelante
     // si no se compró en el alta (Flujo, sección 3 -- decisión: sin panel
     // completo, sin contraseña, sin caducidad).
-    const existingTokens = db._load().magic_tokens.filter(t => t.client_id === client.id);
+    const existingTokens = await db.findMagicTokensForClient(client.id);
     if (existingTokens.length === 0) {
-      db.createMagicToken(client.id);
+      await db.createMagicToken(client.id);
       // TODO: enviar este enlace por email al cliente. No hay proveedor de
       // email configurado en este MVP -- ver README, "Antes de producción".
     }
@@ -215,9 +215,9 @@ router.post('/api/webhook/stripe', async (req, res) => {
 // GET /mi-pagina/:token -- abre el mini-formulario para añadir la página
 // adicional después de la compra, sin contraseña (Flujo, sección 3).
 router.get('/mi-pagina/:token', async (req, res, params) => {
-  const tokenRecord = db.findValidMagicToken(params.token);
+  const tokenRecord = await db.findValidMagicToken(params.token);
   if (!tokenRecord) return sendHtml(res, 404, '<h1>Enlace no válido o caducado</h1>');
-  const client = db.getClient(tokenRecord.client_id);
+  const client = await db.getClient(tokenRecord.client_id);
   const formHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'mi-pagina.html'), 'utf-8')
     .replace(/__NOMBRE_NEGOCIO__/g, client.nombre_negocio)
     .replace(/__SECTOR__/g, client.sector)
@@ -228,9 +228,9 @@ router.get('/mi-pagina/:token', async (req, res, params) => {
 // POST /api/mi-pagina/:token -- genera el contenido de la página adicional
 // y crea el checkout del suplemento recurrente (+5€/mes).
 router.post('/api/mi-pagina/:token', async (req, res, params) => {
-  const tokenRecord = db.findValidMagicToken(params.token);
+  const tokenRecord = await db.findValidMagicToken(params.token);
   if (!tokenRecord) return sendJson(res, 404, { error: 'Enlace no válido o caducado.' });
-  const client = db.getClient(tokenRecord.client_id);
+  const client = await db.getClient(tokenRecord.client_id);
 
   const { viaTexto, contenido, datosBrutos, textoCliente } = await readJsonBody(req);
   let contenidoFinal;
@@ -250,7 +250,7 @@ router.post('/api/mi-pagina/:token', async (req, res, params) => {
     return sendJson(res, 500, { error: 'Falta STRIPE_PRICE_SUPLEMENTO_PAGINA en el .env.' });
   }
 
-  const order = db.createOrder({
+  const order = await db.createOrder({
     client_id: client.id,
     sector: client.sector,
     via_texto: viaTexto,
@@ -267,7 +267,7 @@ router.post('/api/mi-pagina/:token', async (req, res, params) => {
     metadata: { order_id: order.id, client_id: client.id, tipo: 'pagina_adicional' },
   });
 
-  db.updateOrder(order.id, { stripe_session_id: session.id, status: 'pending_payment' });
+  await db.updateOrder(order.id, { stripe_session_id: session.id, status: 'pending_payment' });
   markTokenReuse(tokenRecord); // no se marca "usado" de forma que invalide el enlace -- es permanente
   sendJson(res, 200, { checkoutUrl: session.url });
 });
@@ -279,27 +279,25 @@ function markTokenReuse() {
   // implícito, que es una decisión y no un olvido.
 }
 
-// ───────────────────────── SITIOS PUBLICADOS (estático) ─────────────────────────
-// GET /sites/:slug y /sites/:slug/:file -- sirve el HTML que publish.js deja
-// en SITES_DIR. PUNTO DE EXTENSIÓN: esto es un placeholder mínimo para poder
-// ver la web publicada ya mismo; el dominio/subdominio real del cliente
-// sigue pendiente de la reunión técnica (ver README y publish.js).
-const SITES_DIR = process.env.SITES_DIR || path.join(__dirname, '..', 'sites');
-
-function sendSiteFile(res, slug, file) {
-  const filePath = path.join(SITES_DIR, slug, file);
-  // Evita path traversal (../..) fuera de SITES_DIR/slug.
-  if (!filePath.startsWith(path.join(SITES_DIR, slug))) {
-    return sendJson(res, 400, { error: 'Ruta inválida.' });
-  }
-  if (!fs.existsSync(filePath)) {
+// ───────────────────────── SITIOS PUBLICADOS ─────────────────────────
+// GET /sites/:slug y /sites/:slug/:file -- sirve el HTML que publish.js
+// guarda en Supabase (tabla kv_store, colección "pages"). Antes se leía de
+// disco local (SITES_DIR); se cambió porque ese disco es efímero en el plan
+// gratuito de Render (ver publish.js y README, "Base de datos (Supabase)").
+// PUNTO DE EXTENSIÓN: esto sigue siendo un placeholder mínimo para poder ver
+// la web publicada ya mismo; el dominio/subdominio real del cliente sigue
+// pendiente de la reunión técnica (ver README y publish.js).
+async function sendSitePage(res, slug, file) {
+  const slot = file === 'servicios.html' ? 'adicional' : 'principal';
+  const page = await db.getPageBySlug(slug, slot);
+  if (!page || !page.html) {
     return sendHtml(res, 404, '<h1>Página no encontrada</h1><p>Todavía no se ha publicado esta web.</p>');
   }
-  sendHtml(res, 200, fs.readFileSync(filePath, 'utf-8'));
+  sendHtml(res, 200, page.html);
 }
 
-router.get('/sites/:slug', async (req, res, params) => sendSiteFile(res, params.slug, 'index.html'));
-router.get('/sites/:slug/:file', async (req, res, params) => sendSiteFile(res, params.slug, params.file));
+router.get('/sites/:slug', async (req, res, params) => sendSitePage(res, params.slug, 'index.html'));
+router.get('/sites/:slug/:file', async (req, res, params) => sendSitePage(res, params.slug, params.file));
 
 // ───────────────────────── PÁGINA DE GRACIAS (mínima) ─────────────────────────
 router.get('/gracias', async (req, res) => {
