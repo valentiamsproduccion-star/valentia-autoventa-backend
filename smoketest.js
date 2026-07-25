@@ -5,33 +5,99 @@
 
 'use strict';
 
-process.env.DATA_DIR = __dirname + '/data-smoketest';
-process.env.SITES_DIR = __dirname + '/sites-smoketest';
+process.env.SITES_DIR = __dirname + '/sites-smoketest'; // ya no se usa para servir, solo por si algo lo referencia
 process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_fake';
 process.env.STRIPE_PRICE_INICIAL = 'price_inicial_fake';
 process.env.STRIPE_PRICE_MENSUAL = 'price_mensual_fake';
 process.env.STRIPE_PRICE_SUPLEMENTO_PAGINA = 'price_suplemento_fake';
 process.env.ANTHROPIC_API_KEY = 'sk-ant-fake';
+process.env.SUPABASE_URL = 'https://fake-smoketest.supabase.co';
+process.env.SUPABASE_SERVICE_KEY = 'fake-service-key';
 process.env.PORT = '3999';
 
-const rimraf = dir => { try { require('fs').rmSync(dir, { recursive: true, force: true }); } catch (e) {} };
-rimraf(process.env.DATA_DIR);
-rimraf(process.env.SITES_DIR);
-
-// ---- Interceptar https.request para simular Stripe y Anthropic ----
+// ---- Interceptar https.request para simular Stripe, Anthropic y Supabase ----
+// (el sandbox de desarrollo no tiene salida a internet real, así que no se
+// puede hablar con Supabase de verdad desde aquí -- este mock reproduce lo
+// mínimo de la REST API (PostgREST) que src/services/supabase.js necesita:
+// GET con filtros eq. sobre "collection"/"id"/"data->>campo", POST de
+// inserción y PATCH de actualización, todo contra un array en memoria.)
 const https = require('https');
 const crypto = require('crypto');
 const EventEmitter = require('events');
 
 let fakeStripeSessionCounter = 0;
+const fakeSupabaseRows = []; // { collection, id, data, created_at, updated_at }
+
+function parseQuery(path) {
+  const qIndex = path.indexOf('?');
+  const query = qIndex === -1 ? '' : path.slice(qIndex + 1);
+  const params = {};
+  for (const pair of query.split('&')) {
+    if (!pair) continue;
+    const [rawKey, rawVal] = pair.split('=');
+    params[decodeURIComponent(rawKey)] = decodeURIComponent(rawVal || '');
+  }
+  return params;
+}
+
+function matchesFilters(row, params) {
+  for (const [key, val] of Object.entries(params)) {
+    if (key === 'select') continue;
+    if (!val.startsWith('eq.')) continue;
+    const expected = val.slice(3);
+    if (key === 'collection') {
+      if (row.collection !== expected) return false;
+    } else if (key === 'id') {
+      if (row.id !== expected) return false;
+    } else {
+      const m = key.match(/^data->>(.+)$/);
+      if (m) {
+        const field = m[1];
+        if (String(row.data[field]) !== expected) return false;
+      }
+    }
+  }
+  return true;
+}
+
+function handleSupabase(options, bodyStr) {
+  const params = parseQuery(options.path);
+  const isKvStore = options.path.replace(/\?.*/, '') === '/rest/v1/kv_store';
+  if (!isKvStore) return { statusCode: 404, body: JSON.stringify({ error: 'tabla no simulada' }) };
+
+  if (options.method === 'GET') {
+    const rows = fakeSupabaseRows.filter(r => matchesFilters(r, params));
+    return { statusCode: 200, body: JSON.stringify(rows.map(r => ({ data: r.data }))) };
+  }
+  if (options.method === 'POST') {
+    const items = JSON.parse(bodyStr);
+    for (const item of items) {
+      fakeSupabaseRows.push({ collection: item.collection, id: item.id, data: item.data, created_at: new Date().toISOString(), updated_at: null });
+    }
+    return { statusCode: 201, body: '' };
+  }
+  if (options.method === 'PATCH') {
+    const patch = JSON.parse(bodyStr);
+    for (const row of fakeSupabaseRows) {
+      if (matchesFilters(row, params)) {
+        row.data = patch.data;
+        row.updated_at = patch.updated_at;
+      }
+    }
+    return { statusCode: 204, body: '' };
+  }
+  return { statusCode: 405, body: JSON.stringify({ error: 'método no simulado' }) };
+}
+
 const realRequest = https.request;
 https.request = function (options, callback) {
-  const em = new EventEmitter();
   const req = new EventEmitter();
-  req.write = () => {};
+  let bodyChunks = [];
+  req.write = chunk => { bodyChunks.push(chunk); };
   req.end = () => {
     setImmediate(() => {
+      const bodyStr = Buffer.concat(bodyChunks.map(c => Buffer.isBuffer(c) ? c : Buffer.from(c))).toString('utf-8');
       let responseBody;
       let statusCode = 200;
 
@@ -57,6 +123,10 @@ https.request = function (options, callback) {
         const sessionId = 'cs_test_fake_' + fakeStripeSessionCounter;
         global.__lastFakeStripeSessionId = sessionId;
         responseBody = JSON.stringify({ id: sessionId, url: 'https://checkout.stripe.com/fake/' + sessionId });
+      } else if (options.hostname === 'fake-smoketest.supabase.co') {
+        const result = handleSupabase(options, bodyStr);
+        statusCode = result.statusCode;
+        responseBody = result.body;
       } else {
         statusCode = 599;
         responseBody = JSON.stringify({ error: 'host no simulado: ' + options.hostname });
@@ -136,7 +206,7 @@ async function main() {
   console.log('3) POST /api/checkout ->', checkoutResp.statusCode, checkoutResp.body.checkoutUrl ? 'checkoutUrl OK' : checkoutResp.body);
   if (checkoutResp.statusCode !== 200) throw new Error('Fallo en /api/checkout');
 
-  const order = db.getOrder(orderId);
+  const order = await db.getOrder(orderId);
   const sessionId = order.stripe_session_id;
 
   // 4) WEBHOOK (simulando el evento real de Stripe, firmado correctamente)
@@ -147,22 +217,22 @@ async function main() {
   console.log('4) POST /api/webhook/stripe ->', webhookResp.statusCode, webhookResp.body);
   if (webhookResp.statusCode !== 200 || !webhookResp.body.received) throw new Error('Fallo en el webhook');
 
-  const orderPaid = db.getOrder(orderId);
+  const orderPaid = await db.getOrder(orderId);
   console.log('   pedido tras webhook: status =', orderPaid.status);
   if (orderPaid.status !== 'paid') throw new Error('El pedido no quedó marcado como pagado');
 
-  const fs = require('fs');
-  const path = require('path');
-  const siteFile = path.join(process.env.SITES_DIR, 'bufete-smoke-sl', 'index.html');
-  const published = fs.existsSync(siteFile);
-  console.log('   archivo publicado en disco:', siteFile, '->', published ? 'EXISTE' : 'NO EXISTE');
+  // La web publicada ahora vive en Supabase (mock en memoria en esta prueba
+  // de humo), no en disco -- se comprueba pidiéndola por HTTP, igual que un
+  // visitante real.
+  const siteResp = await request('GET', '/sites/bufete-smoke-sl');
+  const published = siteResp.statusCode === 200 && typeof siteResp.raw === 'string' && siteResp.raw.includes('Bufete Smoke SL');
+  console.log('   web publicada en /sites/bufete-smoke-sl ->', published ? 'EXISTE' : 'NO EXISTE');
   if (!published) throw new Error('No se publicó el sitio');
-  const publishedHtml = fs.readFileSync(siteFile, 'utf-8');
-  console.log('   contiene VISTA PREVIA (no debería, es la web final):', publishedHtml.includes('VISTA PREVIA'));
+  console.log('   contiene VISTA PREVIA (no debería, es la web final):', siteResp.raw.includes('VISTA PREVIA'));
 
   // 5) ENLACE MÁGICO generado automáticamente tras el primer pago
-  const client = db.getClient(order.client_id);
-  const tokens = db._load().magic_tokens.filter(tt => tt.client_id === client.id);
+  const client = await db.getClient(order.client_id);
+  const tokens = await db.findMagicTokensForClient(client.id);
   console.log('5) enlace mágico creado tras el pago:', tokens.length === 1 ? 'SI (' + tokens[0].token.slice(0,10) + '...)' : 'NO (' + tokens.length + ')');
   if (tokens.length !== 1) throw new Error('No se generó el enlace mágico');
   const magicToken = tokens[0].token;
@@ -185,7 +255,7 @@ async function main() {
   if (miPaginaPost.statusCode !== 200) throw new Error('Fallo al comprar la página adicional');
 
   // 8) Enlace mágico sigue siendo válido tras usarlo (es permanente, no de un solo uso)
-  const stillValid = !!db.findValidMagicToken(magicToken);
+  const stillValid = !!(await db.findValidMagicToken(magicToken));
   console.log('8) enlace mágico sigue activo tras usarlo (permanente por diseño):', stillValid);
   if (!stillValid) throw new Error('El enlace mágico se invalidó y no debería');
 
