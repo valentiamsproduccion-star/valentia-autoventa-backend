@@ -4,27 +4,20 @@
 // más: aquí se deja lista la generación del HTML final, y un punto de
 // extensión claro para conectar el proveedor real de hosting/dominios.
 //
-// Lo que SÍ hace ahora mismo: guarda el HTML final en disco, listo para
-// servir. Lo que NO hace (a propósito, hasta tener esas respuestas): crear
-// el subdominio, pedir el certificado SSL, dar de alta GA4/Search Console.
-// Ese hueco está marcado explícitamente más abajo.
+// Lo que SÍ hace ahora mismo: guarda el HTML final en Supabase (tabla
+// kv_store, colección "pages"), listo para servir desde /sites/:slug
+// (ver server.js). Antes se escribía en disco local, pero el disco del plan
+// gratuito de Render es efímero y se comprobó que podía perder páginas
+// publicadas al reiniciarse el contenedor -- de ahí el cambio a Supabase
+// (ver README, "Base de datos (Supabase)"). Lo que NO hace (a propósito,
+// hasta tener las respuestas de la reunión técnica): crear el subdominio,
+// pedir el certificado SSL, dar de alta GA4/Search Console. Ese hueco está
+// marcado explícitamente más abajo.
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const { renderPagina } = require('./render');
 const db = require('../db/db');
-
-const SITES_DIR = process.env.SITES_DIR || path.join(__dirname, '..', '..', 'sites');
-
-function slugify(str) {
-  return String(str || '')
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '') || 'cliente';
-}
 
 // Publica (o republica) la página principal de un cliente, y opcionalmente
 // la página adicional si la ha comprado.
@@ -38,27 +31,39 @@ async function publicarCliente(client, orderContext) {
 
   const htmlPrincipal = renderPagina(client.sector, datosBase, orderContext.contenidoPrincipal, { preview: false });
 
-  const slug = client.slug || slugify(client.nombre_negocio);
-  const siteDir = path.join(SITES_DIR, slug);
-  fs.mkdirSync(siteDir, { recursive: true });
-  fs.writeFileSync(path.join(siteDir, 'index.html'), htmlPrincipal);
+  const slug = client.slug || db.slugify(client.nombre_negocio);
+  if (!client.slug) {
+    client = await db.updateClient(client.id, { slug });
+  }
 
-  db.upsertPage({ client_id: client.id, slot: 'principal', html_path: path.join(siteDir, 'index.html'), published_at: new Date().toISOString() });
+  await db.upsertPage({
+    client_id: client.id,
+    slug,
+    slot: 'principal',
+    html: htmlPrincipal,
+    published_at: new Date().toISOString(),
+  });
 
   let urlPaginaAdicional = null;
   if (orderContext.contenidoAdicional) {
     const htmlAdicional = renderPagina(client.sector, datosBase, orderContext.contenidoAdicional, { preview: false });
-    fs.writeFileSync(path.join(siteDir, 'servicios.html'), htmlAdicional);
-    db.upsertPage({ client_id: client.id, slot: 'adicional', html_path: path.join(siteDir, 'servicios.html'), published_at: new Date().toISOString() });
-    urlPaginaAdicional = '/' + slug + '/servicios.html';
+    await db.upsertPage({
+      client_id: client.id,
+      slug,
+      slot: 'adicional',
+      html: htmlAdicional,
+      published_at: new Date().toISOString(),
+    });
+    urlPaginaAdicional = '/sites/' + slug + '/servicios.html';
   }
 
   // ────────────────────────────────────────────────────────────────
   // PUNTO DE EXTENSIÓN — pendiente de la reunión técnica:
   //
-  //   1. Crear/apuntar el subdominio o dominio del cliente hacia siteDir
-  //      (o subir estos archivos al hosting real -- Hostinger u otro,
-  //      según se decida en "Preguntas para la Parte Técnica", sección 2).
+  //   1. Crear/apuntar el subdominio o dominio del cliente hacia esta
+  //      página (o subir estos archivos al hosting real -- Hostinger u
+  //      otro, según se decida en "Preguntas para la Parte Técnica",
+  //      sección 2). Hoy se sirve desde /sites/:slug en este mismo backend.
   //   2. Emitir/renovar el certificado SSL.
   //   3. Insertar GA4 con Consent Mode v2 (mismo patrón que la landing de
   //      validación, Propuesta Técnica sección 5).
@@ -72,10 +77,9 @@ async function publicarCliente(client, orderContext) {
 
   return {
     slug,
-    urlPrincipal: '/' + slug + '/index.html',
+    urlPrincipal: '/sites/' + slug,
     urlPaginaAdicional,
-    localPath: siteDir,
   };
 }
 
-module.exports = { publicarCliente, slugify };
+module.exports = { publicarCliente };
