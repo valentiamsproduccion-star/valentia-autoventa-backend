@@ -18,6 +18,7 @@ const { validarContenido } = require('./services/validate');
 const { generarContenido, mejorarContenido } = require('./services/ai');
 const { crearSesionCheckout, verificarFirmaWebhook } = require('./services/stripe');
 const { publicarCliente } = require('./services/publish');
+const { sendMagicLinkEmail } = require('./services/email');
 const db = require('./db/db');
 
 const PORT = process.env.PORT || 3000;
@@ -200,9 +201,19 @@ router.post('/api/webhook/stripe', async (req, res) => {
     // completo, sin contraseña, sin caducidad).
     const existingTokens = await db.findMagicTokensForClient(client.id);
     if (existingTokens.length === 0) {
-      await db.createMagicToken(client.id);
-      // TODO: enviar este enlace por email al cliente. No hay proveedor de
-      // email configurado en este MVP -- ver README, "Antes de producción".
+      const tokenRecord = await db.createMagicToken(client.id);
+      try {
+        await sendMagicLinkEmail(
+          client,
+          PUBLIC_BASE_URL + result.urlPrincipal,
+          PUBLIC_BASE_URL + '/mi-pagina/' + tokenRecord.token
+        );
+      } catch (e) {
+        // La web ya está publicada y el enlace existe en la base de datos --
+        // un fallo de envío de email no debe tumbar el webhook (Stripe lo
+        // reintentaría) ni impedir que el cliente vea su web ya publicada.
+        console.error('[email] fallo al enviar el enlace mágico:', e.message);
+      }
     }
 
     console.log('[publish] cliente', client.id, '->', result.urlPrincipal);
