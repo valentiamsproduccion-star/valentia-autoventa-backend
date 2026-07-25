@@ -9,23 +9,34 @@
   body{font-family:-apple-system,'Instrument Sans',Arial,sans-serif;max-width:760px;margin:0 auto;padding:32px 20px 80px;color:#20242E;line-height:1.5}
   h1{font-size:26px;margin-bottom:4px}
   h2{font-size:18px;margin:32px 0 12px;padding-top:16px;border-top:1px solid #E5E7EB}
+  h3.block-title{font-size:15px;margin:22px 0 4px}
   label{display:block;font-weight:600;font-size:13.5px;margin:14px 0 6px}
+  label .opt{font-weight:400;color:#9CA3AF}
   input,select,textarea{width:100%;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;font-size:14.5px;font-family:inherit}
   textarea{min-height:70px;resize:vertical}
   .row{display:flex;gap:12px}
   .row > *{flex:1}
   .hint{font-size:12px;color:#6B7280;margin-top:4px}
+  .field-wrap{margin-bottom:2px}
+  .counter{font-size:11px;color:#9CA3AF;text-align:right;margin-top:3px}
+  .counter.over{color:#DC2626;font-weight:600}
   .card{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-top:10px;position:relative}
   .card button.del{position:absolute;top:10px;right:10px;background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:13px}
+  .cat-card{background:#F3F4F6;border:1px solid #D1D5DB;border-radius:8px;padding:14px;margin-top:12px;position:relative}
+  .dish-row{background:#fff;border:1px solid #E5E7EB;border-radius:6px;padding:10px;margin-top:8px;position:relative}
   button.add{margin-top:10px;background:#fff;border:1px solid #D1D5DB;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:13.5px}
+  button.add:disabled{opacity:.4;cursor:default}
+  button.add.small{font-size:12px;padding:6px 10px;margin-top:6px}
   button.primary{background:#20242E;color:#fff;border:none;border-radius:6px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:24px}
   button.primary:disabled{opacity:.5;cursor:default}
-  .via{display:flex;gap:10px;margin-top:8px}
+  .via{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
   .via label{display:flex;align-items:center;gap:6px;font-weight:500;border:1px solid #D1D5DB;border-radius:100px;padding:8px 14px;cursor:pointer;margin:0;font-size:13.5px}
   .via input{width:auto}
+  .section-block{border-top:1px dashed #E5E7EB;padding-top:14px;margin-top:20px}
   #resultado{margin-top:28px;padding:18px;border-radius:8px;background:#F0FDF4;border:1px solid #BBF7D0;display:none}
   #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
   iframe{width:100%;height:480px;border:1px solid #E5E7EB;border-radius:8px;margin-top:12px}
+  #campos-adicional{display:none}
 </style>
 </head>
 <body>
@@ -54,22 +65,25 @@
 
 <label style="margin-top:20px">¿Cómo quieres el texto?</label>
 <div class="via">
-  <label><input type="radio" name="via" value="ia" checked> Que lo redacte la IA</label>
+  <label><input type="radio" name="via" value="ia" checked> Que lo redacte la IA desde cero</label>
   <label><input type="radio" name="via" value="propio"> Lo escribo yo</label>
+  <label><input type="radio" name="via" value="mejora"> Escribo yo y que la IA lo pula</label>
 </div>
-<p class="hint">La vía "mejora IA" y el detalle completo de cada campo están en el Formulario de Alta — aquí se simplifica a estas dos para probar el flujo de principio a fin.</p>
+<p class="hint">Con "Lo escribo yo" cada campo tiene su propio límite de caracteres (se bloquea el envío si te pasas). Con "Escribo yo y que la IA lo pula" son los mismos campos, pero el límite es solo orientativo: la IA ajusta tu texto sin inventar nada nuevo.</p>
 
 <div id="campos-ia"></div>
-<div id="campos-propio" style="display:none">
-  <h2>Contenido (JSON)</h2>
-  <p class="hint">Pega aquí el JSON con el mismo formato de salida que usa el prompt de IA de este sector (ver "Prompts de Redacción IA"). En producción esto sería el formulario campo a campo con contador de caracteres ya diseñado.</p>
-  <textarea id="contenido-json" style="min-height:220px;font-family:monospace;font-size:12.5px"></textarea>
-</div>
+<div id="campos-tablaA" style="display:none"></div>
 
 <label style="display:flex;align-items:center;gap:8px;margin-top:22px;font-weight:500">
   <input type="checkbox" id="pagina_adicional" style="width:auto">
   Añadir página adicional (+5€/mes)
 </label>
+<p class="hint" id="hint-adicional" style="display:none">La página adicional se rellena igual que la principal, con la misma vía de texto elegida arriba.</p>
+
+<div id="campos-adicional">
+  <div id="campos-ia-adicional"></div>
+  <div id="campos-tablaA-adicional"></div>
+</div>
 
 <label style="display:flex;align-items:flex-start;gap:8px;margin-top:14px;font-weight:400;font-size:12.5px;color:#6B7280">
   <input type="checkbox" id="rgpd" style="width:auto;margin-top:2px">
@@ -85,32 +99,92 @@
 </div>
 
 <script>
+// ───────────────────────── Definición de campos por sector ─────────────────────────
+// tablaB = vía "IA desde cero" (datos en bruto, sin límite de caracteres).
+// tablaA = vías "propio" y "mejora IA" (mismos campos en ambas — ver
+// "Formulario de Alta — Sectores MVP", tablas A de cada sector). Los límites
+// coinciden exactamente con src/services/validate.js (LIMITES) para que lo
+// que ve el cliente aquí sea lo mismo que valida el servidor.
+
 const SECTORES = {
   'servicios-profesionales': {
     tipoLabel: 'Tipo de servicio',
     tipoOptions: ['Abogacía','Asesoría fiscal','Inmobiliaria','Arquitectura e interiorismo','Consultoría','Coaching'],
-    camposIA: [
+    tablaB: [
       {key:'especialidades', label:'3 a 5 áreas o especialidades (una por línea)', type:'lines'},
       {key:'equipo', label:'Equipo', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Credencial real'}]},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
+    ],
+    tablaA: [
+      {type:'text', key:'eyebrow_hero', label:'Frase corta encima del titular (eyebrow)', max:45},
+      {type:'text', key:'hero_title', label:'Titular principal', max:70},
+      {type:'textarea', key:'hero_subtitle', label:'Subtítulo', max:180},
+      {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "+10 años", "Colegiados")', count:3, max:30},
+      {type:'text', key:'h2_areas', label:'Título del bloque de áreas de práctica', max:55},
+      {type:'textarea', key:'lead_areas', label:'Texto de apoyo del bloque de áreas', max:140},
+      {type:'repeater', key:'areas', label:'Áreas de práctica', min:1, max:4,
+        fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
+      {type:'repeater', key:'equipo', label:'Equipo', min:1, max:4,
+        fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Credencial real',max:95}]},
+      {type:'repeater', key:'casos', label:'Casos destacados', optional:true, min:0, max:3,
+        fields:[{key:'titulo',label:'Título',max:35},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
+      {type:'text', key:'h2_consulta', label:'Título del bloque de primera consulta', max:55},
+      {type:'textarea', key:'lead_consulta', label:'Texto de apoyo', max:140},
+      {type:'fixedPair', key:'consulta_points', label:'3 pasos de la primera consulta', count:3,
+        fields:[{key:'titulo',label:'Paso (título breve)'},{key:'descripcion',label:'Descripción',max:80,textarea:true}]},
+      {type:'repeater', key:'testimonios', label:'Testimonios', optional:true, min:0, max:5,
+        fields:[{key:'cita',label:'Cita',max:160,textarea:true},{key:'nombre',label:'Nombre'},{key:'contexto',label:'Contexto (p. ej. "cliente desde 2022")'}]},
     ],
   },
   'salud-bienestar': {
     tipoLabel: 'Tipo de centro',
     tipoOptions: ['Clínica','Centro de belleza','Gimnasio'],
-    camposIA: [
+    tablaB: [
       {key:'tratamientos', label:'Hasta 6 tratamientos o servicios (uno por línea)', type:'lines'},
       {key:'equipo', label:'Profesionales', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Colegiado / titulación real'}]},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
+    ],
+    tablaA: [
+      {type:'text', key:'eyebrow_hero', label:'Frase corta encima del titular (eyebrow)', max:45},
+      {type:'text', key:'hero_title', label:'Titular principal', max:60, hintExtra:'No prometas resultados clínicos garantizados.'},
+      {type:'textarea', key:'hero_subtitle', label:'Subtítulo', max:170},
+      {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza', count:3, max:28},
+      {type:'text', key:'h2_tratamientos', label:'Título del bloque de tratamientos', max:55},
+      {type:'textarea', key:'lead_tratamientos', label:'Texto de apoyo', max:140},
+      {type:'repeater', key:'treats', label:'Tratamientos', min:1, max:6,
+        fields:[{key:'titulo',label:'Título',max:26},{key:'descripcion',label:'Descripción',max:95,textarea:true,hintExtra:'No prometas resultados clínicos garantizados.'}]},
+      {type:'repeater', key:'equipo', label:'Profesionales', min:1, max:4,
+        fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Colegiado / titulación real',max:95}]},
+      {type:'text', key:'h2_cita', label:'Título del bloque de pedir cita', max:55},
+      {type:'textarea', key:'lead_cita', label:'Texto de apoyo', max:140},
+      {type:'fixedPair', key:'cita_points', label:'3 pasos para pedir cita', count:3,
+        fields:[{key:'titulo',label:'Paso (título breve)'},{key:'descripcion',label:'Descripción',max:80,textarea:true}]},
+      {type:'repeater', key:'reviews', label:'Opiniones', optional:true, min:0, max:5,
+        fields:[{key:'cita',label:'Cita',max:150,textarea:true},{key:'nombre',label:'Nombre'}]},
     ],
   },
   'hosteleria-restauracion': {
     tipoLabel: 'Tipo de local',
     tipoOptions: ['Restaurante','Cafetería','Bar','Food truck','Catering'],
-    camposIA: [
+    tablaB: [
       {key:'tipo_cocina', label:'Tipo de cocina', type:'text'},
       {key:'menu_cats', label:'Carta por categorías', type:'menu'},
       {key:'historia', label:'Un par de datos para "nuestra historia"', type:'text'},
+    ],
+    tablaA: [
+      {type:'text', key:'eyebrow_hero', label:'Frase corta encima del titular (eyebrow)', max:42},
+      {type:'text', key:'hero_title', label:'Titular principal', max:60},
+      {type:'textarea', key:'hero_subtitle', label:'Subtítulo', max:170},
+      {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza', count:3, max:30},
+      {type:'textarea', key:'lead_carta', label:'Texto de apoyo de la carta', max:130},
+      {type:'menu', key:'menu_cats', label:'Carta (categorías → platos)', nombreMax:32, descripcionMax:50},
+      {type:'textarea', key:'historia_p1', label:'Nuestra historia — párrafo 1', max:280},
+      {type:'textarea', key:'historia_p2', label:'Nuestra historia — párrafo 2', max:280},
+      {type:'repeater', key:'events', label:'Próximos eventos (solo si eres bar; si no aplica, déjalo vacío)', optional:true, min:0, max:6,
+        fields:[{key:'fecha',label:'Fecha (p. ej. "Vie 12 sept")'},{key:'what',label:'Qué',max:45},{key:'desc',label:'Descripción',max:60,textarea:true}]},
+      {type:'text', key:'res_directa_texto', label:'Texto de la sección de reservas', max:110},
+      {type:'repeater', key:'reviews', label:'Opiniones', optional:true, min:0, max:5,
+        fields:[{key:'cita',label:'Cita',max:150,textarea:true},{key:'nombre',label:'Nombre'}]},
     ],
   },
 };
@@ -119,6 +193,9 @@ const sectorSel = document.getElementById('sector');
 const tipoSel = document.getElementById('tipo_negocio');
 const labelTipo = document.getElementById('label_tipo');
 const camposIADiv = document.getElementById('campos-ia');
+const camposIAAdicionalDiv = document.getElementById('campos-ia-adicional');
+const camposTablaADiv = document.getElementById('campos-tablaA');
+const camposTablaAAdicionalDiv = document.getElementById('campos-tablaA-adicional');
 
 function renderTipoOptions() {
   const cfg = SECTORES[sectorSel.value];
@@ -126,7 +203,44 @@ function renderTipoOptions() {
   tipoSel.innerHTML = cfg.tipoOptions.map(o => `<option>${o}</option>`).join('');
 }
 
-function repeaterField(field) {
+// ───────────────────────── contador de caracteres ─────────────────────────
+function attachCounter(input, max) {
+  if (!max) return;
+  input.maxLength = max * 2; // no cortamos mientras escribe, solo avisamos
+  const counter = document.createElement('div');
+  counter.className = 'counter';
+  const update = () => {
+    const len = input.value.length;
+    counter.textContent = len + ' / ' + max;
+    counter.classList.toggle('over', len > max);
+  };
+  input.addEventListener('input', update);
+  update();
+  input.insertAdjacentElement('afterend', counter);
+}
+
+function labeledInput(label, opts) {
+  opts = opts || {};
+  const wrap = document.createElement('div');
+  wrap.className = 'field-wrap';
+  const l = document.createElement('label');
+  l.textContent = label;
+  wrap.appendChild(l);
+  if (opts.hintExtra) {
+    const h = document.createElement('div');
+    h.className = 'hint'; h.style.marginTop = '-2px'; h.style.marginBottom = '4px';
+    h.textContent = opts.hintExtra;
+    wrap.appendChild(h);
+  }
+  const input = document.createElement(opts.textarea ? 'textarea' : 'input');
+  if (opts.placeholder) input.placeholder = opts.placeholder;
+  wrap.appendChild(input);
+  attachCounter(input, opts.max);
+  return { wrap, input };
+}
+
+// ───────────────────────── Tabla B (vía IA desde cero) — igual que antes ─────────────────────────
+function repeaterFieldB(field) {
   const wrap = document.createElement('div');
   wrap.dataset.key = field.key;
   wrap.dataset.type = 'repeater';
@@ -137,13 +251,13 @@ function repeaterField(field) {
   wrap.appendChild(list);
   const addBtn = document.createElement('button');
   addBtn.type = 'button'; addBtn.className = 'add'; addBtn.textContent = '+ Añadir';
-  addBtn.onclick = () => addCard(list, field.sub);
+  addBtn.onclick = () => addCardB(list, field.sub);
   wrap.appendChild(addBtn);
-  addCard(list, field.sub);
+  addCardB(list, field.sub);
   return wrap;
 }
 
-function addCard(list, subFields) {
+function addCardB(list, subFields) {
   const card = document.createElement('div');
   card.className = 'card';
   const del = document.createElement('button');
@@ -161,7 +275,7 @@ function addCard(list, subFields) {
   list.appendChild(card);
 }
 
-function menuField(field) {
+function menuFieldB(field) {
   const wrap = document.createElement('div');
   wrap.dataset.key = field.key;
   wrap.dataset.type = 'menu';
@@ -172,16 +286,15 @@ function menuField(field) {
   wrap.appendChild(cats);
   const addCatBtn = document.createElement('button');
   addCatBtn.type = 'button'; addCatBtn.className = 'add'; addCatBtn.textContent = '+ Añadir categoría';
-  addCatBtn.onclick = () => addCategoria(cats);
+  addCatBtn.onclick = () => addCategoriaB(cats);
   wrap.appendChild(addCatBtn);
-  addCategoria(cats);
+  addCategoriaB(cats);
   return wrap;
 }
 
-function addCategoria(cats) {
+function addCategoriaB(cats) {
   const cat = document.createElement('div');
-  cat.className = 'card';
-  cat.dataset.cat = '1';
+  cat.className = 'cat-card';
   const del = document.createElement('button');
   del.type = 'button'; del.className = 'del'; del.textContent = 'Quitar categoría';
   del.onclick = () => cat.remove();
@@ -194,18 +307,16 @@ function addCategoria(cats) {
   platos.style.marginTop = '8px';
   cat.appendChild(platos);
   const addPlatoBtn = document.createElement('button');
-  addPlatoBtn.type = 'button'; addPlatoBtn.className = 'add'; addPlatoBtn.textContent = '+ Añadir plato';
-  addPlatoBtn.style.fontSize = '12.5px';
-  addPlatoBtn.onclick = () => addPlato(platos);
+  addPlatoBtn.type = 'button'; addPlatoBtn.className = 'add small'; addPlatoBtn.textContent = '+ Añadir plato';
+  addPlatoBtn.onclick = () => addPlatoB(platos);
   cat.appendChild(addPlatoBtn);
-  addPlato(platos);
+  addPlatoB(platos);
   cats.appendChild(cat);
 }
 
-function addPlato(platos) {
+function addPlatoB(platos) {
   const row = document.createElement('div');
-  row.className = 'row';
-  row.style.marginTop = '6px';
+  row.className = 'row dish-row';
   row.dataset.plato = '1';
   const nombre = document.createElement('input'); nombre.placeholder = 'Plato'; nombre.dataset.role = 'nombre';
   const precio = document.createElement('input'); precio.placeholder = '9 €'; precio.dataset.role = 'precio'; precio.style.maxWidth='90px';
@@ -214,29 +325,29 @@ function addPlato(platos) {
   platos.appendChild(row);
 }
 
-function renderCamposIA() {
-  camposIADiv.innerHTML = '<h2>Datos para que la IA redacte el texto</h2>';
+function renderCamposIA(div) {
+  div.innerHTML = '<h2>Datos para que la IA redacte el texto</h2>';
   const cfg = SECTORES[sectorSel.value];
-  cfg.camposIA.forEach(field => {
+  cfg.tablaB.forEach(field => {
     if (field.type === 'text') {
       const l = document.createElement('label'); l.textContent = field.label;
       const inp = document.createElement('input'); inp.dataset.key = field.key; inp.dataset.type = 'text';
-      camposIADiv.appendChild(l); camposIADiv.appendChild(inp);
+      div.appendChild(l); div.appendChild(inp);
     } else if (field.type === 'lines') {
       const l = document.createElement('label'); l.textContent = field.label;
       const ta = document.createElement('textarea'); ta.dataset.key = field.key; ta.dataset.type = 'lines';
-      camposIADiv.appendChild(l); camposIADiv.appendChild(ta);
+      div.appendChild(l); div.appendChild(ta);
     } else if (field.type === 'repeater') {
-      camposIADiv.appendChild(repeaterField(field));
+      div.appendChild(repeaterFieldB(field));
     } else if (field.type === 'menu') {
-      camposIADiv.appendChild(menuField(field));
+      div.appendChild(menuFieldB(field));
     }
   });
 }
 
-function collectDatosBrutos() {
+function collectDatosBrutos(div) {
   const out = {};
-  camposIADiv.querySelectorAll(':scope > [data-key]').forEach(el => {
+  div.querySelectorAll(':scope > [data-key]').forEach(el => {
     const key = el.dataset.key, type = el.dataset.type;
     if (type === 'text') out[key] = el.value;
     else if (type === 'lines') out[key] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
@@ -247,7 +358,7 @@ function collectDatosBrutos() {
         return item;
       });
     } else if (type === 'menu') {
-      out[key] = Array.from(el.querySelectorAll(':scope > div > .card')).map(cat => ({
+      out[key] = Array.from(el.querySelectorAll(':scope > div > .cat-card')).map(cat => ({
         categoria: cat.querySelector('[data-role=categoria]').value,
         platos: Array.from(cat.querySelectorAll('[data-plato]')).map(row => ({
           nombre: row.querySelector('[data-role=nombre]').value,
@@ -260,15 +371,244 @@ function collectDatosBrutos() {
   return out;
 }
 
-sectorSel.addEventListener('change', () => { renderTipoOptions(); renderCamposIA(); });
-document.querySelectorAll('input[name=via]').forEach(r => r.addEventListener('change', () => {
+// ───────────────────────── Tabla A (vías "propio" y "mejora IA") ─────────────────────────
+// Motor genérico dirigido por el esquema `tablaA` de cada sector (ver
+// arriba), con contador de caracteres en vivo. Sirve tanto para la página
+// principal como, reutilizando la misma función, para la página adicional.
+
+function repeaterFieldA(field) {
+  const wrap = document.createElement('div');
+  wrap.dataset.key = field.key;
+  wrap.dataset.kind = 'repeater';
+  const l = document.createElement('label');
+  l.innerHTML = field.label + (field.optional ? ' <span class="opt">(opcional)</span>' : '');
+  wrap.appendChild(l);
+  const list = document.createElement('div');
+  wrap.appendChild(list);
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button'; addBtn.className = 'add'; addBtn.textContent = '+ Añadir';
+  const refreshAddBtn = () => { addBtn.disabled = field.max ? list.children.length >= field.max : false; };
+  addBtn.onclick = () => { addCardA(list, field.fields); refreshAddBtn(); };
+  wrap.appendChild(addBtn);
+  const initialCount = field.min || (field.optional ? 0 : 1);
+  for (let i = 0; i < initialCount; i++) addCardA(list, field.fields);
+  refreshAddBtn();
+  list.addEventListener('cardremoved', refreshAddBtn);
+  return wrap;
+}
+
+function addCardA(list, subFields) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const del = document.createElement('button');
+  del.type = 'button'; del.className = 'del'; del.textContent = 'Quitar';
+  del.onclick = () => { card.remove(); list.dispatchEvent(new Event('cardremoved')); };
+  card.appendChild(del);
+  subFields.forEach(sf => {
+    const { wrap, input } = labeledInput(sf.label, { max: sf.max, textarea: sf.textarea, hintExtra: sf.hintExtra });
+    input.dataset.sub = sf.key;
+    card.appendChild(wrap);
+  });
+  list.appendChild(card);
+}
+
+function fixedTextFieldA(field) {
+  const wrap = document.createElement('div');
+  wrap.dataset.key = field.key;
+  wrap.dataset.kind = 'fixedText';
+  const l = document.createElement('label');
+  l.textContent = field.label;
+  wrap.appendChild(l);
+  for (let i = 0; i < field.count; i++) {
+    const input = document.createElement('input');
+    input.dataset.idx = String(i);
+    wrap.appendChild(input);
+    attachCounter(input, field.max);
+  }
+  return wrap;
+}
+
+function fixedPairFieldA(field) {
+  const wrap = document.createElement('div');
+  wrap.dataset.key = field.key;
+  wrap.dataset.kind = 'fixedPair';
+  const l = document.createElement('label');
+  l.textContent = field.label;
+  wrap.appendChild(l);
+  for (let i = 0; i < field.count; i++) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = String(i);
+    const tag = document.createElement('div');
+    tag.className = 'hint'; tag.textContent = 'Paso ' + (i + 1);
+    card.appendChild(tag);
+    field.fields.forEach(sf => {
+      const { wrap: fw, input } = labeledInput(sf.label, { max: sf.max, textarea: sf.textarea });
+      input.dataset.sub = sf.key;
+      card.appendChild(fw);
+    });
+    wrap.appendChild(card);
+  }
+  return wrap;
+}
+
+function menuFieldA(field) {
+  const wrap = document.createElement('div');
+  wrap.dataset.key = field.key;
+  wrap.dataset.kind = 'menu';
+  const l = document.createElement('label');
+  l.textContent = field.label;
+  wrap.appendChild(l);
+  const hint = document.createElement('div');
+  hint.className = 'hint';
+  hint.textContent = 'Añade primero una categoría (p. ej. "Entrantes") y luego los platos dentro de ella.';
+  wrap.appendChild(hint);
+  const cats = document.createElement('div');
+  wrap.appendChild(cats);
+  const addCatBtn = document.createElement('button');
+  addCatBtn.type = 'button'; addCatBtn.className = 'add'; addCatBtn.textContent = '+ Añadir categoría';
+  addCatBtn.onclick = () => addCategoriaA(cats, field);
+  wrap.appendChild(addCatBtn);
+  addCategoriaA(cats, field);
+  return wrap;
+}
+
+function addCategoriaA(cats, field) {
+  const cat = document.createElement('div');
+  cat.className = 'cat-card';
+  const del = document.createElement('button');
+  del.type = 'button'; del.className = 'del'; del.textContent = 'Quitar categoría';
+  del.onclick = () => cat.remove();
+  cat.appendChild(del);
+  const nombreCat = document.createElement('input');
+  nombreCat.placeholder = 'Nombre de la categoría (p. ej. Entrantes)';
+  nombreCat.dataset.role = 'categoria';
+  cat.appendChild(nombreCat);
+  const platos = document.createElement('div');
+  platos.style.marginTop = '8px';
+  cat.appendChild(platos);
+  const addPlatoBtn = document.createElement('button');
+  addPlatoBtn.type = 'button'; addPlatoBtn.className = 'add small'; addPlatoBtn.textContent = '+ Añadir plato';
+  addPlatoBtn.onclick = () => addPlatoA(platos, field);
+  cat.appendChild(addPlatoBtn);
+  addPlatoA(platos, field);
+  cats.appendChild(cat);
+}
+
+function addPlatoA(platos, field) {
+  const row = document.createElement('div');
+  row.className = 'dish-row';
+  row.dataset.plato = '1';
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button'; delBtn.className = 'del'; delBtn.textContent = 'Quitar plato';
+  delBtn.onclick = () => row.remove();
+  row.appendChild(delBtn);
+  const line = document.createElement('div');
+  line.className = 'row';
+  const { wrap: nw, input: nombre } = labeledInput('Plato', { max: field.nombreMax });
+  nombre.dataset.role = 'nombre';
+  const { wrap: pw, input: precio } = labeledInput('Precio (p. ej. "9 €" o "9 €/pers")', {});
+  precio.dataset.role = 'precio';
+  line.appendChild(nw); line.appendChild(pw);
+  row.appendChild(line);
+  const { wrap: dw, input: desc } = labeledInput('Descripción (opcional)', { max: field.descripcionMax });
+  desc.dataset.role = 'descripcion';
+  row.appendChild(dw);
+  platos.appendChild(row);
+}
+
+function renderTablaA(div) {
+  div.innerHTML = '<h2>Contenido de la web</h2>';
+  const cfg = SECTORES[sectorSel.value];
+  cfg.tablaA.forEach(field => {
+    if (field.type === 'text' || field.type === 'textarea') {
+      const { wrap, input } = labeledInput(field.label, { max: field.max, textarea: field.type === 'textarea', hintExtra: field.hintExtra });
+      wrap.dataset.key = field.key;
+      wrap.dataset.kind = field.type;
+      input.dataset.self = '1';
+      div.appendChild(wrap);
+    } else if (field.type === 'fixedText') {
+      div.appendChild(fixedTextFieldA(field));
+    } else if (field.type === 'fixedPair') {
+      div.appendChild(fixedPairFieldA(field));
+    } else if (field.type === 'repeater') {
+      div.appendChild(repeaterFieldA(field));
+    } else if (field.type === 'menu') {
+      div.appendChild(menuFieldA(field));
+    }
+  });
+}
+
+function collectTablaA(div) {
+  const out = {};
+  div.querySelectorAll(':scope > [data-key]').forEach(wrap => {
+    const key = wrap.dataset.key, kind = wrap.dataset.kind;
+    if (kind === 'text' || kind === 'textarea') {
+      out[key] = wrap.querySelector('[data-self]').value;
+    } else if (kind === 'fixedText') {
+      out[key] = Array.from(wrap.querySelectorAll('input')).map(i => i.value);
+    } else if (kind === 'fixedPair') {
+      out[key] = Array.from(wrap.querySelectorAll(':scope > .card')).map(card => {
+        const item = {};
+        card.querySelectorAll('[data-sub]').forEach(inp => item[inp.dataset.sub] = inp.value);
+        return item;
+      });
+    } else if (kind === 'repeater') {
+      out[key] = Array.from(wrap.querySelectorAll(':scope > div > .card')).map(card => {
+        const item = {};
+        card.querySelectorAll('[data-sub]').forEach(inp => item[inp.dataset.sub] = inp.value);
+        return item;
+      });
+    } else if (kind === 'menu') {
+      out[key] = Array.from(wrap.querySelectorAll(':scope > div > .cat-card')).map(cat => ({
+        categoria: cat.querySelector('[data-role=categoria]').value,
+        platos: Array.from(cat.querySelectorAll('[data-plato]')).map(row => ({
+          nombre: row.querySelector('[data-role=nombre]').value,
+          descripcion: row.querySelector('[data-role=descripcion]').value,
+          precio: row.querySelector('[data-role=precio]').value,
+        })),
+      }));
+    }
+  });
+  return out;
+}
+
+// Comprueba en el navegador los mismos límites que src/services/validate.js
+// (solo se usa para bloquear el envío en la vía "propio" — en "mejora IA" es
+// orientativo, ver hint del selector de vía).
+function validarTablaAEnCliente(div) {
+  const overs = div.querySelectorAll('.counter.over');
+  return overs.length === 0;
+}
+
+// ───────────────────────── cableado de sector / vía / página adicional ─────────────────────────
+
+function renderTodo() {
+  renderCamposIA(camposIADiv);
+  renderTablaA(camposTablaADiv);
+  renderCamposIA(camposIAAdicionalDiv);
+  renderTablaA(camposTablaAAdicionalDiv);
+  aplicarVia();
+}
+
+function aplicarVia() {
   const via = document.querySelector('input[name=via]:checked').value;
-  document.getElementById('campos-ia').style.display = via === 'ia' ? '' : 'none';
-  document.getElementById('campos-propio').style.display = via === 'propio' ? '' : 'none';
-}));
+  const esTablaA = via === 'propio' || via === 'mejora';
+  camposIADiv.style.display = esTablaA ? 'none' : '';
+  camposTablaADiv.style.display = esTablaA ? '' : 'none';
+  camposIAAdicionalDiv.style.display = esTablaA ? 'none' : '';
+  camposTablaAAdicionalDiv.style.display = esTablaA ? '' : 'none';
+}
+
+sectorSel.addEventListener('change', () => { renderTipoOptions(); renderTodo(); });
+document.querySelectorAll('input[name=via]').forEach(r => r.addEventListener('change', aplicarVia));
+document.getElementById('pagina_adicional').addEventListener('change', (e) => {
+  document.getElementById('campos-adicional').style.display = e.target.checked ? '' : 'none';
+  document.getElementById('hint-adicional').style.display = e.target.checked ? '' : 'none';
+});
 
 renderTipoOptions();
-renderCamposIA();
+renderTodo();
 
 let ultimoOrderId = null;
 
@@ -281,6 +621,8 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     return;
   }
   const via = document.querySelector('input[name=via]:checked').value;
+  const paginaAdicional = document.getElementById('pagina_adicional').checked;
+
   const payload = {
     sector: sectorSel.value,
     datosBase: {
@@ -290,17 +632,31 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       email: document.getElementById('email').value,
     },
     viaTexto: via,
-    paginaAdicional: document.getElementById('pagina_adicional').checked,
+    paginaAdicional,
   };
+
   if (via === 'ia') {
-    payload.datosBrutos = collectDatosBrutos();
+    payload.datosBrutos = collectDatosBrutos(camposIADiv);
+    if (paginaAdicional) payload.datosBrutosAdicional = collectDatosBrutos(camposIAAdicionalDiv);
   } else {
-    try {
-      payload.contenido = JSON.parse(document.getElementById('contenido-json').value);
-    } catch (e) {
+    if (via === 'propio' && !validarTablaAEnCliente(camposTablaADiv)) {
       errorDiv.style.display = 'block';
-      errorDiv.textContent = 'El JSON de contenido no es válido: ' + e.message;
+      errorDiv.textContent = 'Hay campos que superan el límite de caracteres (marcados en rojo). Ajústalos antes de continuar.';
       return;
+    }
+    const contenido = collectTablaA(camposTablaADiv);
+    if (via === 'propio') payload.contenido = contenido;
+    else payload.textoCliente = contenido;
+
+    if (paginaAdicional) {
+      if (via === 'propio' && !validarTablaAEnCliente(camposTablaAAdicionalDiv)) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = 'La página adicional tiene campos que superan el límite de caracteres (marcados en rojo).';
+        return;
+      }
+      const contenidoAd = collectTablaA(camposTablaAAdicionalDiv);
+      if (via === 'propio') payload.contenidoAdicional = contenidoAd;
+      else payload.textoClienteAdicional = contenidoAd;
     }
   }
 
