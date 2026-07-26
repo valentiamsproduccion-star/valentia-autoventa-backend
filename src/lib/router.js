@@ -61,8 +61,8 @@ function readBody(req, opts) {
   });
 }
 
-async function readJsonBody(req) {
-  const raw = await readBody(req);
+async function readJsonBody(req, opts) {
+  const raw = await readBody(req, opts);
   if (!raw) return {};
   try {
     return JSON.parse(raw);
