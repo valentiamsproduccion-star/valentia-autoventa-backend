@@ -14,6 +14,12 @@ const TEMPLATE_FILE = {
   'servicios-profesionales': 'servicios-profesionales.mustache',
   'salud-bienestar': 'salud-bienestar.mustache',
   'hosteleria-restauracion': 'hosteleria-restauracion.mustache',
+  'turismo-alojamiento': 'turismo-alojamiento.mustache',
+  'comercio-retail': 'comercio-retail.mustache',
+  'reformas-construccion': 'reformas-construccion.mustache',
+  'formacion-academias': 'formacion-academias.mustache',
+  'ocio-cultura': 'ocio-cultura.mustache',
+  'automocion': 'automocion.mustache',
 };
 
 function soloDigitos(str) {
@@ -42,6 +48,12 @@ function baseContext(datosBase, opts) {
     email: datosBase.email || '',
     anio: String(new Date().getFullYear()),
     preview: !!opts.preview,
+    // Logo/favicon subidos por el cliente en el alta (ver Formulario de
+    // Alta, sección "Logo y favicon"). Si no hay, quedan vacíos y las
+    // plantillas usan `{{^logo_url}}`/`{{^favicon_url}}` para mostrar el
+    // avatar de iniciales y omitir el <link rel="icon">.
+    logo_url: datosBase.logo_url || '',
+    favicon_url: datosBase.favicon_url || '',
   };
 }
 
@@ -51,6 +63,7 @@ function renderServiciosProfesionales(datosBase, contenido, opts) {
     consulta_points: withIndex(contenido.consulta_points),
     hay_casos: Array.isArray(contenido.casos) && contenido.casos.length > 0,
     hay_testimonios: Array.isArray(contenido.testimonios) && contenido.testimonios.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
   return renderSector('servicios-profesionales', ctx);
 }
@@ -60,6 +73,7 @@ function renderSaludBienestar(datosBase, contenido, opts) {
     treats: withIndex(contenido.treats),
     cita_points: withIndex(contenido.cita_points),
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
   return renderSector('salud-bienestar', ctx);
 }
@@ -68,14 +82,89 @@ function renderHosteleriaRestauracion(datosBase, contenido, opts) {
   const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
     hay_events: Array.isArray(contenido.events) && contenido.events.length > 0,
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
   return renderSector('hosteleria-restauracion', ctx);
+}
+
+// ── Sectores añadidos (fase 2): turismo, comercio, reformas, formación ──
+// Todos comparten el mismo patrón: numeran los bloques que la plantilla
+// muestra como "01, 02, ..." y calculan los flags hay_* de las secciones
+// opcionales (reviews, faqs, etc.).
+
+function renderTurismoAlojamiento(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    // comodidades llega como lista de longitud fija desde el formulario
+    // (campo fixedText); filtramos las vacías para no pintar chips en blanco.
+    comodidades: (contenido.comodidades || []).filter(Boolean),
+    entorno: withIndex(contenido.entorno),
+    reserva_points: withIndex(contenido.reserva_points),
+    hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
+  });
+  return renderSector('turismo-alojamiento', ctx);
+}
+
+function renderComercioRetail(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    razones: withIndex(contenido.razones),
+    hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
+  });
+  return renderSector('comercio-retail', ctx);
+}
+
+function renderReformasConstruccion(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    proceso: withIndex(contenido.proceso),
+    presupuesto_points: withIndex(contenido.presupuesto_points),
+    hay_proyectos: Array.isArray(contenido.proyectos) && contenido.proyectos.length > 0,
+    hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
+  });
+  return renderSector('reformas-construccion', ctx);
+}
+
+function renderFormacionAcademias(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    metodo: withIndex(contenido.metodo),
+    matricula_points: withIndex(contenido.matricula_points),
+    hay_profes: Array.isArray(contenido.profes) && contenido.profes.length > 0,
+    hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
+  });
+  return renderSector('formacion-academias', ctx);
+}
+
+function renderOcioCultura(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    reserva_points: withIndex(contenido.reserva_points),
+    hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
+  });
+  return renderSector('ocio-cultura', ctx);
+}
+
+function renderAutomocion(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    razones: withIndex(contenido.razones),
+    cita_points: withIndex(contenido.cita_points),
+    hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
+    hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
+  });
+  return renderSector('automocion', ctx);
 }
 
 const RENDERERS = {
   'servicios-profesionales': renderServiciosProfesionales,
   'salud-bienestar': renderSaludBienestar,
   'hosteleria-restauracion': renderHosteleriaRestauracion,
+  'turismo-alojamiento': renderTurismoAlojamiento,
+  'comercio-retail': renderComercioRetail,
+  'reformas-construccion': renderReformasConstruccion,
+  'formacion-academias': renderFormacionAcademias,
+  'ocio-cultura': renderOcioCultura,
+  'automocion': renderAutomocion,
 };
 
 function renderSector(sector, ctx) {

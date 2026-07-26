@@ -27,6 +27,11 @@ async function publicarCliente(client, orderContext) {
     ciudad: client.ciudad,
     telefono: client.telefono,
     email: client.email,
+    // Logo/favicon subidos en el alta (ver server.js, POST /api/alta) --
+    // si el cliente no subió nada, quedan undefined y baseContext() los
+    // deja vacíos (avatar de iniciales, sin favicon).
+    logo_url: client.logo_url,
+    favicon_url: client.favicon_url,
   };
 
   const htmlPrincipal = renderPagina(client.sector, datosBase, orderContext.contenidoPrincipal, { preview: false });

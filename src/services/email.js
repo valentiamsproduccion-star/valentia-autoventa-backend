@@ -93,4 +93,48 @@ async function sendMagicLinkEmail(client, urlPrincipal, urlMiPagina) {
   );
 }
 
-module.exports = { sendMagicLinkEmail };
+// Aviso interno al equipo cuando un cliente ha pagado la casilla "Quiero
+// que la IA me diseñe un logo" (+15€, ver formulario de alta y server.js).
+// Este MVP NO genera el logo automáticamente -- eso requeriría un servicio
+// de generación de imágenes aparte, fuera del alcance de esta tarea. Lo que
+// sí hace es avisar para que el equipo lo diseñe y lo suba manualmente
+// (mismo espíritu que el "PUNTO DE EXTENSIÓN" de publish.js). Si no hay
+// ADMIN_EMAIL configurado, se avisa por consola en vez de fallar el webhook.
+async function sendLogoIaSolicitadoEmail(client) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const nombre = client.nombre_negocio || 'sin nombre';
+  if (!apiKey || !adminEmail) {
+    console.warn(
+      '[email] Logo IA solicitado por "' + nombre + '" (cliente ' + client.id + ') pero falta ' +
+      (!apiKey ? 'RESEND_API_KEY' : 'ADMIN_EMAIL') + ' -- avisa al equipo manualmente.'
+    );
+    return null;
+  }
+  const from = process.env.EMAIL_FROM || 'Valentia <onboarding@resend.dev>';
+  const html = `
+    <div style="font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+      <p>Nuevo pedido de <strong>logo con IA</strong> (+15€, ya pagado):</p>
+      <ul>
+        <li>Negocio: ${escapeHtml(nombre)}</li>
+        <li>Sector: ${escapeHtml(client.sector || '')}</li>
+        <li>Email de contacto: ${escapeHtml(client.email || '')}</li>
+        <li>Cliente ID: ${escapeHtml(client.id)}</li>
+      </ul>
+      <p>Diseñar el logo y subirlo manualmente (o vía panel interno) para que sustituya al avatar de iniciales.</p>
+    </div>
+  `.trim();
+
+  return postJSON(
+    '/emails',
+    { Authorization: 'Bearer ' + apiKey },
+    {
+      from,
+      to: [adminEmail],
+      subject: 'Logo con IA solicitado — ' + nombre,
+      html,
+    }
+  );
+}
+
+module.exports = { sendMagicLinkEmail, sendLogoIaSolicitadoEmail };

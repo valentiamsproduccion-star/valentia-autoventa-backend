@@ -121,4 +121,59 @@ async function kvUpdate(collection, id, data) {
   return data;
 }
 
-module.exports = { postgrestRequest, kvSelect, kvSelectOne, kvInsert, kvUpdate };
+// ---------- Supabase Storage (logo / favicon subidos por el cliente) ----------
+// A diferencia de kv_store (PostgREST sobre /rest/v1/...), Storage vive en
+// /storage/v1/... del mismo proyecto. No hace falta parsear multipart en
+// ningún lado: el cliente (alta.html) manda el archivo ya en base64 dentro
+// del JSON de /api/alta, el servidor lo decodifica a un Buffer y lo sube
+// aquí tal cual (bytes crudos en el body, Content-Type real del archivo).
+// `x-upsert: true` permite volver a subir con la misma ruta sin que falle
+// si ya existía (útil si el cliente cambia de logo más adelante).
+
+function encodeStoragePath(filePath) {
+  return String(filePath).split('/').map(encodeURIComponent).join('/');
+}
+
+function uploadStorageFile(bucket, filePath, buffer, contentType) {
+  const { hostname, key } = supabaseConfig();
+  const urlPath = '/storage/v1/object/' + encodeURIComponent(bucket) + '/' + encodeStoragePath(filePath);
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname,
+        path: urlPath,
+        method: 'POST',
+        headers: {
+          apikey: key,
+          Authorization: 'Bearer ' + key,
+          'Content-Type': contentType || 'application/octet-stream',
+          'Content-Length': buffer.length,
+          'x-upsert': 'true',
+        },
+      },
+      res => {
+        let data = '';
+        res.on('data', c => (data += c));
+        res.on('end', () => {
+          if (res.statusCode >= 400) {
+            return reject(new Error('Supabase Storage HTTP ' + res.statusCode + ' subiendo ' + filePath + ': ' + data.slice(0, 500)));
+          }
+          resolve(publicStorageUrl(bucket, filePath));
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(buffer);
+    req.end();
+  });
+}
+
+// URL pública de un archivo del bucket. Requiere que el bucket se haya
+// creado como "Public bucket" en el dashboard de Supabase (ver README,
+// "Base de datos (Supabase)") -- si no, esta URL devolvería 400/403.
+function publicStorageUrl(bucket, filePath) {
+  const { hostname } = supabaseConfig();
+  return 'https://' + hostname + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + encodeStoragePath(filePath);
+}
+
+module.exports = { postgrestRequest, kvSelect, kvSelectOne, kvInsert, kvUpdate, uploadStorageFile, publicStorageUrl };
