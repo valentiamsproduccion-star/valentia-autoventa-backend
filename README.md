@@ -57,6 +57,9 @@ algo que se pueda automatizar por seguridad:
    - Un producto con un Price recurrente de 5€/mes (el suplemento de
      página adicional, ver "Plantillas por Sector" sección 3) →
      `STRIPE_PRICE_SUPLEMENTO_PAGINA`
+   - Un producto con un Price de pago único de 15€ (logo diseñado por IA,
+     casilla del formulario de alta cuando el cliente no tiene logo propio)
+     → `STRIPE_PRICE_LOGO_IA`
    - En Desarrolladores → Webhooks, añade un endpoint apuntando a
      `https://TU-DOMINIO/api/webhook/stripe`, evento
      `checkout.session.completed`, y copia el "Signing secret" a
@@ -93,6 +96,13 @@ algo que se pueda automatizar por seguridad:
    - **service_role secret** (no la `anon` / `public`) → `SUPABASE_SERVICE_KEY`
 4. Ponlas en `.env` (desarrollo local) o en las variables de entorno de
    Render (producción).
+5. **Logo y favicon del cliente** (`src/services/supabase.js`,
+   `uploadStorageFile`): ve a **Storage** → **New bucket**, créalo con el
+   nombre `logos` (o el que pongas en `SUPABASE_STORAGE_BUCKET`) y marca la
+   opción **Public bucket** — si no es público, las imágenes no se podrán
+   ver en la web publicada del cliente. No hace falta ninguna tabla nueva:
+   los archivos se guardan como objetos normales del bucket, bajo una
+   carpeta por cliente (`{client_id}/logo-1.png`, etc.).
 
 ## Email (Resend)
 
@@ -116,6 +126,12 @@ después de su primer pago (`src/server.js`, webhook de Stripe → `src/services
 4. Si `RESEND_API_KEY` falta o el envío falla, el webhook no se rompe: la
    web se publica igual y el enlace queda guardado en Supabase, solo que no
    se envía por email (se registra el error en los logs de Render).
+5. **Logo con IA**: pon tu email (o el del equipo) en `ADMIN_EMAIL` para
+   recibir un aviso cuando un cliente pague la casilla "Quiero que la IA me
+   diseñe un logo" (+15€) — este MVP no genera el logo automáticamente
+   (haría falta un servicio de generación de imágenes aparte), así que el
+   aviso es para diseñarlo y subirlo manualmente. Sin `ADMIN_EMAIL`, el
+   aviso solo queda en los logs de Render.
 
 ## Elegir hosting — importante
 
@@ -142,6 +158,14 @@ código, en el sitio exacto donde hay que engancharlo:
   arriba. Solo falta que verifiques tu propio dominio en Resend cuando
   quieras enviar a clientes reales (mientras tanto, `RESEND_API_KEY` sin
   dominio verificado solo entrega al email de tu cuenta Resend).
+- **Generación real del logo con IA** (`src/services/email.js`,
+  `sendLogoIaSolicitadoEmail`). El formulario de alta ya cobra los 15€ y
+  avisa por email cuando un cliente lo pide, pero el logo en sí lo diseña
+  el equipo a mano (no hay integración con un generador de imágenes) — es
+  un punto de extensión a futuro si el volumen lo justifica. Mientras tanto
+  la web del cliente muestra un avatar de iniciales hasta que se le suba
+  el logo definitivo (mismo campo `logo_url` que si el cliente hubiera
+  subido uno propio).
 
 ## Antes de producción
 

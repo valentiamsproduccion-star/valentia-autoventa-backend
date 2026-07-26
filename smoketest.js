@@ -11,12 +11,19 @@ process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_fake';
 process.env.STRIPE_PRICE_INICIAL = 'price_inicial_fake';
 process.env.STRIPE_PRICE_MENSUAL = 'price_mensual_fake';
 process.env.STRIPE_PRICE_SUPLEMENTO_PAGINA = 'price_suplemento_fake';
+process.env.STRIPE_PRICE_LOGO_IA = 'price_logo_ia_fake';
 process.env.ANTHROPIC_API_KEY = 'sk-ant-fake';
 process.env.SUPABASE_URL = 'https://fake-smoketest.supabase.co';
 process.env.SUPABASE_SERVICE_KEY = 'fake-service-key';
+process.env.SUPABASE_STORAGE_BUCKET = 'logos';
 process.env.RESEND_API_KEY = 're_fake_key';
 process.env.EMAIL_FROM = 'Valentia <onboarding@resend.dev>';
+process.env.ADMIN_EMAIL = 'equipo@valentiams.test';
 process.env.PORT = '3999';
+
+// PNG 1x1 transparente real, en base64 -- sirve como archivo de logo/favicon
+// de prueba sin depender de ningún archivo externo.
+const FAKE_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
 // ---- Interceptar https.request para simular Stripe, Anthropic y Supabase ----
 // (el sandbox de desarrollo no tiene salida a internet real, así que no se
@@ -65,8 +72,20 @@ function matchesFilters(row, params) {
 }
 
 function handleSupabase(options, bodyStr) {
+  const pathOnly = options.path.replace(/\?.*/, '');
+
+  // Subida de logo/favicon (src/services/supabase.js, uploadStorageFile):
+  // no hace falta persistir los bytes de verdad para la prueba de humo,
+  // solo responder OK como haría la Storage API real.
+  if (pathOnly.startsWith('/storage/v1/object/')) {
+    if (options.method === 'POST' || options.method === 'PUT') {
+      return { statusCode: 200, body: JSON.stringify({ Key: pathOnly.replace('/storage/v1/object/', '') }) };
+    }
+    return { statusCode: 405, body: JSON.stringify({ error: 'método no simulado en storage' }) };
+  }
+
   const params = parseQuery(options.path);
-  const isKvStore = options.path.replace(/\?.*/, '') === '/rest/v1/kv_store';
+  const isKvStore = pathOnly === '/rest/v1/kv_store';
   if (!isKvStore) return { statusCode: 404, body: JSON.stringify({ error: 'tabla no simulada' }) };
 
   if (options.method === 'GET') {
@@ -125,6 +144,7 @@ https.request = function (options, callback) {
         fakeStripeSessionCounter++;
         const sessionId = 'cs_test_fake_' + fakeStripeSessionCounter;
         global.__lastFakeStripeSessionId = sessionId;
+        global.__lastFakeStripeBody = bodyStr; // para comprobar qué line items se mandaron (ver logo con IA)
         responseBody = JSON.stringify({ id: sessionId, url: 'https://checkout.stripe.com/fake/' + sessionId });
       } else if (options.hostname === 'fake-smoketest.supabase.co') {
         const result = handleSupabase(options, bodyStr);
@@ -161,6 +181,43 @@ https.request = function (options, callback) {
 const { server } = require('./src/server.js');
 const db = require('./src/db/db.js');
 const { verificarFirmaWebhook } = require('./src/services/stripe.js');
+const { LIMITES } = require('./src/services/validate.js');
+const { TEMPLATE_FILE } = require('./src/services/render.js');
+
+// Genera contenido válido (respeta todos los límites de caracteres de
+// validate.js) para CUALQUIER sector de forma automática, introspeccionando
+// LIMITES[sector] -- así, si se añade un sector nuevo (o cambian sus
+// límites), esta prueba de humo lo cubre sin tener que escribir un bloque de
+// contenido a mano por sector.
+function textoDeLongitud(n) {
+  const base = 'Lorem ipsum dolor sit amet consectetur adipiscing';
+  let s = '';
+  while (s.length < n) s += base + ' ';
+  return s.trim().slice(0, Math.max(1, n)) || 'x';
+}
+
+function contenidoValidoParaSector(sector) {
+  const limites = LIMITES[sector];
+  const contenido = {};
+  for (const key in limites) {
+    const limit = limites[key];
+    if (key.endsWith('[]') && !key.includes('.')) {
+      const field = key.slice(0, -2);
+      contenido[field] = [textoDeLongitud(Math.min(limit, 12)), textoDeLongitud(Math.min(limit, 12))];
+    } else if (key === 'menu_cats[].platos[].nombre' || key === 'menu_cats[].platos[].descripcion') {
+      if (!contenido.menu_cats) contenido.menu_cats = [{ nombre: 'Categoría', platos: [{}] }];
+      const sub = key.endsWith('nombre') ? 'nombre' : 'descripcion';
+      contenido.menu_cats[0].platos[0][sub] = textoDeLongitud(Math.min(limit, 20));
+    } else if (key.includes('[].')) {
+      const [arrField, sub] = key.split('[].');
+      if (!contenido[arrField]) contenido[arrField] = [{}];
+      contenido[arrField][0][sub] = textoDeLongitud(Math.min(limit, 20));
+    } else {
+      contenido[key] = textoDeLongitud(Math.min(limit, 30));
+    }
+  }
+  return contenido;
+}
 
 function request(method, path, bodyObj, extraHeaders) {
   return new Promise((resolve, reject) => {
@@ -274,7 +331,101 @@ async function main() {
   console.log('8) enlace mágico sigue activo tras usarlo (permanente por diseño):', stillValid);
   if (!stillValid) throw new Error('El enlace mágico se invalidó y no debería');
 
-  console.log('\n✔ TODO EL FLUJO END-TO-END FUNCIONA CORRECTAMENTE');
+  // 9) ALTA con logo/favicon subidos por el cliente -- verifica que se sube
+  // a Storage (mock) y que la vista previa usa la imagen en vez del avatar
+  // de iniciales.
+  const altaConLogoResp = await request('POST', '/api/alta', {
+    sector: 'salud-bienestar',
+    datosBase: { nombre_negocio: 'Clínica Smoke', ciudad: 'Madrid', telefono: '600222333', email: 'info@clinica-smoke.test' },
+    viaTexto: 'ia',
+    datosBrutos: { tratamientos: ['Fisioterapia'], equipo: [{ nombre: 'Bea', rol: 'Fisio', credencial: 'Colegiada 2' }], dato_confianza: '+5 años' },
+    paginaAdicional: false,
+    logos: [{ filename: 'logo.png', mime: 'image/png', base64: FAKE_PNG_BASE64 }],
+    favicon: { filename: 'favicon.png', mime: 'image/png', base64: FAKE_PNG_BASE64 },
+  });
+  console.log('9) POST /api/alta con logo+favicon ->', altaConLogoResp.statusCode, altaConLogoResp.body.orderId ? 'orderId OK' : altaConLogoResp.body);
+  if (altaConLogoResp.statusCode !== 200) throw new Error('Fallo en /api/alta con logo/favicon');
+  const clienteConLogo = await db.getClient(altaConLogoResp.body.clientId);
+  const logoGuardado = !!clienteConLogo.logo_url && !!clienteConLogo.favicon_url;
+  console.log('   logo_url/favicon_url guardados en el cliente:', logoGuardado ? 'SI' : 'NO (' + JSON.stringify({ logo_url: clienteConLogo.logo_url, favicon_url: clienteConLogo.favicon_url }) + ')');
+  if (!logoGuardado) throw new Error('No se guardaron logo_url/favicon_url tras subir los archivos');
+
+  const previewConLogoResp = await request('GET', '/preview/' + altaConLogoResp.body.orderId);
+  const previewUsaLogo = typeof previewConLogoResp.raw === 'string' && previewConLogoResp.raw.includes('<img src="' + clienteConLogo.logo_url + '"');
+  console.log('   vista previa usa <img> de logo en vez del avatar de iniciales:', previewUsaLogo ? 'SI' : 'NO');
+  if (!previewUsaLogo) throw new Error('La vista previa no está usando el logo subido');
+
+  // 10) ALTA sin logo, pidiendo que la IA lo diseñe (+15€) -- verifica que
+  // el pedido queda marcado y que el checkout manda el price de 15€ como
+  // line item extra (igual que la cuota inicial).
+  const altaLogoIaResp = await request('POST', '/api/alta', {
+    sector: 'servicios-profesionales',
+    datosBase: { nombre_negocio: 'Consultoría Smoke', ciudad: 'Sevilla', telefono: '600333444', email: 'info@consultoria-smoke.test' },
+    viaTexto: 'ia',
+    datosBrutos: { especialidades: ['Fiscal'], equipo: [{ nombre: 'Luis', rol: 'Socio', credencial: 'Colegiado 3' }], dato_confianza: '+8 años' },
+    paginaAdicional: false,
+    logoIaSolicitado: true,
+  });
+  console.log('10) POST /api/alta con logoIaSolicitado ->', altaLogoIaResp.statusCode, altaLogoIaResp.body.orderId ? 'orderId OK' : altaLogoIaResp.body);
+  if (altaLogoIaResp.statusCode !== 200) throw new Error('Fallo en /api/alta con logoIaSolicitado');
+  const orderLogoIa = await db.getOrder(altaLogoIaResp.body.orderId);
+  console.log('    pedido.logo_ia_solicitado:', orderLogoIa.logo_ia_solicitado === true ? 'SI' : 'NO');
+  if (orderLogoIa.logo_ia_solicitado !== true) throw new Error('El pedido no quedó marcado con logo_ia_solicitado');
+
+  const checkoutLogoIaResp = await request('POST', '/api/checkout', { orderId: altaLogoIaResp.body.orderId });
+  console.log('11) POST /api/checkout (con logo IA) ->', checkoutLogoIaResp.statusCode, checkoutLogoIaResp.body.checkoutUrl ? 'checkoutUrl OK' : checkoutLogoIaResp.body);
+  if (checkoutLogoIaResp.statusCode !== 200) throw new Error('Fallo en /api/checkout con logo IA');
+  const precioLogoIaEnviado = typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_LOGO_IA));
+  console.log('    price de logo IA (15€) incluido en la sesión de Stripe:', precioLogoIaEnviado ? 'SI' : 'NO');
+  if (!precioLogoIaEnviado) throw new Error('El checkout no incluyó el price de logo con IA');
+
+  // 12) Flujo COMPLETO (alta "propio" -> checkout -> webhook -> publicación)
+  // para el resto de sectores. Los pasos 1-11 ya prueban a fondo
+  // servicios-profesionales y salud-bienestar (incluida la vía IA, logo,
+  // enlace mágico, etc.) -- esto cierra el hueco de cobertura de los otros
+  // 7 sectores (hostelería, turismo, comercio, reformas, formación, ocio,
+  // automoción), que hasta ahora solo se habían probado a nivel de
+  // renderizado, no a través del flujo entero con pago y publicación real.
+  const SECTORES_PENDIENTES = TEMPLATE_FILE.filter(
+    s => !['servicios-profesionales', 'salud-bienestar'].includes(s)
+  );
+  console.log('\n12) Flujo completo (alta propio -> checkout -> webhook -> publicación) para el resto de sectores:');
+  for (const sector of SECTORES_PENDIENTES) {
+    const nombreNegocio = 'Smoke ' + sector + ' SL';
+    const contenido = contenidoValidoParaSector(sector);
+
+    const alta = await request('POST', '/api/alta', {
+      sector,
+      datosBase: { nombre_negocio: nombreNegocio, ciudad: 'Bilbao', telefono: '600555666', email: 'info@' + sector.replace(/[^a-z]/g, '') + '.test' },
+      viaTexto: 'propio',
+      contenido,
+      paginaAdicional: false,
+    });
+    if (alta.statusCode !== 200) throw new Error(`[${sector}] fallo en /api/alta: ${JSON.stringify(alta.body)}`);
+
+    const previewR = await request('GET', '/preview/' + alta.body.orderId);
+    const previewOkSector = previewR.statusCode === 200 && previewR.raw.includes(nombreNegocio) && !previewR.raw.match(/\{\{[^}]*\}\}/);
+    if (!previewOkSector) throw new Error(`[${sector}] vista previa incorrecta o con tags sin resolver`);
+
+    const checkout = await request('POST', '/api/checkout', { orderId: alta.body.orderId });
+    if (checkout.statusCode !== 200) throw new Error(`[${sector}] fallo en /api/checkout: ${JSON.stringify(checkout.body)}`);
+
+    const orderSector = await db.getOrder(alta.body.orderId);
+    const eventPayloadSector = JSON.stringify({ type: 'checkout.session.completed', data: { object: { id: orderSector.stripe_session_id } } });
+    const tSector = Math.floor(Date.now() / 1000);
+    const sigSector = crypto.createHmac('sha256', process.env.STRIPE_WEBHOOK_SECRET).update(tSector + '.' + eventPayloadSector, 'utf8').digest('hex');
+    const webhookSector = await request('POST', '/api/webhook/stripe', eventPayloadSector, { 'Stripe-Signature': 't=' + tSector + ',v1=' + sigSector });
+    if (webhookSector.statusCode !== 200 || !webhookSector.body.received) throw new Error(`[${sector}] fallo en el webhook`);
+
+    const clientSector = await db.getClient(orderSector.client_id);
+    const siteR = await request('GET', '/sites/' + clientSector.slug);
+    const publishedOk = siteR.statusCode === 200 && siteR.raw.includes(nombreNegocio) && !siteR.raw.match(/\{\{[^}]*\}\}/);
+    if (!publishedOk) throw new Error(`[${sector}] no se publicó correctamente en /sites/${clientSector.slug}`);
+
+    console.log(`    ✔ ${sector}: alta(propio) -> checkout -> webhook -> publicado en /sites/${clientSector.slug} (${siteR.raw.length} chars, sin tags pendientes)`);
+  }
+
+  console.log('\n✔ TODO EL FLUJO END-TO-END FUNCIONA CORRECTAMENTE (9/9 sectores cubiertos)');
   server.close();
   https.request = realRequest;
   process.exit(0);
