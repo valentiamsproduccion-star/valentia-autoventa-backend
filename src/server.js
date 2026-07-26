@@ -18,7 +18,8 @@ const { validarContenido } = require('./services/validate');
 const { generarContenido, mejorarContenido } = require('./services/ai');
 const { crearSesionCheckout, verificarFirmaWebhook } = require('./services/stripe');
 const { publicarCliente } = require('./services/publish');
-const { sendMagicLinkEmail } = require('./services/email');
+const { sendMagicLinkEmail, sendLogoIaSolicitadoEmail } = require('./services/email');
+const supabase = require('./services/supabase');
 const db = require('./db/db');
 
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,11 @@ const SECTORES_VALIDOS = TEMPLATE_FILE; // ['servicios-profesionales', 'salud-bi
 const PRICE_INICIAL = process.env.STRIPE_PRICE_INICIAL;
 const PRICE_MENSUAL = process.env.STRIPE_PRICE_MENSUAL;
 const PRICE_SUPLEMENTO_PAGINA = process.env.STRIPE_PRICE_SUPLEMENTO_PAGINA; // 5€/mes, ver Flujo sección 3
+const PRICE_LOGO_IA = process.env.STRIPE_PRICE_LOGO_IA; // 15€, pago único -- ver formulario de alta, "Logo y favicon"
+
+// Bucket público de Supabase Storage donde se guardan los logos/favicons que
+// suben los clientes en el alta (ver src/services/supabase.js, uploadStorageFile).
+const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'logos';
 
 const router = new Router();
 
@@ -41,6 +47,45 @@ function requireSector(sector) {
   if (!SECTORES_VALIDOS.includes(sector)) {
     throw Object.assign(new Error('Sector desconocido: ' + sector), { statusCode: 400 });
   }
+}
+
+// Extensión de archivo a partir del nombre original, con el mime type como
+// respaldo si el nombre no trae extensión reconocible.
+function extensionDeArchivo(filename, mime) {
+  const fromName = String(filename || '').split('.').pop();
+  if (fromName && fromName.length <= 5 && /^[a-zA-Z0-9]+$/.test(fromName)) return fromName.toLowerCase();
+  const porMime = {
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/jpg': 'jpg',
+    'image/svg+xml': 'svg', 'image/webp': 'webp',
+    'image/x-icon': 'ico', 'image/vnd.microsoft.icon': 'ico',
+  };
+  return porMime[mime] || 'png';
+}
+
+// Sube a Supabase Storage los archivos de logo (varias versiones posibles) y
+// el favicon que el cliente adjuntó en el alta. Llegan en base64 dentro del
+// JSON del formulario (sin multipart, ver src/lib/router.js) -- aquí se
+// decodifican a Buffer y se suben tal cual bajo la carpeta del cliente.
+async function subirLogoYFavicon(clientId, logos, favicon) {
+  const result = { logo_url: null, logo_urls: [], favicon_url: null };
+  if (Array.isArray(logos)) {
+    let n = 0;
+    for (const f of logos) {
+      if (!f || !f.base64) continue;
+      n++;
+      const buffer = Buffer.from(f.base64, 'base64');
+      const ext = extensionDeArchivo(f.filename, f.mime);
+      const url = await supabase.uploadStorageFile(SUPABASE_STORAGE_BUCKET, clientId + '/logo-' + n + '.' + ext, buffer, f.mime);
+      result.logo_urls.push(url);
+    }
+    if (result.logo_urls.length) result.logo_url = result.logo_urls[0];
+  }
+  if (favicon && favicon.base64) {
+    const buffer = Buffer.from(favicon.base64, 'base64');
+    const ext = extensionDeArchivo(favicon.filename, favicon.mime);
+    result.favicon_url = await supabase.uploadStorageFile(SUPABASE_STORAGE_BUCKET, clientId + '/favicon.' + ext, buffer, favicon.mime);
+  }
+  return result;
 }
 
 // ───────────────────────── 1) ALTA (formulario) ─────────────────────────
@@ -56,12 +101,21 @@ function requireSector(sector) {
 //         viaTextoAdicional?: "propio" | "ia" | "mejora"
 //         contenidoAdicional?: {...}
 //         datosBrutosAdicional?: {...}
-//         textoClienteAdicional?: {...} }
+//         textoClienteAdicional?: {...}
+//         -- logo y favicon (ver formulario de alta, sección "Logo y
+//         -- favicon"): el cliente sube archivos ya existentes, o marca que
+//         -- quiere que la IA le diseñe un logo (+15€, cobro en el checkout):
+//         logos?: [{ filename, mime, base64 }, ...]   (varias versiones/formatos)
+//         favicon?: { filename, mime, base64 }
+//         logoIaSolicitado?: boolean }
 router.post('/api/alta', async (req, res) => {
-  const body = await readJsonBody(req);
+  // Límite más alto que el resto de rutas (2MB por defecto, ver router.js):
+  // los archivos de logo/favicon viajan en base64 dentro del mismo JSON.
+  const body = await readJsonBody(req, { maxBytes: 15 * 1024 * 1024 });
   const {
     sector, datosBase, viaTexto, contenido, datosBrutos, textoCliente, paginaAdicional,
     viaTextoAdicional, contenidoAdicional, datosBrutosAdicional, textoClienteAdicional,
+    logos, favicon, logoIaSolicitado,
   } = body;
   requireSector(sector);
   if (!datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email) {
@@ -105,6 +159,26 @@ router.post('/api/alta', async (req, res) => {
   }
 
   const client = await db.createClient({ sector, ...datosBase });
+
+  // Logo/favicon (opcionales): si el cliente adjuntó archivos, se suben a
+  // Supabase Storage y se guardan sus URLs en el cliente; si no adjuntó nada
+  // y marcó "Quiero que la IA me diseñe un logo", eso se cobra en el
+  // checkout (ver /api/checkout) y el equipo lo diseña manualmente después
+  // del pago (ver services/email.js, sendLogoIaSolicitadoEmail).
+  if ((Array.isArray(logos) && logos.length) || (favicon && favicon.base64)) {
+    let logoInfo;
+    try {
+      logoInfo = await subirLogoYFavicon(client.id, logos, favicon);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudieron subir el logo/favicon: ' + e.message });
+    }
+    await db.updateClient(client.id, {
+      logo_url: logoInfo.logo_url,
+      logo_urls: logoInfo.logo_urls,
+      favicon_url: logoInfo.favicon_url,
+    });
+  }
+
   const order = await db.createOrder({
     client_id: client.id,
     sector,
@@ -112,6 +186,7 @@ router.post('/api/alta', async (req, res) => {
     contenido_principal: contenidoFinal,
     pagina_adicional: !!paginaAdicional,
     contenido_adicional: contenidoAdicionalFinal,
+    logo_ia_solicitado: !!logoIaSolicitado,
     status: 'draft',
   });
 
@@ -131,7 +206,10 @@ router.get('/preview/:orderId', async (req, res, params) => {
   const order = await db.getOrder(params.orderId);
   if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
   const client = await db.getClient(order.client_id);
-  const datosBase = { nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email };
+  const datosBase = {
+    nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    logo_url: client.logo_url, favicon_url: client.favicon_url,
+  };
   const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true });
   sendHtml(res, 200, html);
 });
@@ -153,14 +231,21 @@ router.post('/api/checkout', async (req, res) => {
       error: 'Este pedido incluye la página adicional pero falta STRIPE_PRICE_SUPLEMENTO_PAGINA en el .env.',
     });
   }
+  if (order.logo_ia_solicitado && !PRICE_LOGO_IA) {
+    return sendJson(res, 500, {
+      error: 'Este pedido incluye el logo con IA pero falta STRIPE_PRICE_LOGO_IA en el .env.',
+    });
+  }
 
   // Si el cliente añadió la página adicional en el alta, el suplemento se
   // cobra como un tercer line item recurrente dentro de la misma sesión
   // (decisión de "Plantillas por Sector" sección 3: se compra ya activada).
+  // El logo con IA (+15€, pago único) se añade igual que la cuota inicial.
   const session = await crearSesionCheckout({
     priceMensualId: PRICE_MENSUAL,
     priceInicialId: PRICE_INICIAL,
     priceSuplementoId: order.pagina_adicional ? PRICE_SUPLEMENTO_PAGINA : null,
+    priceLogoIaId: order.logo_ia_solicitado ? PRICE_LOGO_IA : null,
     successUrl: PUBLIC_BASE_URL + '/gracias?order=' + order.id,
     cancelUrl: PUBLIC_BASE_URL + '/preview/' + order.id,
     clientReferenceId: order.id,
@@ -213,6 +298,17 @@ router.post('/api/webhook/stripe', async (req, res) => {
         // un fallo de envío de email no debe tumbar el webhook (Stripe lo
         // reintentaría) ni impedir que el cliente vea su web ya publicada.
         console.error('[email] fallo al enviar el enlace mágico:', e.message);
+      }
+    }
+
+    // Logo con IA (+15€) ya cobrado: el equipo lo diseña y lo sube
+    // manualmente (ver services/email.js, sendLogoIaSolicitadoEmail -- no
+    // se genera la imagen automáticamente en este MVP).
+    if (order.logo_ia_solicitado) {
+      try {
+        await sendLogoIaSolicitadoEmail(client);
+      } catch (e) {
+        console.error('[email] fallo al avisar del logo con IA solicitado:', e.message);
       }
     }
 
