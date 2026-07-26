@@ -74,7 +74,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(244,249,248,.94);backdro
 .hero-title{font-size:clamp(2rem,4vw,3rem);max-width:14em}
 .hero p.sub{font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:36em;margin:18px 0 28px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.hero-photo{aspect-ratio:4/3;background:var(--accent-dim);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--accent-mid);font-family:var(--serif);font-size:14px;text-align:center;padding:20px}
+.hero-photo{object-fit:cover;aspect-ratio:4/3;background:var(--accent-dim);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--accent-mid);font-family:var(--serif);font-size:14px;text-align:center;padding:20px}
 
 .trust{display:flex;flex-wrap:wrap;gap:16px 30px;margin-top:28px;color:var(--text-body);font-weight:600;font-size:13.5px}
 .trust span{display:flex;align-items:center;gap:8px}
@@ -99,7 +99,7 @@ section.blk{padding:5rem 0}
 .team{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
 @media(max-width:760px){.team{grid-template-columns:1fr}}
 .member{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
-.member .ph{aspect-ratio:4/5;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.member .ph{object-fit:cover;aspect-ratio:4/5;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
 .member .info{padding:1.3rem 1.4rem}
 .member h3{font-size:16px;font-weight:600}
 .member .role{color:var(--accent-mid);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
@@ -215,7 +215,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
       </div>
     </div>
-    <div class="hero-photo">Foto de la consulta</div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto de la consulta</div>{{/foto_hero_url}}
   </div>
 </section>
 
@@ -240,7 +240,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="team">
       {{#equipo}}
       <div class="member">
-        <div class="ph">Foto</div>
+        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto</div>{{/foto_url}}
         <div class="info">
           <h3>{{nombre}}</h3>
           <div class="role">{{rol}}</div>

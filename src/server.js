@@ -41,6 +41,27 @@ const PRICE_LOGO_IA = process.env.STRIPE_PRICE_LOGO_IA; // 15€, pago único --
 // suben los clientes en el alta (ver src/services/supabase.js, uploadStorageFile).
 const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'logos';
 
+// Bucket público de Supabase Storage para las fotos del negocio (hero, foto
+// secundaria, galería, y las fotos por-tarjeta de equipo/productos/etc. --
+// ver public/alta.html, sección "Fotos del negocio"). Bucket separado de
+// SUPABASE_STORAGE_BUCKET (logos) para no mezclar tipos de archivo, pero
+// puede apuntar al mismo si no quieres crear uno nuevo en Supabase.
+const SUPABASE_FOTOS_BUCKET = process.env.SUPABASE_FOTOS_BUCKET || 'fotos';
+
+// Qué claves de `contenido` llevan tarjetas con foto por sector -- tiene que
+// coincidir exactamente con los `photo:true` de SECTORES[...].tablaA en
+// public/alta.html. Se usa para recorrer contenidoFinal tras la generación/
+// mejora de texto y subir la foto (base64) de cada tarjeta que la tenga.
+const CAMPOS_CON_FOTO_POR_TARJETA = {
+  'servicios-profesionales': ['equipo', 'casos'],
+  'salud-bienestar': ['equipo'],
+  'turismo-alojamiento': ['alojamientos'],
+  'comercio-retail': ['productos'],
+  'reformas-construccion': ['proyectos'],
+  'formacion-academias': ['profes'],
+  'ocio-cultura': ['actividades'],
+};
+
 const router = new Router();
 
 function requireSector(sector) {
@@ -88,6 +109,60 @@ async function subirLogoYFavicon(clientId, logos, favicon) {
   return result;
 }
 
+// Sube las fotos "de sitio" del negocio (hero, foto secundaria, galería --
+// ver public/alta.html, SECTORES[...].fotos) que llegan en base64 dentro del
+// JSON de /api/alta. Igual que subirLogoYFavicon: nada de multipart, se
+// decodifica el base64 a Buffer y se sube tal cual a Supabase Storage.
+async function subirFotosSector(clientId, fotos) {
+  const result = { foto_hero_url: null, foto_secundaria_url: null, galeria_urls: [] };
+  if (!fotos || typeof fotos !== 'object') return result;
+
+  async function subirUna(f, nombreArchivo) {
+    if (!f || !f.base64) return null;
+    const buffer = Buffer.from(f.base64, 'base64');
+    const ext = extensionDeArchivo(f.filename, f.mime);
+    return supabase.uploadStorageFile(SUPABASE_FOTOS_BUCKET, clientId + '/' + nombreArchivo + '.' + ext, buffer, f.mime);
+  }
+
+  if (fotos.hero) result.foto_hero_url = await subirUna(fotos.hero, 'hero');
+  if (fotos.secundaria) result.foto_secundaria_url = await subirUna(fotos.secundaria, 'secundaria');
+  if (Array.isArray(fotos.galeria)) {
+    let n = 0;
+    for (const f of fotos.galeria) {
+      n++;
+      const url = await subirUna(f, 'galeria-' + n);
+      if (url) result.galeria_urls.push(url);
+    }
+  }
+  return result;
+}
+
+// Recorre, dentro del contenido ya generado/mejorado/escrito, las tarjetas de
+// los repeaters que llevan foto por sector (CAMPOS_CON_FOTO_POR_TARJETA) y
+// sube la foto de cada una que la tenga (item.foto = {filename,mime,base64},
+// puesta ahí por hydrateFotosTablaA en el cliente). Sustituye esa foto en
+// bruto por su URL pública (item.foto_url) y borra el base64 para no guardar
+// binario dentro del JSON de Supabase (kv_store.data).
+async function subirFotosPorTarjeta(clientId, sector, contenido) {
+  const keys = CAMPOS_CON_FOTO_POR_TARJETA[sector];
+  if (!keys || !contenido) return;
+  for (const key of keys) {
+    const items = contenido[key];
+    if (!Array.isArray(items)) continue;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item && item.foto && item.foto.base64) {
+        const buffer = Buffer.from(item.foto.base64, 'base64');
+        const ext = extensionDeArchivo(item.foto.filename, item.foto.mime);
+        item.foto_url = await supabase.uploadStorageFile(
+          SUPABASE_FOTOS_BUCKET, clientId + '/' + key + '-' + (i + 1) + '.' + ext, buffer, item.foto.mime
+        );
+        delete item.foto;
+      }
+    }
+  }
+}
+
 // ───────────────────────── 1) ALTA (formulario) ─────────────────────────
 // POST /api/alta
 // Body: { sector, datosBase: {nombre_negocio, ciudad, telefono, email, tipoNegocio},
@@ -115,7 +190,7 @@ router.post('/api/alta', async (req, res) => {
   const {
     sector, datosBase, viaTexto, contenido, datosBrutos, textoCliente, paginaAdicional,
     viaTextoAdicional, contenidoAdicional, datosBrutosAdicional, textoClienteAdicional,
-    logos, favicon, logoIaSolicitado,
+    logos, favicon, logoIaSolicitado, fotos,
   } = body;
   requireSector(sector);
   if (!datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email) {
@@ -190,6 +265,29 @@ router.post('/api/alta', async (req, res) => {
     });
   }
 
+  // Fotos del negocio (opcionales, ver public/alta.html "Fotos del negocio"):
+  // hero/foto secundaria/galería son propias del cliente (como el logo);
+  // las fotos por-tarjeta (equipo, productos, proyectos...) viajan dentro del
+  // propio contenidoFinal y se suben aparte, sustituyendo el base64 por su URL.
+  if (fotos && typeof fotos === 'object' && Object.keys(fotos).length) {
+    let fotosInfo;
+    try {
+      fotosInfo = await subirFotosSector(client.id, fotos);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudieron subir las fotos del negocio: ' + e.message });
+    }
+    await db.updateClient(client.id, {
+      foto_hero_url: fotosInfo.foto_hero_url,
+      foto_secundaria_url: fotosInfo.foto_secundaria_url,
+      galeria_urls: fotosInfo.galeria_urls,
+    });
+  }
+  try {
+    await subirFotosPorTarjeta(client.id, sector, contenidoFinal);
+  } catch (e) {
+    return sendJson(res, 500, { error: 'No se pudieron subir las fotos del contenido: ' + e.message });
+  }
+
   const order = await db.createOrder({
     client_id: client.id,
     sector,
@@ -220,6 +318,7 @@ router.get('/preview/:orderId', async (req, res, params) => {
   const datosBase = {
     nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
     logo_url: client.logo_url, favicon_url: client.favicon_url,
+    foto_hero_url: client.foto_hero_url, foto_secundaria_url: client.foto_secundaria_url, galeria_urls: client.galeria_urls,
   };
   const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true });
   sendHtml(res, 200, html);

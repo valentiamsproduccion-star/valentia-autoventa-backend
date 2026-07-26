@@ -72,7 +72,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(243,245,248,.94);backdro
 .hero-title{font-size:clamp(2rem,4vw,3.1rem);max-width:14em}
 .hero p.sub{font-family:var(--sans);font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:38em;margin:18px 0 28px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.hero-photo{aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
+.hero-photo{object-fit:cover;aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
 
 .trust{display:flex;flex-wrap:wrap;gap:18px 34px;margin-top:30px;color:var(--text-body);font-weight:600;font-size:13.5px}
 .trust span{display:flex;align-items:center;gap:8px}
@@ -193,7 +193,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
       </div>
     </div>
-    <div class="hero-photo">Foto del taller / vehículos</div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del taller / vehículos</div>{{/foto_hero_url}}
   </div>
 </section>
 

@@ -54,6 +54,15 @@ function baseContext(datosBase, opts) {
     // avatar de iniciales y omitir el <link rel="icon">.
     logo_url: datosBase.logo_url || '',
     favicon_url: datosBase.favicon_url || '',
+    // Fotos "de sitio" del negocio subidas en el alta (ver Formulario de
+    // Alta, sección "Fotos del negocio" -- SECTORES[...].fotos en
+    // public/alta.html). Si faltan, las plantillas usan `{{^foto_hero_url}}`
+    // etc. para seguir mostrando el hueco de "Foto" de siempre. `galeria` se
+    // expone como lista de objetos ({{#galeria}}{{url}}{{/galeria}}) para
+    // poder iterarla directamente en mustache.
+    foto_hero_url: datosBase.foto_hero_url || '',
+    foto_secundaria_url: datosBase.foto_secundaria_url || '',
+    galeria: (datosBase.galeria_urls || []).map(url => ({ url })),
   };
 }
 

@@ -74,7 +74,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdro
 .hero-title{font-size:clamp(2.1rem,4.2vw,3.2rem);max-width:13em}
 .hero p.sub{font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:36em;margin:18px 0 28px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.hero-photo{aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.32);font-family:var(--serif);font-size:14px;text-align:center;padding:20px}
+.hero-photo{object-fit:cover;aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.32);font-family:var(--serif);font-size:14px;text-align:center;padding:20px}
 
 .trust{display:flex;flex-wrap:wrap;gap:16px 30px;margin-top:28px;color:var(--text-body);font-weight:600;font-size:13.5px}
 .trust span{display:flex;align-items:center;gap:8px}
@@ -104,7 +104,7 @@ section.blk{padding:5rem 0}
 /* HISTORIA */
 .story-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:3rem;align-items:center;margin-top:2.5rem}
 @media(max-width:860px){.story-grid{grid-template-columns:1fr}}
-.story-photo{aspect-ratio:4/3;background:var(--ink-mid);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.story-photo{object-fit:cover;aspect-ratio:4/3;background:var(--ink-mid);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
 
 /* EVENTOS */
 .events{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-top:2.5rem}
@@ -127,7 +127,7 @@ section.blk{padding:5rem 0}
 /* GALERIA */
 .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:3rem}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr)}}
-.gph{aspect-ratio:1/1;background:var(--ink-mid);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px}
+.gph{object-fit:cover;aspect-ratio:1/1;background:var(--ink-mid);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px}
 
 /* RESEÑAS */
 .reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-top:3rem}
@@ -208,7 +208,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
       </div>
     </div>
-    <div class="hero-photo">Foto del local / plato destacado</div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del local / plato destacado</div>{{/foto_hero_url}}
   </div>
 </section>
 
@@ -241,7 +241,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="eyebrow">Nuestra historia</div>
     <h2 class="h2">Tres generaciones en la cocina.</h2>
     <div class="story-grid">
-      <div class="story-photo">Foto del equipo / cocina</div>
+      {{#foto_secundaria_url}}<img class="story-photo" src="{{foto_secundaria_url}}" alt="{{nombre_negocio}}">{{/foto_secundaria_url}}{{^foto_secundaria_url}}<div class="story-photo">Foto del equipo / cocina</div>{{/foto_secundaria_url}}
       <div>
         <p class="lead" style="margin-top:0">{{historia_p1}}</p>
         <p class="lead">{{historia_p2}}</p>
@@ -293,10 +293,10 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="eyebrow">Galería</div>
     <h2 class="h2">El local y los platos.</h2>
     <div class="gallery">
+      {{#galeria}}<img class="gph" src="{{url}}">{{/galeria}}{{^galeria}}<div class="gph">Foto</div>
       <div class="gph">Foto</div>
       <div class="gph">Foto</div>
-      <div class="gph">Foto</div>
-      <div class="gph">Foto</div>
+      <div class="gph">Foto</div>{{/galeria}}
     </div>
   </div>
 </section>

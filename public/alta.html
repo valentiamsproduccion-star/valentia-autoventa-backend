@@ -92,6 +92,10 @@
   <p class="hint">Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
 </div>
 
+<h2>Fotos del negocio</h2>
+<p class="hint">Sube las fotos que pide tu plantilla (según el sector elegido arriba). Si dejas alguna sin subir, tu web se publica igualmente con un hueco de "Foto" hasta que nos la envíes.</p>
+<div id="campos-fotos"></div>
+
 <label style="margin-top:20px">¿Cómo quieres el texto?</label>
 <div class="via">
   <label><input type="radio" name="via" value="ia" checked> Que lo redacte la IA desde cero</label>
@@ -137,6 +141,9 @@
 
 const SECTORES = {
   'servicios-profesionales': {
+    fotos: [
+      {key:'hero', label:'Foto del despacho / equipo'},
+    ],
     tipoLabel: 'Tipo de servicio',
     tipoOptions: ['Abogacía','Asesoría fiscal','Inmobiliaria','Arquitectura e interiorismo','Consultoría','Coaching'],
     tablaB: [
@@ -153,9 +160,9 @@ const SECTORES = {
       {type:'textarea', key:'lead_areas', label:'Texto de apoyo del bloque de áreas', max:140},
       {type:'repeater', key:'areas', label:'Áreas de práctica', min:1, max:4,
         fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
-      {type:'repeater', key:'equipo', label:'Equipo', min:1, max:4,
+      {type:'repeater', key:'equipo', label:'Equipo', min:1, max:4, photo:true,
         fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Credencial real',max:95}]},
-      {type:'repeater', key:'casos', label:'Casos destacados', optional:true, min:0, max:3,
+      {type:'repeater', key:'casos', label:'Casos destacados', optional:true, min:0, max:3, photo:true,
         fields:[{key:'titulo',label:'Título',max:35},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
       {type:'text', key:'h2_consulta', label:'Título del bloque de primera consulta', max:55},
       {type:'textarea', key:'lead_consulta', label:'Texto de apoyo', max:140},
@@ -168,6 +175,9 @@ const SECTORES = {
     ],
   },
   'salud-bienestar': {
+    fotos: [
+      {key:'hero', label:'Foto de la consulta'},
+    ],
     tipoLabel: 'Tipo de centro',
     tipoOptions: ['Clínica','Centro de belleza','Gimnasio'],
     tablaB: [
@@ -184,7 +194,7 @@ const SECTORES = {
       {type:'textarea', key:'lead_tratamientos', label:'Texto de apoyo', max:140},
       {type:'repeater', key:'treats', label:'Tratamientos', min:1, max:6,
         fields:[{key:'titulo',label:'Título',max:26},{key:'descripcion',label:'Descripción',max:95,textarea:true,hintExtra:'No prometas resultados clínicos garantizados.'}]},
-      {type:'repeater', key:'equipo', label:'Profesionales', min:1, max:4,
+      {type:'repeater', key:'equipo', label:'Profesionales', min:1, max:4, photo:true,
         fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Colegiado / titulación real',max:95}]},
       {type:'text', key:'h2_cita', label:'Título del bloque de pedir cita', max:55},
       {type:'textarea', key:'lead_cita', label:'Texto de apoyo', max:140},
@@ -197,6 +207,11 @@ const SECTORES = {
     ],
   },
   'hosteleria-restauracion': {
+    fotos: [
+      {key:'hero', label:'Foto del local / plato destacado'},
+      {key:'secundaria', label:'Foto del equipo / cocina'},
+      {key:'galeria', label:'Galería del local', count:4},
+    ],
     tipoLabel: 'Tipo de local',
     tipoOptions: ['Restaurante','Cafetería','Bar','Food truck','Catering'],
     tablaB: [
@@ -223,6 +238,10 @@ const SECTORES = {
     ],
   },
   'turismo-alojamiento': {
+    fotos: [
+      {key:'hero', label:'Foto del alojamiento / entorno'},
+      {key:'galeria', label:'Galería del alojamiento', count:4},
+    ],
     tipoLabel: 'Tipo de alojamiento',
     tipoOptions: ['Hotel rural','Casa rural','Apartamento turístico','Camping','Hostal','Hotel'],
     tablaB: [
@@ -238,7 +257,7 @@ const SECTORES = {
       {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "Wifi gratis", "Parking")', count:3, max:30},
       {type:'text', key:'h2_alojamiento', label:'Título del bloque de alojamiento', max:55},
       {type:'textarea', key:'lead_alojamiento', label:'Texto de apoyo del bloque de alojamiento', max:140},
-      {type:'repeater', key:'alojamientos', label:'Estancias / unidades', min:1, max:6,
+      {type:'repeater', key:'alojamientos', label:'Estancias / unidades', min:1, max:6, photo:true,
         fields:[{key:'titulo',label:'Nombre',max:30},{key:'descripcion',label:'Descripción',max:110,textarea:true},{key:'capacidad',label:'Capacidad (p. ej. "2-4 personas")',max:24},{key:'precio_desde',label:'Precio (p. ej. "desde 80 €/noche")',max:24}]},
       {type:'text', key:'h2_servicios', label:'Título del bloque de servicios', max:55},
       {type:'textarea', key:'lead_servicios', label:'Texto de apoyo del bloque de servicios', max:140},
@@ -258,6 +277,10 @@ const SECTORES = {
     ],
   },
   'comercio-retail': {
+    fotos: [
+      {key:'hero', label:'Foto de la tienda / escaparate'},
+      {key:'secundaria', label:'Foto del equipo / interior'},
+    ],
     tipoLabel: 'Tipo de comercio',
     tipoOptions: ['Moda','Decoración','Alimentación','Artesanía','Librería','Floristería','Otro'],
     tablaB: [
@@ -274,7 +297,7 @@ const SECTORES = {
       {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "Producto local", "Atención cercana")', count:3, max:30},
       {type:'text', key:'h2_productos', label:'Título del bloque de productos', max:55},
       {type:'textarea', key:'lead_productos', label:'Texto de apoyo del bloque de productos', max:140},
-      {type:'repeater', key:'productos', label:'Productos destacados', min:2, max:8,
+      {type:'repeater', key:'productos', label:'Productos destacados', min:2, max:8, photo:true,
         fields:[{key:'titulo',label:'Nombre',max:30},{key:'descripcion',label:'Descripción',max:90,textarea:true},{key:'precio',label:'Precio (opcional)',max:24}]},
       {type:'text', key:'h2_tienda', label:'Título del bloque "la tienda"', max:55},
       {type:'textarea', key:'historia_p1', label:'Sobre la tienda — párrafo 1', max:280},
@@ -294,6 +317,9 @@ const SECTORES = {
     ],
   },
   'reformas-construccion': {
+    fotos: [
+      {key:'hero', label:'Foto de una obra / equipo'},
+    ],
     tipoLabel: 'Tipo de actividad',
     tipoOptions: ['Reformas integrales','Fontanería','Electricidad','Carpintería','Pintura','Jardinería','Albañilería'],
     tablaB: [
@@ -314,7 +340,7 @@ const SECTORES = {
       {type:'textarea', key:'lead_proceso', label:'Texto de apoyo', max:140},
       {type:'repeater', key:'proceso', label:'Pasos del proceso', min:3, max:4,
         fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:90,textarea:true}]},
-      {type:'repeater', key:'proyectos', label:'Proyectos destacados', optional:true, min:0, max:6,
+      {type:'repeater', key:'proyectos', label:'Proyectos destacados', optional:true, min:0, max:6, photo:true,
         fields:[{key:'titulo',label:'Título',max:35},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
       {type:'text', key:'h2_presupuesto', label:'Título del bloque de presupuesto', max:55},
       {type:'textarea', key:'lead_presupuesto', label:'Texto de apoyo', max:140},
@@ -327,6 +353,9 @@ const SECTORES = {
     ],
   },
   'formacion-academias': {
+    fotos: [
+      {key:'hero', label:'Foto del centro / alumnos'},
+    ],
     tipoLabel: 'Tipo de centro',
     tipoOptions: ['Academia','Centro de idiomas','Autoescuela','Formación online','Clases particulares'],
     tablaB: [
@@ -348,7 +377,7 @@ const SECTORES = {
       {type:'textarea', key:'lead_metodo', label:'Texto de apoyo', max:140},
       {type:'repeater', key:'metodo', label:'Pasos de la metodología', min:3, max:4,
         fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:90,textarea:true}]},
-      {type:'repeater', key:'profes', label:'Profesorado', optional:true, min:0, max:6,
+      {type:'repeater', key:'profes', label:'Profesorado', optional:true, min:0, max:6, photo:true,
         fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Titulación real',max:95}]},
       {type:'text', key:'h2_matricula', label:'Título del bloque de matrícula', max:55},
       {type:'textarea', key:'lead_matricula', label:'Texto de apoyo', max:140},
@@ -361,6 +390,9 @@ const SECTORES = {
     ],
   },
   'ocio-cultura': {
+    fotos: [
+      {key:'hero', label:'Foto de la experiencia / espacio'},
+    ],
     tipoLabel: 'Tipo de negocio',
     tipoOptions: ['Museo / centro cultural','Sala de eventos','Escape room','Ocio familiar','Otro'],
     tablaB: [
@@ -376,7 +408,7 @@ const SECTORES = {
       {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "Para grupos", "Aparcamiento")', count:3, max:30},
       {type:'text', key:'h2_actividades', label:'Título del bloque de actividades', max:55},
       {type:'textarea', key:'lead_actividades', label:'Texto de apoyo del bloque de actividades', max:140},
-      {type:'repeater', key:'actividades', label:'Actividades / experiencias', min:2, max:8,
+      {type:'repeater', key:'actividades', label:'Actividades / experiencias', min:2, max:8, photo:true,
         fields:[{key:'titulo',label:'Nombre',max:32},{key:'detalle',label:'Detalle (p. ej. "60 min · 2-6 jugadores")',max:30},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
       {type:'text', key:'h2_tarifas', label:'Título del bloque de tarifas', max:55},
       {type:'textarea', key:'lead_tarifas', label:'Texto de apoyo del bloque de tarifas', max:140},
@@ -395,6 +427,9 @@ const SECTORES = {
     ],
   },
   'automocion': {
+    fotos: [
+      {key:'hero', label:'Foto del taller / vehículos'},
+    ],
     tipoLabel: 'Tipo de negocio',
     tipoOptions: ['Taller','Concesionario','Alquiler de vehículos'],
     tablaB: [
@@ -434,6 +469,7 @@ const camposIADiv = document.getElementById('campos-ia');
 const camposIAAdicionalDiv = document.getElementById('campos-ia-adicional');
 const camposTablaADiv = document.getElementById('campos-tablaA');
 const camposTablaAAdicionalDiv = document.getElementById('campos-tablaA-adicional');
+const camposFotosDiv = document.getElementById('campos-fotos');
 
 function renderTipoOptions() {
   const cfg = SECTORES[sectorSel.value];
@@ -626,16 +662,16 @@ function repeaterFieldA(field) {
   const addBtn = document.createElement('button');
   addBtn.type = 'button'; addBtn.className = 'add'; addBtn.textContent = '+ Añadir';
   const refreshAddBtn = () => { addBtn.disabled = field.max ? list.children.length >= field.max : false; };
-  addBtn.onclick = () => { addCardA(list, field.fields); refreshAddBtn(); };
+  addBtn.onclick = () => { addCardA(list, field.fields, field.photo); refreshAddBtn(); };
   wrap.appendChild(addBtn);
   const initialCount = field.min || (field.optional ? 0 : 1);
-  for (let i = 0; i < initialCount; i++) addCardA(list, field.fields);
+  for (let i = 0; i < initialCount; i++) addCardA(list, field.fields, field.photo);
   refreshAddBtn();
   list.addEventListener('cardremoved', refreshAddBtn);
   return wrap;
 }
 
-function addCardA(list, subFields) {
+function addCardA(list, subFields, photo) {
   const card = document.createElement('div');
   card.className = 'card';
   const del = document.createElement('button');
@@ -647,6 +683,15 @@ function addCardA(list, subFields) {
     input.dataset.sub = sf.key;
     card.appendChild(wrap);
   });
+  if (photo) {
+    const fl = document.createElement('label');
+    fl.textContent = 'Foto (opcional)';
+    fl.style.marginTop = '6px';
+    const fi = document.createElement('input');
+    fi.type = 'file'; fi.accept = 'image/*'; fi.dataset.fotoinput = '1';
+    card.appendChild(fl);
+    card.appendChild(fi);
+  }
   list.appendChild(card);
 }
 
@@ -811,6 +856,82 @@ function collectTablaA(div) {
   return out;
 }
 
+// ───────────────────────── Fotos del negocio (por sector/plantilla) ─────────────────────────
+// Cada sector declara en SECTORES[...].fotos las fotos "de sitio" que pide su
+// plantilla (hero, foto secundaria, galería) -- independientes de la vía de
+// texto elegida. Además, algunos repeaters de tablaA (equipo, productos,
+// proyectos, actividades, alojamientos...) llevan `photo:true` y por eso
+// addCardA les añade un input de archivo por tarjeta (ver arriba). Las fotos
+// por-tarjeta solo se ofrecen en las vías "Lo escribo yo" / "Escribo yo y que
+// la IA lo pula" (tablaA): en la vía "IA desde cero" el contenido final lo
+// redacta la IA a partir de datos en bruto y puede no conservar el mismo
+// número/orden de tarjetas, así que no hay forma fiable de emparejar cada
+// foto con su elemento final -- limitación conocida, no un descuido.
+
+function renderFotosSector(div) {
+  div.innerHTML = '';
+  const cfg = SECTORES[sectorSel.value];
+  (cfg.fotos || []).forEach(foto => {
+    const count = foto.count || 1;
+    const wrap = document.createElement('div');
+    wrap.dataset.fotoKey = foto.key;
+    wrap.dataset.fotoCount = String(count);
+    const l = document.createElement('label');
+    l.textContent = foto.label;
+    wrap.appendChild(l);
+    for (let i = 0; i < count; i++) {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*';
+      inp.dataset.fotoIdx = String(i);
+      wrap.appendChild(inp);
+    }
+    if (count > 1) {
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = 'Puedes rellenar solo alguna, deja el resto vacía si no tienes más fotos ahora.';
+      wrap.appendChild(hint);
+    }
+    div.appendChild(wrap);
+  });
+}
+
+async function collectFotosSector(div) {
+  const out = {};
+  const wraps = Array.from(div.querySelectorAll(':scope > [data-foto-key]'));
+  for (const wrap of wraps) {
+    const key = wrap.dataset.fotoKey;
+    const count = Number(wrap.dataset.fotoCount || '1');
+    const inputs = Array.from(wrap.querySelectorAll('input[type=file]'));
+    const files = [];
+    for (const inp of inputs) {
+      const file = (inp.files || [])[0];
+      if (file) files.push(await fileToBase64(file));
+    }
+    if (!files.length) continue;
+    out[key] = count > 1 ? files : files[0];
+  }
+  return out;
+}
+
+// Recorre, tras collectTablaA, las tarjetas de los repeaters marcados
+// `photo:true` y adjunta la foto (si se seleccionó una) al mismo elemento del
+// objeto ya recogido, emparejando por posición (misma tarjeta -> mismo índice).
+async function hydrateFotosTablaA(div, cfg, contenido) {
+  const photoFields = (cfg.tablaA || []).filter(f => f.type === 'repeater' && f.photo);
+  for (const field of photoFields) {
+    const wrap = div.querySelector(':scope > [data-key="' + field.key + '"]');
+    if (!wrap) continue;
+    const cards = Array.from(wrap.querySelectorAll(':scope > div > .card'));
+    const items = contenido[field.key];
+    if (!Array.isArray(items)) continue;
+    for (let i = 0; i < cards.length && i < items.length; i++) {
+      const fi = cards[i].querySelector('[data-fotoinput]');
+      const file = fi && (fi.files || [])[0];
+      if (file) items[i].foto = await fileToBase64(file);
+    }
+  }
+}
+
 // Comprueba en el navegador los mismos límites que src/services/validate.js
 // (solo se usa para bloquear el envío en la vía "propio" — en "mejora IA" es
 // orientativo, ver hint del selector de vía).
@@ -826,6 +947,7 @@ function renderTodo() {
   renderTablaA(camposTablaADiv);
   renderCamposIA(camposIAAdicionalDiv);
   renderTablaA(camposTablaAAdicionalDiv);
+  renderFotosSector(camposFotosDiv);
   aplicarVia();
 }
 
@@ -882,9 +1004,30 @@ async function collectFavicon() {
   return file ? fileToBase64(file) : null;
 }
 
+// Preselección desde el botón "Implementar esta plantilla" de las galerías
+// de diseño (plantilla-viewer.html las añade a la URL como ?sector=...&tipo=...)
+// para que el formulario llegue ya apuntando al sector y subtipo exactos de
+// la plantilla que se estaba viendo, en vez de al formulario en blanco.
+(function aplicarPreseleccionDesdeURL() {
+  const qp = new URLSearchParams(window.location.search);
+  const sectorParam = qp.get('sector');
+  const tipoParam = qp.get('tipo');
+  if (sectorParam && SECTORES[sectorParam]) {
+    sectorSel.value = sectorParam;
+  }
+})();
+
 renderTipoOptions();
 renderTodo();
 aplicarLogoToggle();
+
+(function aplicarTipoDesdeURL() {
+  const qp = new URLSearchParams(window.location.search);
+  const tipoParam = qp.get('tipo');
+  if (!tipoParam) return;
+  const match = Array.from(tipoSel.options).find(o => o.value.toLowerCase() === tipoParam.toLowerCase());
+  if (match) tipoSel.value = match.value;
+})();
 
 let ultimoOrderId = null;
 
@@ -954,6 +1097,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       return;
     }
     const contenido = collectTablaA(camposTablaADiv);
+    await hydrateFotosTablaA(camposTablaADiv, SECTORES[sectorSel.value], contenido);
     if (via === 'propio') payload.contenido = contenido;
     else payload.textoCliente = contenido;
 
@@ -982,6 +1126,15 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   } catch (e) {
     errorDiv.style.display = 'block';
     errorDiv.textContent = 'No se pudo leer el logo/favicon: ' + e.message;
+    return;
+  }
+
+  try {
+    const fotos = await collectFotosSector(camposFotosDiv);
+    if (Object.keys(fotos).length) payload.fotos = fotos;
+  } catch (e) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = 'No se pudieron leer las fotos del negocio: ' + e.message;
     return;
   }
 
