@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4338CA">
+<title>{{nombre_negocio}} — Formación</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · FORMACIÓN Y ACADEMIAS
+   Variante: academias, idiomas, autoescuelas, formación online
+   Paleta: Índigo académico + lavanda — rigor y cercanía
+   ═══════════════════════════════════════ */
+:root{
+  --ink:        #1E1B34;
+  --ink-mid:    #2C2850;
+  --paper:      #F6F5FB;
+  --white-pure: #ffffff;
+  --accent:     #4F46E5;
+  --accent-mid: #4338CA;
+  --accent-dim: rgba(79,70,229,.10);
+  --lav:        #E7E4F7;
+  --text-body:  #3E3A56;
+  --text-muted: #6D688A;
+  --border:     #E5E2F0;
+  --border-acc: rgba(79,70,229,.30);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans:  'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);color:var(--ink);line-height:1.6;background:var(--paper)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.18;font-weight:560;letter-spacing:-.015em}
+
+.btn{display:inline-block;font-family:var(--sans);font-weight:700;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;padding:.9rem 1.8rem;border-radius:var(--radius-sm);cursor:pointer;transition:.25s ease;border:1px solid transparent;text-align:center}
+.btn-primary{background:var(--accent-mid);color:#fff;border-color:var(--accent-mid)}
+.btn-primary:hover{background:var(--accent)}
+.btn-outline{background:transparent;color:var(--ink);border-color:var(--border)}
+.btn-outline:hover{border-color:var(--border-acc);color:var(--accent)}
+
+.eyebrow{display:flex;align-items:center;gap:.85rem;margin-bottom:1.1rem;font-family:var(--sans);font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted)}
+.eyebrow::before{content:'';width:1.7rem;height:2px;background:var(--accent);flex:none}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:50;background:rgba(246,245,251,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:19px;color:var(--ink);flex:none}
+.logo .mark{width:34px;height:34px;border-radius:50%;background:var(--accent-mid);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:15px}
+.logo img{height:36px;width:auto;display:block}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a:not(.btn){color:var(--text-body);font-weight:600;font-size:14px}
+.nav-links a:not(.btn):hover{color:var(--accent)}
+.nav .btn{padding:10px 18px;font-size:12.5px}
+@media(max-width:760px){.nav-links a:not(.btn){display:none}}
+@media(max-width:480px){.nav .btn{display:none}.logo{font-size:17px}}
+
+/* HERO */
+.hero{padding:clamp(3rem,4.5vw,5.5rem) 0 clamp(3.5rem,5vw,5.5rem);background:linear-gradient(180deg,var(--paper) 0%,var(--lav) 100%)}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:3rem;align-items:center}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr}}
+.hero-title{font-size:clamp(2rem,4vw,3.1rem);max-width:14em}
+.hero p.sub{font-family:var(--sans);font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:38em;margin:18px 0 28px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-photo{aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
+
+.trust{display:flex;flex-wrap:wrap;gap:18px 34px;margin-top:30px;color:var(--text-body);font-weight:600;font-size:13.5px}
+.trust span{display:flex;align-items:center;gap:8px}
+.trust span::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+
+/* SECTIONS */
+section.blk{padding:5rem 0}
+.h2{font-size:clamp(1.6rem,3vw,2.3rem);max-width:640px}
+.lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
+.alt{background:var(--white-pure);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+/* CURSOS */
+.units{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
+@media(max-width:820px){.units{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.units{grid-template-columns:1fr}}
+.unit{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;display:flex;flex-direction:column;border-top:3px solid var(--accent)}
+.unit .info{padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:8px;flex:1}
+.unit h3{font-size:17px;font-weight:600}
+.unit p{color:var(--text-body);font-size:13.8px}
+.unit .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:8px}
+.unit .chip{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-mid);background:var(--accent-dim);padding:5px 10px;border-radius:100px}
+
+/* METODOLOGIA */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-top:3rem}
+@media(max-width:820px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:460px){.steps{grid-template-columns:1fr}}
+.step{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.6rem 1.4rem}
+.step .n{width:40px;height:40px;border-radius:50%;background:var(--accent-dim);color:var(--accent-mid);font-family:var(--serif);font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.step h3{font-size:16px;font-weight:600;margin-bottom:4px}
+.step p{color:var(--text-body);font-size:13.5px}
+
+/* PROFESORADO */
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
+@media(max-width:760px){.team{grid-template-columns:1fr}}
+.member{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.member .ph{aspect-ratio:4/5;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.member .info{padding:1.3rem 1.4rem}
+.member h3{font-size:16px;font-weight:600}
+.member .role{color:var(--accent-mid);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.member .cred{color:var(--text-muted);font-size:13px;margin-top:8px}
+
+/* MATRICULA / FORM */
+.reserva{background:var(--ink);color:#fff}
+.reserva .h2,.reserva h2{color:#fff}
+.reserva .lead{color:rgba(255,255,255,.68)}
+.reserva-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2.5rem;align-items:start}
+@media(max-width:860px){.reserva-grid{grid-template-columns:1fr}}
+.reserva-points{display:flex;flex-direction:column;gap:1.3rem}
+.rpoint{display:flex;gap:14px}
+.rpoint .ic{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+.rpoint h4{font-size:15px;font-weight:600;color:#fff}
+.rpoint p{font-size:13.5px;color:rgba(255,255,255,.62);margin-top:3px}
+.form-card{background:var(--white-pure);border-radius:var(--radius-md);padding:1.8rem}
+.form-card label{font-weight:600;color:var(--ink);font-size:13.5px;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14.5px;font-family:var(--sans);outline:none;background:var(--paper);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5}
+
+/* FAQ */
+.faq{margin-top:2.5rem;max-width:820px}
+.faq details{border-bottom:1px solid var(--border);padding:1.2rem 0}
+.faq summary{font-family:var(--serif);font-size:17px;font-weight:560;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;color:var(--ink)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';font-family:var(--sans);font-size:22px;color:var(--accent);flex:none;transition:.2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{color:var(--text-body);font-size:14.5px;margin-top:12px;max-width:70ch}
+
+/* REVIEWS */
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-top:3rem}
+@media(max-width:760px){.reviews{grid-template-columns:1fr}}
+.review{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.6rem}
+.review .stars{color:var(--accent);font-size:14px;letter-spacing:2px;margin-bottom:10px}
+.review p{font-size:14.5px;color:var(--text-body);font-style:italic}
+.review .who{margin-top:14px;font-weight:700;font-size:13px}
+
+/* CONTACTO */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:2.5rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1.1rem}
+.citem{display:flex;gap:14px;align-items:flex-start}
+.citem .ic{width:36px;height:36px;border-radius:50%;background:var(--accent-dim);color:var(--accent-mid);display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:14px}
+.citem h4{font-size:14.5px;font-weight:600}
+.citem p{font-size:13.5px;color:var(--text-muted)}
+.map-embed{border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border);aspect-ratio:4/3}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+/* FOOTER */
+footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-size:13px}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:#fff}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11.5px;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* WHATSAPP FLOAT + CTA MÓVIL */
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61;font-family:var(--sans)}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
+    <nav class="nav-links">
+      <a href="#cursos">Cursos</a>
+      <a href="#metodo">Metodología</a>
+      {{#hay_profes}}<a href="#profes">Profesorado</a>{{/hay_profes}}
+      <a href="#matricula" class="btn btn-primary">Solicitar información</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">{{eyebrow_hero}}</div>
+      <h1 class="hero-title">{{hero_title}}</h1>
+      <p class="sub">{{hero_subtitle}}</p>
+      <div class="hero-cta">
+        <a href="#matricula" class="btn btn-primary">Solicitar información</a>
+        <a href="#cursos" class="btn btn-outline">Ver cursos</a>
+      </div>
+      <div class="trust">
+        {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
+      </div>
+    </div>
+    <div class="hero-photo">Foto del centro / alumnos</div>
+  </div>
+</section>
+
+<section class="blk" id="cursos">
+  <div class="wrap">
+    <div class="eyebrow">Cursos y programas</div>
+    <h2 class="h2">{{h2_cursos}}</h2>
+    <p class="lead">{{lead_cursos}}</p>
+    <div class="units">
+      {{#cursos}}
+      <div class="unit">
+        <div class="info">
+          <h3>{{titulo}}</h3>
+          <p>{{descripcion}}</p>
+          <div class="chips">
+            {{#duracion}}<span class="chip">{{duracion}}</span>{{/duracion}}
+            {{#modalidad}}<span class="chip">{{modalidad}}</span>{{/modalidad}}
+          </div>
+        </div>
+      </div>
+      {{/cursos}}
+    </div>
+  </div>
+</section>
+
+<section class="blk alt" id="metodo">
+  <div class="wrap">
+    <div class="eyebrow">Metodología</div>
+    <h2 class="h2">{{h2_metodo}}</h2>
+    <p class="lead">{{lead_metodo}}</p>
+    <div class="steps">
+      {{#metodo}}
+      <div class="step">
+        <div class="n">{{n}}</div>
+        <h3>{{titulo}}</h3>
+        <p>{{descripcion}}</p>
+      </div>
+      {{/metodo}}
+    </div>
+  </div>
+</section>
+
+{{#hay_profes}}
+<section class="blk" id="profes">
+  <div class="wrap">
+    <div class="eyebrow">Profesorado</div>
+    <h2 class="h2">Quién te va a enseñar.</h2>
+    <p class="lead">Un equipo con formación acreditada y experiencia docente real.</p>
+    <div class="team">
+      {{#profes}}
+      <div class="member">
+        <div class="ph">Foto</div>
+        <div class="info">
+          <h3>{{nombre}}</h3>
+          <div class="role">{{rol}}</div>
+          <p class="cred">{{credencial}}</p>
+        </div>
+      </div>
+      {{/profes}}
+    </div>
+  </div>
+</section>
+{{/hay_profes}}
+
+<section class="blk reserva" id="matricula">
+  <div class="wrap">
+    <div class="eyebrow" style="color:rgba(255,255,255,.55)">Matrícula e información</div>
+    <h2 class="h2">{{h2_matricula}}</h2>
+    <p class="lead">{{lead_matricula}}</p>
+    <div class="reserva-grid">
+      <div class="reserva-points">
+        {{#matricula_points}}
+        <div class="rpoint">
+          <div class="ic">{{n}}</div>
+          <div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div>
+        </div>
+        {{/matricula_points}}
+      </div>
+      <div class="form-card">
+        <div class="field">
+          <label>Curso de interés</label>
+          <select name="curso">
+            {{#cursos}}<option>{{titulo}}</option>{{/cursos}}
+            <option>Aún no lo sé, quiero orientación</option>
+          </select>
+        </div>
+        <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+        <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+        <div class="field"><label>¿En qué podemos ayudarte?</label><textarea placeholder="Escribe aquí..."></textarea></div>
+        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%">Solicitar información</a>
+        <p class="form-note">Al enviar aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{#hay_reviews}}
+<section class="blk">
+  <div class="wrap">
+    <div class="eyebrow">Opiniones</div>
+    <h2 class="h2">Lo que dicen nuestros alumnos.</h2>
+    <div class="reviews">
+      {{#reviews}}
+      <div class="review"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}</div></div>
+      {{/reviews}}
+    </div>
+  </div>
+</section>
+{{/hay_reviews}}
+
+{{#hay_faqs}}
+<section class="blk alt" id="faq">
+  <div class="wrap">
+    <div class="eyebrow">Dudas frecuentes</div>
+    <h2 class="h2">Antes de matricularte.</h2>
+    <div class="faq">
+      {{#faqs}}
+      <details>
+        <summary>{{pregunta}}</summary>
+        <p>{{respuesta}}</p>
+      </details>
+      {{/faqs}}
+    </div>
+  </div>
+</section>
+{{/hay_faqs}}
+
+<section class="blk" id="contacto">
+  <div class="wrap">
+    <div class="eyebrow">Contacto</div>
+    <h2 class="h2">Visítanos o escríbenos.</h2>
+    <div class="contact-grid">
+      <div class="contact-list">
+        <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+        <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+        <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-outline" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
+      </div>
+      <div class="map-embed">
+        <iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Formación</div>
+      <div class="foot-links">
+        <a href="#">Aviso legal</a>
+        <a href="#">Política de privacidad</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar">
+  <a href="tel:{{telefono}}" class="btn btn-outline">Llamar</a>
+  <a href="#matricula" class="btn btn-primary">Información</a>
+</div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>

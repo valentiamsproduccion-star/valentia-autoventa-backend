@@ -253,7 +253,7 @@ async function main() {
     sector: 'servicios-profesionales',
     datosBase: { nombre_negocio: 'Bufete Smoke SL', ciudad: 'Valencia', telefono: '600111222', email: 'info@smoke.test' },
     viaTexto: 'ia',
-    datosBrutos: { especialidades: ['Civil', 'Laboral'], equipo: [{ nombre: 'Ana', rol: 'Socia', credencial: 'Colegiada 1' }], dato_confianza: '+10 años' },
+    datosBrutos: { nombre_negocio: 'Bufete Smoke SL', tipo_negocio: 'Abogacía', ciudad: 'Valencia', especialidades: ['Civil', 'Laboral'], equipo: [{ nombre: 'Ana', rol: 'Socia', credencial: 'Colegiada 1' }], dato_confianza: '+10 años' },
     paginaAdicional: false,
   });
   console.log('1) POST /api/alta ->', altaResp.statusCode, altaResp.body.orderId ? 'orderId OK' : altaResp.body);
@@ -338,7 +338,7 @@ async function main() {
     sector: 'salud-bienestar',
     datosBase: { nombre_negocio: 'Clínica Smoke', ciudad: 'Madrid', telefono: '600222333', email: 'info@clinica-smoke.test' },
     viaTexto: 'ia',
-    datosBrutos: { tratamientos: ['Fisioterapia'], equipo: [{ nombre: 'Bea', rol: 'Fisio', credencial: 'Colegiada 2' }], dato_confianza: '+5 años' },
+    datosBrutos: { nombre_negocio: 'Clínica Smoke', tipo_negocio: 'Centro de fisioterapia', ciudad: 'Madrid', tratamientos: ['Fisioterapia'], equipo: [{ nombre: 'Bea', rol: 'Fisio', credencial: 'Colegiada 2' }], dato_confianza: '+5 años' },
     paginaAdicional: false,
     logos: [{ filename: 'logo.png', mime: 'image/png', base64: FAKE_PNG_BASE64 }],
     favicon: { filename: 'favicon.png', mime: 'image/png', base64: FAKE_PNG_BASE64 },
@@ -362,7 +362,7 @@ async function main() {
     sector: 'servicios-profesionales',
     datosBase: { nombre_negocio: 'Consultoría Smoke', ciudad: 'Sevilla', telefono: '600333444', email: 'info@consultoria-smoke.test' },
     viaTexto: 'ia',
-    datosBrutos: { especialidades: ['Fiscal'], equipo: [{ nombre: 'Luis', rol: 'Socio', credencial: 'Colegiado 3' }], dato_confianza: '+8 años' },
+    datosBrutos: { nombre_negocio: 'Consultoría Smoke', tipo_negocio: 'Consultoría', ciudad: 'Sevilla', especialidades: ['Fiscal'], equipo: [{ nombre: 'Luis', rol: 'Socio', credencial: 'Colegiado 3' }], dato_confianza: '+8 años' },
     paginaAdicional: false,
     logoIaSolicitado: true,
   });

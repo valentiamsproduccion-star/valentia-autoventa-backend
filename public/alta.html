@@ -896,24 +896,57 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     errorDiv.textContent = 'Marca la casilla de RGPD para continuar.';
     return;
   }
+
+  const nombreNegocioVal = document.getElementById('nombre_negocio').value.trim();
+  const tipoNegocioVal = document.getElementById('tipo_negocio').value.trim();
+  const ciudadVal = document.getElementById('ciudad').value.trim();
+  const telefonoVal = document.getElementById('telefono').value.trim();
+  const emailVal = document.getElementById('email').value.trim();
+
+  // Sin esto el servidor rechazaba la petición con un mensaje genérico, o
+  // -- peor -- la dejaba pasar hasta la IA sin nombre/tipo/ciudad y la IA
+  // se negaba a inventar esos datos, devolviendo texto en vez del JSON
+  // esperado (ver src/services/ai.js, extractJson). Cortamos aquí, con un
+  // mensaje que dice exactamente qué falta.
+  const faltan = [];
+  if (!nombreNegocioVal) faltan.push('nombre del negocio');
+  if (!tipoNegocioVal) faltan.push('tipo');
+  if (!ciudadVal) faltan.push('ciudad');
+  if (!telefonoVal) faltan.push('teléfono');
+  if (!emailVal) faltan.push('email');
+  if (faltan.length) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = 'Completa estos datos del negocio antes de generar la vista previa: ' + faltan.join(', ') + '.';
+    return;
+  }
+
   const via = document.querySelector('input[name=via]:checked').value;
   const paginaAdicional = document.getElementById('pagina_adicional').checked;
 
   const payload = {
     sector: sectorSel.value,
     datosBase: {
-      nombre_negocio: document.getElementById('nombre_negocio').value,
-      ciudad: document.getElementById('ciudad').value,
-      telefono: document.getElementById('telefono').value,
-      email: document.getElementById('email').value,
+      nombre_negocio: nombreNegocioVal,
+      ciudad: ciudadVal,
+      telefono: telefonoVal,
+      email: emailVal,
     },
     viaTexto: via,
     paginaAdicional,
   };
 
   if (via === 'ia') {
-    payload.datosBrutos = collectDatosBrutos(camposIADiv);
-    if (paginaAdicional) payload.datosBrutosAdicional = collectDatosBrutos(camposIAAdicionalDiv);
+    // "Datos del negocio" (nombre, tipo, ciudad) se piden una sola vez al
+    // principio del formulario, fuera de los campos específicos del sector
+    // (tablaB) -- había que fundirlos aquí explícitamente, si no la IA
+    // nunca los recibía por mucho que el cliente los hubiera rellenado.
+    const datosNegocioBase = {
+      nombre_negocio: nombreNegocioVal,
+      tipo_negocio: tipoNegocioVal,
+      ciudad: ciudadVal,
+    };
+    payload.datosBrutos = Object.assign({}, datosNegocioBase, collectDatosBrutos(camposIADiv));
+    if (paginaAdicional) payload.datosBrutosAdicional = Object.assign({}, datosNegocioBase, collectDatosBrutos(camposIAAdicionalDiv));
   } else {
     if (via === 'propio' && !validarTablaAEnCliente(camposTablaADiv)) {
       errorDiv.style.display = 'block';

@@ -129,6 +129,14 @@ router.post('/api/alta', async (req, res) => {
     contenidoFinal = contenido;
   } else if (viaTexto === 'ia') {
     if (!datosBrutos) return sendJson(res, 400, { error: 'Faltan los datos en bruto para que la IA redacte el texto.' });
+    // La IA rechaza inventar nombre_negocio/tipo_negocio/ciudad (ver
+    // src/prompts, regla 1 "no inventes datos verificables") y devuelve
+    // prosa en vez del JSON pedido -- lo que antes llegaba al cliente como
+    // un error críptico de "JSON no reconocible". Cortamos aquí con un
+    // mensaje claro, igual que ya se hace arriba con datosBase.
+    if (!datosBrutos.nombre_negocio || !datosBrutos.tipo_negocio || !datosBrutos.ciudad) {
+      return sendJson(res, 400, { error: 'Faltan datos del negocio para que la IA redacte el texto (nombre, tipo o ciudad).' });
+    }
     contenidoFinal = await generarContenido(sector, datosBrutos);
   } else if (viaTexto === 'mejora') {
     if (!textoCliente) return sendJson(res, 400, { error: 'Falta el texto del cliente a mejorar.' });
@@ -149,6 +157,9 @@ router.post('/api/alta', async (req, res) => {
       contenidoAdicionalFinal = contenidoAdicional;
     } else if (viaAd === 'ia') {
       if (!datosBrutosAdicional) return sendJson(res, 400, { error: 'Faltan los datos en bruto de la página adicional para que la IA redacte el texto.' });
+      if (!datosBrutosAdicional.nombre_negocio || !datosBrutosAdicional.tipo_negocio || !datosBrutosAdicional.ciudad) {
+        return sendJson(res, 400, { error: 'Faltan datos del negocio para la página adicional (nombre, tipo o ciudad).' });
+      }
       contenidoAdicionalFinal = await generarContenido(sector, datosBrutosAdicional);
     } else if (viaAd === 'mejora') {
       if (!textoClienteAdicional) return sendJson(res, 400, { error: 'Falta el texto de la página adicional a mejorar.' });
