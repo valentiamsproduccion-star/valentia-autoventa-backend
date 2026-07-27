@@ -1005,16 +1005,23 @@ async function collectFavicon() {
 }
 
 // Preselección desde el botón "Implementar esta plantilla" de las galerías
-// de diseño (plantilla-viewer.html las añade a la URL como ?sector=...&tipo=...)
-// para que el formulario llegue ya apuntando al sector y subtipo exactos de
-// la plantilla que se estaba viendo, en vez de al formulario en blanco.
+// de diseño (plantilla-viewer.html las añade a la URL como
+// ?sector=...&tipo=...&plantilla=...) para que el formulario llegue ya
+// apuntando al sector y subtipo exactos de la plantilla que se estaba viendo,
+// en vez de al formulario en blanco. `plantilla` es el ID del diseño exacto
+// (nombre de archivo sin extensión, p. ej. "taller-01-urgencia-mecanica-24h")
+// -- se guarda para que la web final del cliente reproduzca ese mismo diseño
+// visual en vez del genérico del sector (ver src/services/render.js).
+let plantillaIdSeleccionada = '';
 (function aplicarPreseleccionDesdeURL() {
   const qp = new URLSearchParams(window.location.search);
   const sectorParam = qp.get('sector');
   const tipoParam = qp.get('tipo');
+  const plantillaParam = qp.get('plantilla');
   if (sectorParam && SECTORES[sectorParam]) {
     sectorSel.value = sectorParam;
   }
+  if (plantillaParam) plantillaIdSeleccionada = plantillaParam;
 })();
 
 renderTipoOptions();
@@ -1092,6 +1099,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     viaTexto: via,
     paginaAdicional,
   };
+  if (plantillaIdSeleccionada) payload.plantillaId = plantillaIdSeleccionada;
 
   if (via === 'ia') {
     // "Datos del negocio" (nombre, tipo, ciudad) se piden una sola vez al

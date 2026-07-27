@@ -9,6 +9,12 @@ const path = require('path');
 const { render } = require('../lib/mustache');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+// Plantillas por-diseño (una por cada diseño de la galería, según se vayan
+// convirtiendo -- ver Tarea "Infraestructura plantilla_id"). Si el archivo
+// {plantillaId}.mustache no existe aquí todavía, se usa el genérico del
+// sector (TEMPLATE_FILE) sin que el cliente note ninguna diferencia: así se
+// pueden ir convirtiendo los ~150 diseños uno a uno sin romper nada.
+const PLANTILLAS_DIR = path.join(TEMPLATES_DIR, 'plantillas');
 
 const TEMPLATE_FILE = {
   'servicios-profesionales': 'servicios-profesionales.mustache',
@@ -74,7 +80,7 @@ function renderServiciosProfesionales(datosBase, contenido, opts) {
     hay_testimonios: Array.isArray(contenido.testimonios) && contenido.testimonios.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('servicios-profesionales', ctx);
+  return renderSector('servicios-profesionales', ctx, opts);
 }
 
 function renderSaludBienestar(datosBase, contenido, opts) {
@@ -84,7 +90,7 @@ function renderSaludBienestar(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('salud-bienestar', ctx);
+  return renderSector('salud-bienestar', ctx, opts);
 }
 
 function renderHosteleriaRestauracion(datosBase, contenido, opts) {
@@ -93,7 +99,7 @@ function renderHosteleriaRestauracion(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('hosteleria-restauracion', ctx);
+  return renderSector('hosteleria-restauracion', ctx, opts);
 }
 
 // ── Sectores añadidos (fase 2): turismo, comercio, reformas, formación ──
@@ -111,7 +117,7 @@ function renderTurismoAlojamiento(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('turismo-alojamiento', ctx);
+  return renderSector('turismo-alojamiento', ctx, opts);
 }
 
 function renderComercioRetail(datosBase, contenido, opts) {
@@ -120,7 +126,7 @@ function renderComercioRetail(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('comercio-retail', ctx);
+  return renderSector('comercio-retail', ctx, opts);
 }
 
 function renderReformasConstruccion(datosBase, contenido, opts) {
@@ -131,7 +137,7 @@ function renderReformasConstruccion(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('reformas-construccion', ctx);
+  return renderSector('reformas-construccion', ctx, opts);
 }
 
 function renderFormacionAcademias(datosBase, contenido, opts) {
@@ -142,7 +148,7 @@ function renderFormacionAcademias(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('formacion-academias', ctx);
+  return renderSector('formacion-academias', ctx, opts);
 }
 
 function renderOcioCultura(datosBase, contenido, opts) {
@@ -151,7 +157,7 @@ function renderOcioCultura(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('ocio-cultura', ctx);
+  return renderSector('ocio-cultura', ctx, opts);
 }
 
 function renderAutomocion(datosBase, contenido, opts) {
@@ -161,7 +167,7 @@ function renderAutomocion(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('automocion', ctx);
+  return renderSector('automocion', ctx, opts);
 }
 
 const RENDERERS = {
@@ -176,10 +182,25 @@ const RENDERERS = {
   'automocion': renderAutomocion,
 };
 
-function renderSector(sector, ctx) {
+function renderSector(sector, ctx, opts) {
   const file = TEMPLATE_FILE[sector];
   if (!file) throw new Error('Sector desconocido: ' + sector);
-  const templatePath = path.join(TEMPLATES_DIR, file);
+
+  // Si este cliente eligió un diseño concreto de la galería (plantilla_id) Y
+  // ese diseño ya tiene su plantilla real convertida (ver Tarea "Convertir
+  // piloto: 5 diseños de Taller"), se usa esa en vez de la genérica del
+  // sector -- así la web final reproduce el diseño exacto que vio el
+  // cliente. Si todavía no existe (la mayoría de los ~150 diseños, por
+  // ahora), cae automáticamente en la plantilla genérica de siempre.
+  const plantillaId = opts && opts.plantillaId;
+  let templatePath = path.join(TEMPLATES_DIR, file);
+  if (plantillaId) {
+    const plantillaPath = path.join(PLANTILLAS_DIR, plantillaId + '.mustache');
+    if (fs.existsSync(plantillaPath)) {
+      templatePath = plantillaPath;
+    }
+  }
+
   const template = fs.readFileSync(templatePath, 'utf-8');
   return render(template, ctx);
 }

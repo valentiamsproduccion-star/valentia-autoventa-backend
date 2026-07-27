@@ -34,7 +34,7 @@ async function publicarCliente(client, orderContext) {
     favicon_url: client.favicon_url,
   };
 
-  const htmlPrincipal = renderPagina(client.sector, datosBase, orderContext.contenidoPrincipal, { preview: false });
+  const htmlPrincipal = renderPagina(client.sector, datosBase, orderContext.contenidoPrincipal, { preview: false, plantillaId: client.plantilla_id });
 
   const slug = client.slug || db.slugify(client.nombre_negocio);
   if (!client.slug) {

@@ -190,7 +190,7 @@ router.post('/api/alta', async (req, res) => {
   const {
     sector, datosBase, viaTexto, contenido, datosBrutos, textoCliente, paginaAdicional,
     viaTextoAdicional, contenidoAdicional, datosBrutosAdicional, textoClienteAdicional,
-    logos, favicon, logoIaSolicitado, fotos,
+    logos, favicon, logoIaSolicitado, fotos, plantillaId,
   } = body;
   requireSector(sector);
   if (!datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email) {
@@ -244,7 +244,7 @@ router.post('/api/alta', async (req, res) => {
     }
   }
 
-  const client = await db.createClient({ sector, ...datosBase });
+  const client = await db.createClient({ sector, plantilla_id: plantillaId || null, ...datosBase });
 
   // Logo/favicon (opcionales): si el cliente adjuntó archivos, se suben a
   // Supabase Storage y se guardan sus URLs en el cliente; si no adjuntó nada
@@ -320,7 +320,7 @@ router.get('/preview/:orderId', async (req, res, params) => {
     logo_url: client.logo_url, favicon_url: client.favicon_url,
     foto_hero_url: client.foto_hero_url, foto_secundaria_url: client.foto_secundaria_url, galeria_urls: client.galeria_urls,
   };
-  const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true });
+  const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
   sendHtml(res, 200, html);
 });
 
