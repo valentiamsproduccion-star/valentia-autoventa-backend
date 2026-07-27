@@ -91,6 +91,68 @@ function renderServiciosProfesionales(datosBase, contenido, opts) {
   return renderSector('servicios-profesionales', ctx, opts);
 }
 
+// ── Subpáginas reales (Áreas/Equipo/Contacto en vez de anclas #areas/#equipo/
+// #contacto en la misma página) -- ver Tarea "Piloto multi-página: Servicios
+// profesionales". Cada subpágina reutiliza el mismo `contenido` de la
+// página principal (no hace falta pedirle nada nuevo al cliente); solo se
+// muestra en una plantilla propia bajo templates/subpaginas/.
+const SUBPAGINAS_DIR = path.join(TEMPLATES_DIR, 'subpaginas');
+
+function renderSubpagina(sector, pagina, ctx) {
+  const templatePath = path.join(SUBPAGINAS_DIR, sector + '-' + pagina + '.mustache');
+  const template = fs.readFileSync(templatePath, 'utf-8');
+  return render(template, ctx);
+}
+
+function renderServiciosProfesionalesAreas(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    areas: withIndex(contenido.areas),
+  });
+  return renderSubpagina('servicios-profesionales', 'areas', ctx);
+}
+
+function renderServiciosProfesionalesEquipo(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('servicios-profesionales', 'equipo', ctx);
+}
+
+function renderServiciosProfesionalesContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    areas: withIndex(contenido.areas), // para el <select> del formulario de consulta
+    consulta_points: withIndex(contenido.consulta_points),
+  });
+  return renderSubpagina('servicios-profesionales', 'contacto', ctx);
+}
+
+// Mapa sector -> { nombre_pagina: función renderer }. Los sectores que no
+// aparezcan aquí todavía no tienen subpáginas reales (ver Tarea "Replicar
+// estructura multi-página a los 8 sectores restantes") -- sus enlaces de
+// nav siguen siendo anclas (#areas, etc.) hasta que se conviertan.
+const SUBPAGINA_RENDERERS = {
+  'servicios-profesionales': {
+    areas: renderServiciosProfesionalesAreas,
+    equipo: renderServiciosProfesionalesEquipo,
+    contacto: renderServiciosProfesionalesContacto,
+  },
+};
+
+// Lista de nombres de subpágina reales de un sector (p. ej. ['areas',
+// 'equipo', 'contacto']), o [] si el sector todavía no tiene ninguna.
+function subpaginasDeSector(sector) {
+  return Object.keys(SUBPAGINA_RENDERERS[sector] || {});
+}
+
+// Punto de entrada para las subpáginas, paralelo a renderPagina() de más
+// abajo. Devuelve null si el sector no tiene esa subpágina todavía (el
+// llamador decide qué hacer -- ver publish.js, que simplemente no publica
+// nada en ese caso).
+function renderPaginaSector(sector, pagina, datosBase, contenido, opts) {
+  const sectorMap = SUBPAGINA_RENDERERS[sector];
+  const fn = sectorMap && sectorMap[pagina];
+  if (!fn) return null;
+  return fn(datosBase, contenido, opts);
+}
+
 function renderSaludBienestar(datosBase, contenido, opts) {
   const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
     treats: withIndex(contenido.treats),
@@ -244,6 +306,8 @@ function renderPaginaLegal(pagina, datosBase, opts) {
 module.exports = {
   renderPagina,
   renderPaginaLegal,
+  renderPaginaSector,
+  subpaginasDeSector,
   TEMPLATE_FILE: Object.keys(TEMPLATE_FILE),
   TEMPLATE_FILE_LEGAL: Object.keys(TEMPLATE_FILE_LEGAL),
 };

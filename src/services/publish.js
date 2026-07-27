@@ -16,7 +16,7 @@
 
 'use strict';
 
-const { renderPagina, renderPaginaLegal, TEMPLATE_FILE_LEGAL } = require('./render');
+const { renderPagina, renderPaginaLegal, TEMPLATE_FILE_LEGAL, renderPaginaSector, subpaginasDeSector } = require('./render');
 const db = require('../db/db');
 
 // Publica (o republica) la página principal de un cliente, y opcionalmente
@@ -55,6 +55,23 @@ async function publicarCliente(client, orderContext) {
     html: htmlPrincipal,
     published_at: new Date().toISOString(),
   });
+
+  // Subpáginas reales del sector (Áreas/Equipo/Contacto en vez de anclas --
+  // ver Tarea "Piloto multi-página: Servicios profesionales"). Solo los
+  // sectores ya convertidos tienen alguna (subpaginasDeSector devuelve []
+  // para el resto), así que esto no afecta a clientes de otros sectores
+  // todavía.
+  for (const pagina of subpaginasDeSector(client.sector)) {
+    const htmlSubpagina = renderPaginaSector(client.sector, pagina, datosBase, orderContext.contenidoPrincipal, { preview: false, plantillaId: client.plantilla_id });
+    if (!htmlSubpagina) continue;
+    await db.upsertPage({
+      client_id: client.id,
+      slug,
+      slot: pagina,
+      html: htmlSubpagina,
+      published_at: new Date().toISOString(),
+    });
+  }
 
   // Páginas legales (Aviso Legal, Privacidad, Cookies) -- toda web publicada
   // las lleva por ley (LSSI/RGPD), así que se publican siempre, para

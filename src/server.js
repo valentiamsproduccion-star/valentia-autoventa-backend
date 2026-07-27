@@ -13,7 +13,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { Router, readJsonBody, readBody, sendJson, sendHtml } = require('./lib/router');
-const { renderPagina, renderPaginaLegal, TEMPLATE_FILE, TEMPLATE_FILE_LEGAL } = require('./services/render');
+const { renderPagina, renderPaginaLegal, TEMPLATE_FILE, TEMPLATE_FILE_LEGAL, renderPaginaSector, subpaginasDeSector } = require('./services/render');
 const { validarContenido } = require('./services/validate');
 const { generarContenido, mejorarContenido } = require('./services/ai');
 const { generarTresOpciones, generarFormatosDesdeEleccion } = require('./services/logoIA');
@@ -383,6 +383,25 @@ router.get('/preview/:orderId/legal/:pagina', async (req, res, params) => {
     logo_url: client.logo_url, favicon_url: client.favicon_url,
   };
   const html = renderPaginaLegal(params.pagina, datosBase, { preview: true });
+  sendHtml(res, 200, html);
+});
+
+// Vista previa de las subpáginas reales del sector (Áreas/Equipo/Contacto,
+// ver Tarea "Piloto multi-página: Servicios profesionales") -- para
+// sectores que aún no tienen ninguna, devuelve 404 (sus enlaces de nav
+// siguen siendo anclas dentro de la página principal, ver render.js).
+router.get('/preview/:orderId/pagina/:pagina', async (req, res, params) => {
+  const order = await db.getOrder(params.orderId);
+  if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
+  if (!subpaginasDeSector(order.sector).includes(params.pagina)) {
+    return sendJson(res, 404, { error: 'Este sector todavía no tiene página "' + params.pagina + '".' });
+  }
+  const client = await db.getClient(order.client_id);
+  const datosBase = {
+    nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    logo_url: client.logo_url, favicon_url: client.favicon_url,
+  };
+  const html = renderPaginaSector(order.sector, params.pagina, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
   sendHtml(res, 200, html);
 });
 

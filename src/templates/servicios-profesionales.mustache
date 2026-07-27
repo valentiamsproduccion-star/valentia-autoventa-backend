@@ -189,9 +189,10 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
   <div class="wrap nav">
     <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
     <nav class="nav-links">
-      <a href="#areas">Áreas de práctica</a>
-      <a href="#equipo">Equipo</a>
+      <a href="areas.html">Áreas de práctica</a>
+      <a href="equipo.html">Equipo</a>
       {{#hay_casos}}<a href="#casos">Casos</a>{{/hay_casos}}
+      <a href="contacto.html">Contacto</a>
       <a href="#consulta" class="btn btn-primary">Solicitar consulta</a>
     </nav>
   </div>
@@ -229,6 +230,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
       </div>
       {{/areas}}
     </div>
+    <p style="margin-top:2rem"><a href="areas.html" class="btn btn-outline">Ver todas las áreas de práctica</a></p>
   </div>
 </section>
 
@@ -249,6 +251,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
       </div>
       {{/equipo}}
     </div>
+    <p style="margin-top:2rem"><a href="equipo.html" class="btn btn-outline">Conoce a todo el equipo</a></p>
   </div>
 </section>
 
