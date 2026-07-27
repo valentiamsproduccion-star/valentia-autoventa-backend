@@ -37,6 +37,15 @@
   #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
   iframe{width:100%;height:480px;border:1px solid #E5E7EB;border-radius:8px;margin-top:12px}
   #campos-adicional{display:none}
+  .logo-ia-thumb{width:96px;height:96px;border:2px solid #E5E7EB;border-radius:8px;padding:4px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .logo-ia-thumb img{width:100%;height:72px;object-fit:contain}
+  .logo-ia-thumb span{font-size:10.5px;color:#6B7280;text-align:center;line-height:1.2}
+  .logo-ia-thumb:hover{border-color:#9CA3AF}
+  .logo-ia-thumb.elegido{border-color:#20242E;background:#F3F4F6}
+  .logo-ia-thumb:disabled{opacity:.5;cursor:default}
+  .logo-ia-resultado-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .logo-ia-resultado-item img{border:1px solid #E5E7EB;border-radius:6px;background:#fff;padding:4px}
+  .logo-ia-resultado-item span{font-size:11px;color:#6B7280}
 </style>
 </head>
 <body>
@@ -89,7 +98,25 @@
     <input type="checkbox" id="logo_ia" style="width:auto">
     Quiero que la IA me diseñe un logo (+15€, pago único)
   </label>
-  <p class="hint">Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
+  <p class="hint">La IA genera tu logo ANTES de pagar, con 3 propuestas para elegir. Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
+
+  <div id="logo-ia-generador" style="display:none">
+    <button type="button" class="add" id="btn-generar-logo">Generar opciones de logo</button>
+    <p id="logo-ia-error" class="hint" style="display:none;color:#DC2626"></p>
+
+    <div id="logo-ia-opciones" style="display:none;margin-top:12px">
+      <label style="margin:0 0 6px">Elige la que más te guste</label>
+      <div id="logo-ia-opciones-grid" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+    </div>
+
+    <div id="logo-ia-cargando-formatos" class="hint" style="display:none;margin-top:10px">Preparando el favicón y la versión apaisada…</div>
+
+    <div id="logo-ia-resultado" style="display:none;margin-top:14px">
+      <label style="margin:0 0 6px">Tu logo</label>
+      <div id="logo-ia-resultado-grid" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end"></div>
+      <button type="button" class="add small" id="btn-rehacer-logo" style="margin-top:10px">Probar otras opciones</button>
+    </div>
+  </div>
 </div>
 
 <h2>Fotos del negocio</h2>
@@ -978,6 +1005,136 @@ function aplicarLogoToggle() {
 }
 document.querySelectorAll('input[name=tiene_logo]').forEach(r => r.addEventListener('change', aplicarLogoToggle));
 
+// ───────────────────────── Logo con IA (antes de comprar) ─────────────────────────
+// Casilla "Quiero que la IA me diseñe un logo": genera 3 propuestas reales
+// (POST /api/logo/opciones), el cliente elige una, y a partir de esa se
+// derivan el favicón y la versión apaisada (POST /api/logo/formatos) --
+// todo ANTES del pago, para que el cliente vea y apruebe el resultado final.
+// El resultado se guarda aquí (logoIaFormatos) y viaja en el payload de
+// /api/alta como si fuera un logo subido a mano (mismo formato que
+// collectLogoFiles/collectFavicon más abajo).
+let logoIaFormatos = null; // { cuadrada:{base64,mime}, favicon:{...}, apaisada:{...} }
+
+const btnGenerarLogo = document.getElementById('btn-generar-logo');
+const logoIaErrorEl = document.getElementById('logo-ia-error');
+const logoIaOpcionesEl = document.getElementById('logo-ia-opciones');
+const logoIaOpcionesGrid = document.getElementById('logo-ia-opciones-grid');
+const logoIaCargandoFormatos = document.getElementById('logo-ia-cargando-formatos');
+const logoIaResultadoEl = document.getElementById('logo-ia-resultado');
+const logoIaResultadoGrid = document.getElementById('logo-ia-resultado-grid');
+const btnRehacerLogo = document.getElementById('btn-rehacer-logo');
+
+document.getElementById('logo_ia').addEventListener('change', (e) => {
+  document.getElementById('logo-ia-generador').style.display = e.target.checked ? '' : 'none';
+});
+
+function mostrarErrorLogoIa(msg) {
+  logoIaErrorEl.style.display = msg ? 'block' : 'none';
+  logoIaErrorEl.textContent = msg || '';
+}
+
+async function generarOpcionesLogo() {
+  mostrarErrorLogoIa('');
+  logoIaOpcionesEl.style.display = 'none';
+  logoIaResultadoEl.style.display = 'none';
+  logoIaFormatos = null;
+
+  const nombreNegocioVal = document.getElementById('nombre_negocio').value.trim();
+  const tipoNegocioVal = document.getElementById('tipo_negocio').value.trim();
+  const ciudadVal = document.getElementById('ciudad').value.trim();
+  if (!nombreNegocioVal) {
+    mostrarErrorLogoIa('Rellena antes el nombre del negocio (arriba del todo) para poder generar el logo.');
+    return;
+  }
+
+  btnGenerarLogo.disabled = true;
+  const textoOriginal = btnGenerarLogo.textContent;
+  btnGenerarLogo.textContent = 'Generando 3 propuestas… (puede tardar ~30s)';
+  try {
+    const resp = await fetch('/api/logo/opciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre_negocio: nombreNegocioVal,
+        sector: sectorSel.value,
+        tipo_negocio: tipoNegocioVal,
+        ciudad: ciudadVal,
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudieron generar las opciones de logo.');
+
+    logoIaOpcionesGrid.innerHTML = '';
+    data.opciones.forEach(op => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'logo-ia-thumb';
+      btn.innerHTML = '<img src="data:' + op.mime + ';base64,' + op.base64 + '" alt="' + op.nombre + '"><span>' + op.nombre + '</span>';
+      btn.addEventListener('click', () => elegirOpcionLogo(op, btn));
+      logoIaOpcionesGrid.appendChild(btn);
+    });
+    logoIaOpcionesEl.style.display = '';
+  } catch (e) {
+    mostrarErrorLogoIa(e.message);
+  } finally {
+    btnGenerarLogo.disabled = false;
+    btnGenerarLogo.textContent = textoOriginal;
+  }
+}
+
+async function elegirOpcionLogo(opcion, btnElegido) {
+  mostrarErrorLogoIa('');
+  Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => {
+    b.disabled = true;
+    b.classList.toggle('elegido', b === btnElegido);
+  });
+  logoIaCargandoFormatos.style.display = 'block';
+  logoIaResultadoEl.style.display = 'none';
+  try {
+    const nombreNegocioVal = document.getElementById('nombre_negocio').value.trim();
+    const resp = await fetch('/api/logo/formatos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64: opcion.base64, nombre_negocio: nombreNegocioVal }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudieron preparar los formatos del logo.');
+
+    logoIaFormatos = data; // { cuadrada, favicon, apaisada }
+    logoIaResultadoGrid.innerHTML = '';
+    const items = [
+      { key: 'cuadrada', label: 'Cuadrada', w: 90 },
+      { key: 'favicon', label: 'Favicón', w: 48 },
+      { key: 'apaisada', label: 'Apaisada', w: 150 },
+    ];
+    items.forEach(it => {
+      const img = data[it.key];
+      const wrap = document.createElement('div');
+      wrap.className = 'logo-ia-resultado-item';
+      wrap.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.base64 + '" style="width:' + it.w + 'px;height:auto"><span>' + it.label + '</span>';
+      logoIaResultadoGrid.appendChild(wrap);
+    });
+    logoIaResultadoEl.style.display = '';
+    logoIaOpcionesEl.style.display = 'none';
+  } catch (e) {
+    mostrarErrorLogoIa(e.message);
+    Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => { b.disabled = false; });
+  } finally {
+    logoIaCargandoFormatos.style.display = 'none';
+  }
+}
+
+btnGenerarLogo.addEventListener('click', generarOpcionesLogo);
+btnRehacerLogo.addEventListener('click', () => {
+  logoIaFormatos = null;
+  logoIaResultadoEl.style.display = 'none';
+  logoIaOpcionesEl.style.display = '';
+  Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => {
+    b.disabled = false;
+    b.classList.remove('elegido');
+  });
+});
+
 // Lee un File como base64 (sin el prefijo "data:...;base64,"). El backend no
 // tiene parseo de multipart (ver src/lib/router.js), así que los archivos
 // viajan dentro del mismo JSON de /api/alta.
@@ -1144,7 +1301,24 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       const favicon = await collectFavicon();
       if (favicon) payload.favicon = favicon;
     } else {
-      payload.logoIaSolicitado = document.getElementById('logo_ia').checked;
+      const logoIaChecked = document.getElementById('logo_ia').checked;
+      payload.logoIaSolicitado = logoIaChecked;
+      // Si el cliente marcó la casilla, exigimos que haya elegido una de las
+      // 3 propuestas antes de seguir -- si no, el "antes de la compra" de la
+      // promesa del logo con IA no se cumple y el cliente pagaría sin haber
+      // visto ni aprobado nada.
+      if (logoIaChecked) {
+        if (!logoIaFormatos) {
+          errorDiv.style.display = 'block';
+          errorDiv.textContent = 'Genera y elige un logo con IA antes de continuar (o desmarca la casilla si prefieres el logo de texto simple por ahora).';
+          return;
+        }
+        payload.logos = [
+          { filename: 'logo-cuadrado.png', mime: logoIaFormatos.cuadrada.mime, base64: logoIaFormatos.cuadrada.base64 },
+          { filename: 'logo-apaisado.png', mime: logoIaFormatos.apaisada.mime, base64: logoIaFormatos.apaisada.base64 },
+        ];
+        payload.favicon = { filename: 'favicon.png', mime: logoIaFormatos.favicon.mime, base64: logoIaFormatos.favicon.base64 };
+      }
     }
   } catch (e) {
     errorDiv.style.display = 'block';

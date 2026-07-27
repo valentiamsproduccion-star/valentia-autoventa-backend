@@ -16,6 +16,7 @@ const { Router, readJsonBody, readBody, sendJson, sendHtml } = require('./lib/ro
 const { renderPagina, TEMPLATE_FILE } = require('./services/render');
 const { validarContenido } = require('./services/validate');
 const { generarContenido, mejorarContenido } = require('./services/ai');
+const { generarTresOpciones, generarFormatosDesdeEleccion } = require('./services/logoIA');
 const { crearSesionCheckout, verificarFirmaWebhook } = require('./services/stripe');
 const { publicarCliente } = require('./services/publish');
 const { sendMagicLinkEmail, sendLogoIaSolicitadoEmail } = require('./services/email');
@@ -183,6 +184,35 @@ async function subirFotosPorTarjeta(clientId, sector, contenido) {
 //         logos?: [{ filename, mime, base64 }, ...]   (varias versiones/formatos)
 //         favicon?: { filename, mime, base64 }
 //         logoIaSolicitado?: boolean }
+// ───────────────────────── LOGO CON IA (antes de comprar) ─────────────────────────
+// Ver public/alta.html, sección "Logo y favicon". Dos pasos: primero 3
+// opciones para elegir (fase 1), luego los formatos derivados de la elegida
+// (fase 2, favicón + apaisada). Nada de esto toca la base de datos todavía
+// -- las imágenes viajan en la respuesta como base64 y el cliente las
+// adjunta al payload de /api/alta exactamente igual que un logo subido a
+// mano (ver más abajo, `logos`/`favicon`).
+router.post('/api/logo/opciones', async (req, res) => {
+  const body = await readJsonBody(req, { maxBytes: 1 * 1024 * 1024 });
+  const { nombre_negocio, sector, tipo_negocio, ciudad } = body;
+  if (!nombre_negocio) {
+    return sendJson(res, 400, { error: 'Falta el nombre del negocio para generar el logo.' });
+  }
+  const opciones = await generarTresOpciones({ nombre_negocio, sector, tipo_negocio, ciudad });
+  sendJson(res, 200, { opciones });
+});
+
+router.post('/api/logo/formatos', async (req, res) => {
+  // Límite más alto: el cuerpo lleva una imagen PNG en base64 (la opción que
+  // el cliente eligió en la fase 1).
+  const body = await readJsonBody(req, { maxBytes: 8 * 1024 * 1024 });
+  const { base64, nombre_negocio } = body;
+  if (!base64) {
+    return sendJson(res, 400, { error: 'Falta la imagen del logo elegido.' });
+  }
+  const formatos = await generarFormatosDesdeEleccion(base64, { nombre_negocio });
+  sendJson(res, 200, formatos);
+});
+
 router.post('/api/alta', async (req, res) => {
   // Límite más alto que el resto de rutas (2MB por defecto, ver router.js):
   // los archivos de logo/favicon viajan en base64 dentro del mismo JSON.
