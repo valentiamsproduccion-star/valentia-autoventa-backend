@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#B45309">
-<title>{{nombre_negocio}} — Reformas y construcción</title>
-<meta name="description" content="{{hero_subtitle}}">
+<title>{{nombre_negocio}} — Servicios</title>
 {{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<meta name="description" content="{{lead_servicios}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -173,6 +173,15 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 @media(max-width:600px){.cta-bar{display:flex}}
 .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61;font-family:var(--sans)}
 @media(max-width:600px){.tpl-badge{bottom:78px}}
+
+.page-header{padding:clamp(2.6rem,4vw,3.6rem) 0;background:linear-gradient(180deg,var(--paper) 0%,#00000010 100%)}
+.page-header h1{font-size:clamp(1.9rem,3.4vw,2.7rem);max-width:20em}
+.page-header .lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
+.nav-links a.current{color:var(--accent-mid,var(--accent))}
+.cta-block{background:var(--ink);color:#fff;border-radius:var(--radius-md);padding:2.4rem;text-align:center;margin-top:3rem}
+.cta-block h2{color:#fff;font-size:1.5rem}
+.cta-block p{color:rgba(255,255,255,.68);margin:10px 0 20px;font-size:14.5px}
+.cta-block .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -181,166 +190,41 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <header>
   <div class="wrap nav">
-    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
+    <a class="logo" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</a>
     <nav class="nav-links">
-      <a href="servicios.html">Servicios</a>
+      <a href="servicios.html" class="current">Servicios</a>
       <a href="proceso.html">Cómo trabajamos</a>
-      {{#hay_proyectos}}<a href="#proyectos">Proyectos</a>{{/hay_proyectos}}
       <a href="contacto.html">Contacto</a>
       <a href="contacto.html" class="btn btn-primary">Pedir presupuesto</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <div class="eyebrow">{{eyebrow_hero}}</div>
-      <h1 class="hero-title">{{hero_title}}</h1>
-      <p class="sub">{{hero_subtitle}}</p>
-      <div class="hero-cta">
-        <a href="#presupuesto" class="btn btn-primary">Pedir presupuesto</a>
-        <a href="tel:{{telefono}}" class="btn btn-outline">Llamar ahora</a>
-      </div>
-      <div class="trust">
-        {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
-      </div>
-    </div>
-    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto de una obra / equipo</div>{{/foto_hero_url}}
-  </div>
-</section>
-
-<section class="blk" id="servicios">
+<section class="page-header">
   <div class="wrap">
     <div class="eyebrow">Servicios</div>
-    <h2 class="h2">{{h2_servicios}}</h2>
+    <h1>{{h2_servicios}}</h1>
     <p class="lead">{{lead_servicios}}</p>
-    <div class="svcs">
-      {{#servicios}}
-      <div class="svc">
-        <h3>{{titulo}}</h3>
-        <p>{{descripcion}}</p>
-      </div>
-      {{/servicios}}
-    </div>
   </div>
 </section>
 
-<section class="blk alt" id="proceso">
-  <div class="wrap">
-    <div class="eyebrow">Cómo trabajamos</div>
-    <h2 class="h2">{{h2_proceso}}</h2>
-    <p class="lead">{{lead_proceso}}</p>
-    <div class="steps">
-      {{#proceso}}
-      <div class="step">
-        <div class="n">{{n}}</div>
-        <h3>{{titulo}}</h3>
-        <p>{{descripcion}}</p>
-      </div>
-      {{/proceso}}
-    </div>
-  </div>
-</section>
-
-{{#hay_proyectos}}
-<section class="blk" id="proyectos">
-  <div class="wrap">
-    <div class="eyebrow">Proyectos</div>
-    <h2 class="h2">Trabajos que ya hemos entregado.</h2>
-    <div class="units">
-      {{#proyectos}}
-      <div class="unit">
-        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto del proyecto</div>{{/foto_url}}
-        <div class="info">
-          <h3>{{titulo}}</h3>
-          <p>{{descripcion}}</p>
-        </div>
-      </div>
-      {{/proyectos}}
-    </div>
-  </div>
-</section>
-{{/hay_proyectos}}
-
-<section class="blk reserva" id="presupuesto">
-  <div class="wrap">
-    <div class="eyebrow" style="color:rgba(255,255,255,.55)">Presupuesto sin compromiso</div>
-    <h2 class="h2">{{h2_presupuesto}}</h2>
-    <p class="lead">{{lead_presupuesto}}</p>
-    <div class="reserva-grid">
-      <div class="reserva-points">
-        {{#presupuesto_points}}
-        <div class="rpoint">
-          <div class="ic">{{n}}</div>
-          <div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div>
-        </div>
-        {{/presupuesto_points}}
-      </div>
-      <div class="form-card">
-        <div class="field">
-          <label>Tipo de trabajo</label>
-          <select name="trabajo">
-            {{#servicios}}<option>{{titulo}}</option>{{/servicios}}
-            <option>Otro / no estoy seguro</option>
-          </select>
-        </div>
-        <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
-        <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
-        <div class="field"><label>Cuéntanos qué necesitas</label><textarea placeholder="Describe el trabajo, la zona y, si puedes, plazos..."></textarea></div>
-        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%">Pedir presupuesto</a>
-        <p class="form-note">Al enviar aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-{{#hay_reviews}}
 <section class="blk">
   <div class="wrap">
-    <div class="eyebrow">Opiniones</div>
-    <h2 class="h2">Lo que dicen nuestros clientes.</h2>
-    <div class="reviews">
-      {{#reviews}}
-      <div class="review"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}</div></div>
-      {{/reviews}}
+    <div class="svcs">
+      {{#servicios}}
+      <div class="svc"><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>
+      {{/servicios}}
     </div>
-  </div>
-</section>
-{{/hay_reviews}}
 
-{{#hay_faqs}}
-<section class="blk alt" id="faq">
-  <div class="wrap">
-    <div class="eyebrow">Dudas frecuentes</div>
-    <h2 class="h2">Antes de pedir presupuesto.</h2>
-    <div class="faq">
-      {{#faqs}}
-      <details>
-        <summary>{{pregunta}}</summary>
-        <p>{{respuesta}}</p>
-      </details>
-      {{/faqs}}
-    </div>
-  </div>
-</section>
-{{/hay_faqs}}
-
-<section class="blk" id="contacto">
-  <div class="wrap">
-    <div class="eyebrow">Contacto</div>
-    <h2 class="h2">Dónde estamos y cómo llegar.</h2>
-    <div class="contact-grid">
-      <div class="contact-list">
-        <div class="citem"><div class="ic">📍</div><div><h4>Zona de trabajo</h4><p>{{ciudad}}</p></div></div>
-        <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
-        <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
-        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-outline" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
-      </div>
-      <div class="map-embed">
-        <iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div class="cta-block">
+      <h2>¿Tienes un proyecto en mente?</h2>
+      <p>Pide presupuesto sin compromiso.</p>
+      <div class="btns">
+        <a href="contacto.html" class="btn btn-primary">Pedir presupuesto</a>
+        <a href="tel:{{telefono}}" class="btn btn-outline" style="border-color:rgba(255,255,255,.3);color:#fff">Llamar ahora</a>
       </div>
     </div>
+
   </div>
 </section>
 
@@ -360,7 +244,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <div class="cta-bar">
   <a href="tel:{{telefono}}" class="btn btn-outline">Llamar</a>
-  <a href="#presupuesto" class="btn btn-primary">Presupuesto</a>
+  <a href="contacto.html" class="btn btn-primary">Pedir presupuesto</a>
 </div>
 
 <a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">

@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0F2A3D">
-<title>{{nombre_negocio}} — Salud y bienestar</title>
+<title>{{nombre_negocio}} — Contacto</title>
 {{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
-<meta name="description" content="{{hero_subtitle}}">
+<meta name="description" content="{{lead_cita}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -183,6 +183,15 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61;font-family:var(--sans)}
 @media(max-width:600px){.tpl-badge{bottom:78px}}
+
+.page-header{padding:clamp(2.6rem,4vw,3.6rem) 0;background:linear-gradient(180deg,var(--paper) 0%,#00000010 100%)}
+.page-header h1{font-size:clamp(1.9rem,3.4vw,2.7rem);max-width:20em}
+.page-header .lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
+.nav-links a.current{color:var(--accent-mid,var(--accent))}
+.cta-block{background:var(--ink);color:#fff;border-radius:var(--radius-md);padding:2.4rem;text-align:center;margin-top:3rem}
+.cta-block h2{color:#fff;font-size:1.5rem}
+.cta-block p{color:rgba(255,255,255,.68);margin:10px 0 20px;font-size:14.5px}
+.cta-block .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -191,157 +200,45 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <header>
   <div class="wrap nav">
-    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
+    <a class="logo" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</a>
     <nav class="nav-links">
       <a href="tratamientos.html">Tratamientos</a>
       <a href="equipo.html">Equipo</a>
-      {{#hay_reviews}}<a href="#opiniones">Opiniones</a>{{/hay_reviews}}
-      <a href="contacto.html">Contacto</a>
+      <a href="contacto.html" class="current">Contacto</a>
       <a href="contacto.html" class="btn btn-primary">Pedir cita</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <div class="eyebrow">{{eyebrow_hero}}</div>
-      <h1 class="hero-title">{{hero_title}}</h1>
-      <p class="sub">{{hero_subtitle}}</p>
-      <div class="hero-cta">
-        <a href="#cita" class="btn btn-primary">Pedir cita</a>
-        <a href="#tratamientos" class="btn btn-outline">Ver tratamientos</a>
-      </div>
-      <div class="trust">
-        {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
-      </div>
-    </div>
-    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto de la consulta</div>{{/foto_hero_url}}
-  </div>
-</section>
-
-<section class="blk alt" id="tratamientos">
-  <div class="wrap">
-    <div class="eyebrow">Tratamientos</div>
-    <h2 class="h2">{{h2_tratamientos}}</h2>
-    <p class="lead">{{lead_tratamientos}}</p>
-    <div class="treats">
-      {{#treats}}
-      <div class="treat"><div class="ic">{{n}}</div><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>
-      {{/treats}}
-    </div>
-  </div>
-</section>
-
-<section class="blk" id="equipo">
-  <div class="wrap">
-    <div class="eyebrow">Equipo</div>
-    <h2 class="h2">Quién te va a atender.</h2>
-    <p class="lead">Profesionales colegiados, con formación específica en cada área.</p>
-    <div class="team">
-      {{#equipo}}
-      <div class="member">
-        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto</div>{{/foto_url}}
-        <div class="info">
-          <h3>{{nombre}}</h3>
-          <div class="role">{{rol}}</div>
-          <p class="cred">{{credencial}}</p>
-        </div>
-      </div>
-      {{/equipo}}
-    </div>
-  </div>
-</section>
-
-{{#preview}}
-<section class="blk alt">
-  <div class="wrap">
-    <span class="tag">Ejemplo de sección ampliable</span>
-    <div class="eyebrow">Resultados</div>
-    <h2 class="h2">Galería de casos (antes / después).</h2>
-    <p class="lead">Bloque especialmente relevante en tratamientos estéticos, con consentimiento expreso del paciente.</p>
-    <div class="gallery">
-      <div class="gpair"><div class="imgs"><div>Antes</div><div>Después</div></div><div class="cap">Caso 1</div></div>
-      <div class="gpair"><div class="imgs"><div>Antes</div><div>Después</div></div><div class="cap">Caso 2</div></div>
-      <div class="gpair"><div class="imgs"><div>Antes</div><div>Después</div></div><div class="cap">Caso 3</div></div>
-      <div class="gpair"><div class="imgs"><div>Antes</div><div>Después</div></div><div class="cap">Caso 4</div></div>
-    </div>
-  </div>
-</section>
-{{/preview}}
-
-<section class="blk cita" id="cita">
-  <div class="wrap">
-    <div class="eyebrow">Pedir cita</div>
-    <h2 class="h2">{{h2_cita}}</h2>
-    <p class="lead">{{lead_cita}}</p>
-    <div class="cita-grid">
-      <div class="cita-points">
-        {{#cita_points}}
-        <div class="cpoint">
-          <div class="ic">{{n}}</div>
-          <div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div>
-        </div>
-        {{/cita_points}}
-        {{#preview}}<div class="cita-note">Función ampliable: cita online en tiempo real integrando Doctoralia, para que el paciente elija hora directamente desde la web.</div>{{/preview}}
-      </div>
-      <div class="form-card">
-        <div class="field">
-          <label>Tratamiento</label>
-          <select name="tratamiento">
-            {{#treats}}<option>{{titulo}}</option>{{/treats}}
-            <option>No lo sé, quiero que me orienten</option>
-          </select>
-        </div>
-        <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
-        <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
-        <div class="field"><label>Cuéntanos brevemente</label><textarea placeholder="Escribe aquí..."></textarea></div>
-        <div class="consent">
-          <input type="checkbox" id="rgpd">
-          <label for="rgpd">Doy mi consentimiento expreso para el tratamiento de mis datos de salud conforme al RGPD, necesarios para gestionar mi cita y atención clínica.</label>
-        </div>
-        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;text-align:center">Enviar solicitud</a>
-        <p class="form-note">Tus datos se tratan con confidencialidad conforme a la normativa de protección de datos de salud.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-{{#hay_reviews}}
-<section class="blk alt" id="opiniones">
-  <div class="wrap">
-    <div class="eyebrow">Opiniones</div>
-    <h2 class="h2">Lo que dicen nuestros pacientes.</h2>
-    <div class="reviews">
-      {{#reviews}}
-      <div class="review"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}</div></div>
-      {{/reviews}}
-    </div>
-  </div>
-</section>
-{{/hay_reviews}}
-
-{{#hay_faqs}}
-<section class="blk alt" id="faq">
-  <div class="wrap">
-    <div class="eyebrow">Dudas frecuentes</div>
-    <h2 class="h2">Antes de tu primera visita.</h2>
-    <div class="faq">
-      {{#faqs}}
-      <details>
-        <summary>{{pregunta}}</summary>
-        <p>{{respuesta}}</p>
-      </details>
-      {{/faqs}}
-    </div>
-  </div>
-</section>
-{{/hay_faqs}}
-
-<section class="blk" id="contacto">
+<section class="page-header">
   <div class="wrap">
     <div class="eyebrow">Contacto</div>
-    <h2 class="h2">Visítanos o escríbenos.</h2>
+    <h1>Visítanos o escríbenos.</h1>
+  </div>
+</section>
+
+<section class="blk">
+  <div class="wrap">
+    <div class="cita" style="margin:-2.5rem -24px 2.5rem;padding:3rem 24px;background:var(--ink);color:#fff">
+      <div class="eyebrow" style="color:rgba(255,255,255,.55)">Pedir cita</div>
+      <h2 class="h2">{{h2_cita}}</h2>
+      <div class="cita-grid" style="margin-top:2rem">
+        <div class="cita-points">
+          {{#cita_points}}
+          <div class="cpoint"><div class="ic">{{n}}</div><div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div></div>
+          {{/cita_points}}
+        </div>
+        <div class="form-card">
+          <div class="field"><label>Tratamiento</label><select name="tratamiento">{{#treats}}<option>{{titulo}}</option>{{/treats}}<option>No lo sé, quiero que me orienten</option></select></div>
+          <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+          <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+          <div class="field"><label>Cuéntanos brevemente</label><textarea placeholder="Escribe aquí..."></textarea></div>
+          <div class="consent"><input type="checkbox" id="rgpd"><label for="rgpd">Doy mi consentimiento expreso para el tratamiento de mis datos de salud conforme al RGPD, necesarios para gestionar mi cita y atención clínica.</label></div>
+          <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;text-align:center">Enviar solicitud</a>
+          <p class="form-note">Tus datos se tratan con confidencialidad conforme a la normativa de protección de datos de salud. Consulta nuestra <a href="privacidad.html" style="color:var(--accent-mid)">política de privacidad</a>.</p>
+        </div>
+      </div>
+    </div>
     <div class="contact-grid">
       <div class="contact-list">
         <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
@@ -349,10 +246,9 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
         <a href="https://wa.me/{{telefono_wa}}" class="btn btn-outline" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
       </div>
-      <div class="map-embed">
-        <iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
+      <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
     </div>
+
   </div>
 </section>
 
@@ -366,13 +262,13 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         <a href="cookies.html">Cookies</a>
       </div>
     </div>
-    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Los datos de salud recogidos en este sitio se tratan conforme al RGPD y a la normativa sanitaria aplicable. Web creada con Valentia Web.</p>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
   </div>
 </footer>
 
 <div class="cta-bar">
   <a href="tel:{{telefono}}" class="btn btn-outline">Llamar</a>
-  <a href="#cita" class="btn btn-primary">Pedir cita</a>
+  <a href="contacto.html" class="btn btn-primary">Pedir cita</a>
 </div>
 
 <a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">

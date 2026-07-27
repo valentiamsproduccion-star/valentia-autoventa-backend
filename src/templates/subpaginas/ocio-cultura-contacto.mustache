@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#B45309">
-<title>{{nombre_negocio}} — Reformas y construcción</title>
-<meta name="description" content="{{hero_subtitle}}">
+<meta name="theme-color" content="#6D28D9">
+<title>{{nombre_negocio}} — Contacto</title>
 {{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<meta name="description" content="Cuándo y dónde encontrarnos.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
-   PLANTILLA · REFORMAS Y CONSTRUCCIÓN
-   Variante: reformas integrales, fontanería, electricidad, gremios
-   Paleta: Pizarra + ámbar de seguridad — solidez y oficio
+   PLANTILLA · OCIO Y CULTURA
+   Variante: museos, salas de eventos, escape rooms, ocio familiar
+   Paleta: Violeta vibrante + noche — experiencia, plan y diversión
    ═══════════════════════════════════════ */
 :root{
-  --ink:        #1C2129;
-  --ink-mid:    #2A313B;
-  --paper:      #F4F5F7;
+  --ink:        #1E1633;
+  --ink-mid:    #2B2148;
+  --paper:      #F7F4FC;
   --white-pure: #ffffff;
-  --accent:     #D97706;
-  --accent-mid: #B45309;
-  --accent-dim: rgba(217,119,6,.12);
-  --steel:      #E4E7EB;
-  --text-body:  #3A4250;
-  --text-muted: #67707E;
-  --border:     #DFE3E8;
-  --border-acc: rgba(217,119,6,.35);
+  --accent:     #7C3AED;
+  --accent-mid: #6D28D9;
+  --accent-dim: rgba(124,58,237,.10);
+  --glow:       #EDE4FB;
+  --text-body:  #3D3556;
+  --text-muted: #6B6383;
+  --border:     #E7E0F2;
+  --border-acc: rgba(124,58,237,.30);
   --serif: 'Fraunces', Georgia, serif;
   --sans:  'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
   --radius-sm: 5px;
@@ -53,10 +53,10 @@ h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.18;font-weight:
 .eyebrow::before{content:'';width:1.7rem;height:2px;background:var(--accent);flex:none}
 
 /* HEADER */
-header{position:sticky;top:0;z-index:50;background:rgba(244,245,247,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+header{position:sticky;top:0;z-index:50;background:rgba(247,244,252,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
 .logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:19px;color:var(--ink);flex:none}
-.logo .mark{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:15px}
+.logo .mark{width:34px;height:34px;border-radius:50%;background:var(--accent-mid);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:15px}
 .logo img{height:36px;width:auto;display:block}
 .nav-links{display:flex;gap:28px;align-items:center}
 .nav-links a:not(.btn){color:var(--text-body);font-weight:600;font-size:14px}
@@ -66,7 +66,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(244,245,247,.94);backdro
 @media(max-width:480px){.nav .btn{display:none}.logo{font-size:17px}}
 
 /* HERO */
-.hero{padding:clamp(3rem,4.5vw,5.5rem) 0 clamp(3.5rem,5vw,5.5rem);background:linear-gradient(180deg,var(--paper) 0%,var(--steel) 100%)}
+.hero{padding:clamp(3rem,4.5vw,5.5rem) 0 clamp(3.5rem,5vw,5.5rem);background:linear-gradient(180deg,var(--paper) 0%,var(--glow) 100%)}
 .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:3rem;align-items:center}
 @media(max-width:860px){.hero-grid{grid-template-columns:1fr}}
 .hero-title{font-size:clamp(2rem,4vw,3.1rem);max-width:14em}
@@ -84,34 +84,24 @@ section.blk{padding:5rem 0}
 .lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
 .alt{background:var(--white-pure);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 
-/* SERVICIOS */
-.svcs{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-top:3rem}
-@media(max-width:820px){.svcs{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.svcs{grid-template-columns:1fr}}
-.svc{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.7rem 1.6rem;border-top:3px solid var(--accent)}
-.svc h3{font-size:17px;font-weight:600;margin-bottom:6px}
-.svc p{color:var(--text-body);font-size:14px}
-
-/* PROCESO */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-top:3rem}
-@media(max-width:820px){.steps{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:460px){.steps{grid-template-columns:1fr}}
-.step{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.6rem 1.4rem}
-.step .n{width:40px;height:40px;border-radius:50%;background:var(--accent-dim);color:var(--accent-mid);font-family:var(--serif);font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.step h3{font-size:16px;font-weight:600;margin-bottom:4px}
-.step p{color:var(--text-body);font-size:13.5px}
-
-/* PROYECTOS */
+/* ACTIVIDADES */
 .units{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
-@media(max-width:820px){.units{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.units{grid-template-columns:1fr}}
-.unit{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+@media(max-width:860px){.units{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.units{grid-template-columns:1fr}}
+.unit{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;display:flex;flex-direction:column}
 .unit .ph{object-fit:cover;aspect-ratio:16/10;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
-.unit .info{padding:1.2rem 1.3rem}
-.unit h3{font-size:15.5px;font-weight:600}
-.unit p{color:var(--text-muted);font-size:13px;margin-top:6px}
+.unit .info{padding:1.3rem 1.4rem;display:flex;flex-direction:column;gap:8px;flex:1}
+.unit .detalle{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-mid);background:var(--accent-dim);padding:5px 10px;border-radius:100px;align-self:flex-start}
+.unit h3{font-size:17px;font-weight:600}
+.unit p{color:var(--text-body);font-size:13.8px}
 
-/* PRESUPUESTO / FORM */
+/* TARIFAS */
+.tarifas{margin-top:3rem;max-width:680px}
+.trow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:1rem 0;border-bottom:1px dashed var(--border)}
+.trow .c{font-weight:600;font-size:15.5px}
+.trow .p{font-family:var(--serif);font-weight:700;font-size:16px;color:var(--accent-mid);flex:none}
+
+/* RESERVA / FORM */
 .reserva{background:var(--ink);color:#fff}
 .reserva .h2,.reserva h2{color:#fff}
 .reserva .lead{color:rgba(255,255,255,.68)}
@@ -119,14 +109,14 @@ section.blk{padding:5rem 0}
 @media(max-width:860px){.reserva-grid{grid-template-columns:1fr}}
 .reserva-points{display:flex;flex-direction:column;gap:1.3rem}
 .rpoint{display:flex;gap:14px}
-.rpoint .ic{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);flex:none;display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700}
+.rpoint .ic{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
 .rpoint h4{font-size:15px;font-weight:600;color:#fff}
 .rpoint p{font-size:13.5px;color:rgba(255,255,255,.62);margin-top:3px}
 .form-card{background:var(--white-pure);border-radius:var(--radius-md);padding:1.8rem}
 .form-card label{font-weight:600;color:var(--ink);font-size:13.5px;display:block;margin-bottom:6px}
 .field{margin-bottom:14px}
+.field2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14.5px;font-family:var(--sans);outline:none;background:var(--paper);color:var(--ink)}
-.field textarea{resize:vertical;min-height:80px}
 .form-note{font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5}
 
 /* FAQ */
@@ -146,7 +136,7 @@ section.blk{padding:5rem 0}
 .review p{font-size:14.5px;color:var(--text-body);font-style:italic}
 .review .who{margin-top:14px;font-weight:700;font-size:13px}
 
-/* CONTACTO */
+/* CONTACTO / HORARIOS */
 .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:2.5rem;align-items:start}
 @media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
 .contact-list{display:flex;flex-direction:column;gap:1.1rem}
@@ -154,6 +144,11 @@ section.blk{padding:5rem 0}
 .citem .ic{width:36px;height:36px;border-radius:50%;background:var(--accent-dim);color:var(--accent-mid);display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:14px}
 .citem h4{font-size:14.5px;font-weight:600}
 .citem p{font-size:13.5px;color:var(--text-muted)}
+.hours{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem 1.3rem;margin-top:4px}
+.hrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+.hrow:last-child{border-bottom:0}
+.hrow .d{font-weight:600}
+.hrow .h{color:var(--text-muted)}
 .map-embed{border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border);aspect-ratio:4/3}
 .map-embed iframe{width:100%;height:100%;border:0}
 
@@ -173,6 +168,15 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 @media(max-width:600px){.cta-bar{display:flex}}
 .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61;font-family:var(--sans)}
 @media(max-width:600px){.tpl-badge{bottom:78px}}
+
+.page-header{padding:clamp(2.6rem,4vw,3.6rem) 0;background:linear-gradient(180deg,var(--paper) 0%,#00000010 100%)}
+.page-header h1{font-size:clamp(1.9rem,3.4vw,2.7rem);max-width:20em}
+.page-header .lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
+.nav-links a.current{color:var(--accent-mid,var(--accent))}
+.cta-block{background:var(--ink);color:#fff;border-radius:var(--radius-md);padding:2.4rem;text-align:center;margin-top:3rem}
+.cta-block h2{color:#fff;font-size:1.5rem}
+.cta-block p{color:rgba(255,255,255,.68);margin:10px 0 20px;font-size:14.5px}
+.cta-block .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -181,173 +185,68 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <header>
   <div class="wrap nav">
-    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
+    <a class="logo" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</a>
     <nav class="nav-links">
-      <a href="servicios.html">Servicios</a>
-      <a href="proceso.html">Cómo trabajamos</a>
-      {{#hay_proyectos}}<a href="#proyectos">Proyectos</a>{{/hay_proyectos}}
-      <a href="contacto.html">Contacto</a>
-      <a href="contacto.html" class="btn btn-primary">Pedir presupuesto</a>
+      <a href="actividades.html">Actividades</a>
+      <a href="tarifas.html">Tarifas</a>
+      <a href="contacto.html" class="current">Contacto</a>
+      <a href="contacto.html" class="btn btn-primary">Reservar</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <div class="eyebrow">{{eyebrow_hero}}</div>
-      <h1 class="hero-title">{{hero_title}}</h1>
-      <p class="sub">{{hero_subtitle}}</p>
-      <div class="hero-cta">
-        <a href="#presupuesto" class="btn btn-primary">Pedir presupuesto</a>
-        <a href="tel:{{telefono}}" class="btn btn-outline">Llamar ahora</a>
-      </div>
-      <div class="trust">
-        {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
-      </div>
-    </div>
-    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto de una obra / equipo</div>{{/foto_hero_url}}
-  </div>
-</section>
-
-<section class="blk" id="servicios">
+<section class="page-header">
   <div class="wrap">
-    <div class="eyebrow">Servicios</div>
-    <h2 class="h2">{{h2_servicios}}</h2>
-    <p class="lead">{{lead_servicios}}</p>
-    <div class="svcs">
-      {{#servicios}}
-      <div class="svc">
-        <h3>{{titulo}}</h3>
-        <p>{{descripcion}}</p>
-      </div>
-      {{/servicios}}
-    </div>
+    <div class="eyebrow">Horarios y ubicación</div>
+    <h1>Cuándo y dónde encontrarnos.</h1>
   </div>
 </section>
 
-<section class="blk alt" id="proceso">
-  <div class="wrap">
-    <div class="eyebrow">Cómo trabajamos</div>
-    <h2 class="h2">{{h2_proceso}}</h2>
-    <p class="lead">{{lead_proceso}}</p>
-    <div class="steps">
-      {{#proceso}}
-      <div class="step">
-        <div class="n">{{n}}</div>
-        <h3>{{titulo}}</h3>
-        <p>{{descripcion}}</p>
-      </div>
-      {{/proceso}}
-    </div>
-  </div>
-</section>
-
-{{#hay_proyectos}}
-<section class="blk" id="proyectos">
-  <div class="wrap">
-    <div class="eyebrow">Proyectos</div>
-    <h2 class="h2">Trabajos que ya hemos entregado.</h2>
-    <div class="units">
-      {{#proyectos}}
-      <div class="unit">
-        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto del proyecto</div>{{/foto_url}}
-        <div class="info">
-          <h3>{{titulo}}</h3>
-          <p>{{descripcion}}</p>
-        </div>
-      </div>
-      {{/proyectos}}
-    </div>
-  </div>
-</section>
-{{/hay_proyectos}}
-
-<section class="blk reserva" id="presupuesto">
-  <div class="wrap">
-    <div class="eyebrow" style="color:rgba(255,255,255,.55)">Presupuesto sin compromiso</div>
-    <h2 class="h2">{{h2_presupuesto}}</h2>
-    <p class="lead">{{lead_presupuesto}}</p>
-    <div class="reserva-grid">
-      <div class="reserva-points">
-        {{#presupuesto_points}}
-        <div class="rpoint">
-          <div class="ic">{{n}}</div>
-          <div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div>
-        </div>
-        {{/presupuesto_points}}
-      </div>
-      <div class="form-card">
-        <div class="field">
-          <label>Tipo de trabajo</label>
-          <select name="trabajo">
-            {{#servicios}}<option>{{titulo}}</option>{{/servicios}}
-            <option>Otro / no estoy seguro</option>
-          </select>
-        </div>
-        <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
-        <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
-        <div class="field"><label>Cuéntanos qué necesitas</label><textarea placeholder="Describe el trabajo, la zona y, si puedes, plazos..."></textarea></div>
-        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%">Pedir presupuesto</a>
-        <p class="form-note">Al enviar aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-{{#hay_reviews}}
 <section class="blk">
   <div class="wrap">
-    <div class="eyebrow">Opiniones</div>
-    <h2 class="h2">Lo que dicen nuestros clientes.</h2>
-    <div class="reviews">
-      {{#reviews}}
-      <div class="review"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}</div></div>
-      {{/reviews}}
+    <div style="margin:-2.5rem -24px 2.5rem;padding:3rem 24px;background:var(--ink);color:#fff">
+      <div class="eyebrow" style="color:rgba(255,255,255,.55)">Reserva</div>
+      <h2 class="h2">{{h2_reserva}}</h2>
+      <p class="lead" style="color:rgba(255,255,255,.68)">{{lead_reserva}}</p>
+      <div class="reserva-grid" style="margin-top:2rem">
+        <div class="reserva-points">
+          {{#reserva_points}}
+          <div class="rpoint"><div class="ic">{{n}}</div><div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div></div>
+          {{/reserva_points}}
+        </div>
+        <div class="form-card">
+          <div class="field"><label>Actividad</label><select name="actividad">{{#actividades}}<option>{{titulo}}</option>{{/actividades}}<option>Otra / consulta general</option></select></div>
+          <div class="field2">
+            <div class="field"><label>Fecha</label><input type="date"></div>
+            <div class="field"><label>Personas</label><select><option>1-2</option><option>3-4</option><option>5-6</option><option>7 o más</option></select></div>
+          </div>
+          <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+          <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+          <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%">Reservar por WhatsApp</a>
+          <p class="form-note">Al enviar aceptas nuestra <a href="privacidad.html" style="color:inherit;text-decoration:underline">política de privacidad</a>. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
-{{/hay_reviews}}
-
-{{#hay_faqs}}
-<section class="blk alt" id="faq">
-  <div class="wrap">
-    <div class="eyebrow">Dudas frecuentes</div>
-    <h2 class="h2">Antes de pedir presupuesto.</h2>
-    <div class="faq">
-      {{#faqs}}
-      <details>
-        <summary>{{pregunta}}</summary>
-        <p>{{respuesta}}</p>
-      </details>
-      {{/faqs}}
-    </div>
-  </div>
-</section>
-{{/hay_faqs}}
-
-<section class="blk" id="contacto">
-  <div class="wrap">
-    <div class="eyebrow">Contacto</div>
-    <h2 class="h2">Dónde estamos y cómo llegar.</h2>
     <div class="contact-grid">
       <div class="contact-list">
-        <div class="citem"><div class="ic">📍</div><div><h4>Zona de trabajo</h4><p>{{ciudad}}</p></div></div>
+        <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
         <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
         <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+        <div class="citem"><div class="ic">🕑</div><div style="flex:1"><h4>Horario</h4>
+          <div class="hours">{{#horarios}}<div class="hrow"><span class="d">{{dia}}</span><span class="h">{{horas}}</span></div>{{/horarios}}</div>
+        </div></div>
         <a href="https://wa.me/{{telefono_wa}}" class="btn btn-outline" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
       </div>
-      <div class="map-embed">
-        <iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
+      <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
     </div>
+
   </div>
 </section>
 
 <footer>
   <div class="wrap">
     <div class="foot-grid">
-      <div>{{nombre_negocio}} — Reformas y construcción</div>
+      <div>{{nombre_negocio}} — Ocio y cultura</div>
       <div class="foot-links">
         <a href="aviso-legal.html">Aviso legal</a>
         <a href="privacidad.html">Política de privacidad</a>
@@ -360,7 +259,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <div class="cta-bar">
   <a href="tel:{{telefono}}" class="btn btn-outline">Llamar</a>
-  <a href="#presupuesto" class="btn btn-primary">Presupuesto</a>
+  <a href="contacto.html" class="btn btn-primary">Reservar</a>
 </div>
 
 <a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">

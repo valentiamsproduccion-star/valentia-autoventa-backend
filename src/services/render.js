@@ -124,6 +124,146 @@ function renderServiciosProfesionalesContacto(datosBase, contenido, opts) {
   return renderSubpagina('servicios-profesionales', 'contacto', ctx);
 }
 
+// ── Salud y bienestar: Tratamientos / Equipo / Contacto ──────────────────
+function renderSaludBienestarTratamientos(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    treats: withIndex(contenido.treats),
+  });
+  return renderSubpagina('salud-bienestar', 'tratamientos', ctx);
+}
+function renderSaludBienestarEquipo(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('salud-bienestar', 'equipo', ctx);
+}
+function renderSaludBienestarContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    cita_points: withIndex(contenido.cita_points),
+  });
+  return renderSubpagina('salud-bienestar', 'contacto', ctx);
+}
+
+// ── Hostelería y restauración: Carta / Nosotros / Contacto ───────────────
+function renderHosteleriaRestauracionCarta(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('hosteleria-restauracion', 'carta', ctx);
+}
+function renderHosteleriaRestauracionNosotros(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('hosteleria-restauracion', 'nosotros', ctx);
+}
+function renderHosteleriaRestauracionContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('hosteleria-restauracion', 'contacto', ctx);
+}
+
+// ── Turismo y alojamiento: Alojamiento / Entorno / Contacto ──────────────
+function renderTurismoAlojamientoAlojamiento(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    comodidades: (contenido.comodidades || []).filter(Boolean),
+  });
+  return renderSubpagina('turismo-alojamiento', 'alojamiento', ctx);
+}
+function renderTurismoAlojamientoEntorno(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    entorno: withIndex(contenido.entorno),
+  });
+  return renderSubpagina('turismo-alojamiento', 'entorno', ctx);
+}
+function renderTurismoAlojamientoContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    reserva_points: withIndex(contenido.reserva_points),
+  });
+  return renderSubpagina('turismo-alojamiento', 'contacto', ctx);
+}
+
+// ── Comercio y retail: Productos / Tienda / Contacto ─────────────────────
+function renderComercioRetailProductos(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    razones: withIndex(contenido.razones),
+  });
+  return renderSubpagina('comercio-retail', 'productos', ctx);
+}
+function renderComercioRetailTienda(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('comercio-retail', 'tienda', ctx);
+}
+function renderComercioRetailContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('comercio-retail', 'contacto', ctx);
+}
+
+// ── Reformas y construcción: Servicios / Proceso / Contacto ──────────────
+function renderReformasConstruccionServicios(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('reformas-construccion', 'servicios', ctx);
+}
+function renderReformasConstruccionProceso(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    proceso: withIndex(contenido.proceso),
+    hay_proyectos: Array.isArray(contenido.proyectos) && contenido.proyectos.length > 0,
+  });
+  return renderSubpagina('reformas-construccion', 'proceso', ctx);
+}
+function renderReformasConstruccionContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    presupuesto_points: withIndex(contenido.presupuesto_points),
+  });
+  return renderSubpagina('reformas-construccion', 'contacto', ctx);
+}
+
+// ── Formación y academias: Cursos / Metodología / Contacto ───────────────
+function renderFormacionAcademiasCursos(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('formacion-academias', 'cursos', ctx);
+}
+function renderFormacionAcademiasMetodologia(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    metodo: withIndex(contenido.metodo),
+    hay_profes: Array.isArray(contenido.profes) && contenido.profes.length > 0,
+  });
+  return renderSubpagina('formacion-academias', 'metodologia', ctx);
+}
+function renderFormacionAcademiasContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    matricula_points: withIndex(contenido.matricula_points),
+  });
+  return renderSubpagina('formacion-academias', 'contacto', ctx);
+}
+
+// ── Ocio y cultura: Actividades / Tarifas / Contacto ──────────────────────
+function renderOcioCulturaActividades(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('ocio-cultura', 'actividades', ctx);
+}
+function renderOcioCulturaTarifas(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('ocio-cultura', 'tarifas', ctx);
+}
+function renderOcioCulturaContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    reserva_points: withIndex(contenido.reserva_points),
+  });
+  return renderSubpagina('ocio-cultura', 'contacto', ctx);
+}
+
+// ── Automoción: Servicios / Razones / Contacto ───────────────────────────
+function renderAutomocionServicios(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('automocion', 'servicios', ctx);
+}
+function renderAutomocionRazones(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    razones: withIndex(contenido.razones),
+  });
+  return renderSubpagina('automocion', 'razones', ctx);
+}
+function renderAutomocionContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    cita_points: withIndex(contenido.cita_points),
+  });
+  return renderSubpagina('automocion', 'contacto', ctx);
+}
+
 // Mapa sector -> { nombre_pagina: función renderer }. Los sectores que no
 // aparezcan aquí todavía no tienen subpáginas reales (ver Tarea "Replicar
 // estructura multi-página a los 8 sectores restantes") -- sus enlaces de
@@ -133,6 +273,46 @@ const SUBPAGINA_RENDERERS = {
     areas: renderServiciosProfesionalesAreas,
     equipo: renderServiciosProfesionalesEquipo,
     contacto: renderServiciosProfesionalesContacto,
+  },
+  'salud-bienestar': {
+    tratamientos: renderSaludBienestarTratamientos,
+    equipo: renderSaludBienestarEquipo,
+    contacto: renderSaludBienestarContacto,
+  },
+  'hosteleria-restauracion': {
+    carta: renderHosteleriaRestauracionCarta,
+    nosotros: renderHosteleriaRestauracionNosotros,
+    contacto: renderHosteleriaRestauracionContacto,
+  },
+  'turismo-alojamiento': {
+    alojamiento: renderTurismoAlojamientoAlojamiento,
+    entorno: renderTurismoAlojamientoEntorno,
+    contacto: renderTurismoAlojamientoContacto,
+  },
+  'comercio-retail': {
+    productos: renderComercioRetailProductos,
+    tienda: renderComercioRetailTienda,
+    contacto: renderComercioRetailContacto,
+  },
+  'reformas-construccion': {
+    servicios: renderReformasConstruccionServicios,
+    proceso: renderReformasConstruccionProceso,
+    contacto: renderReformasConstruccionContacto,
+  },
+  'formacion-academias': {
+    cursos: renderFormacionAcademiasCursos,
+    metodologia: renderFormacionAcademiasMetodologia,
+    contacto: renderFormacionAcademiasContacto,
+  },
+  'ocio-cultura': {
+    actividades: renderOcioCulturaActividades,
+    tarifas: renderOcioCulturaTarifas,
+    contacto: renderOcioCulturaContacto,
+  },
+  'automocion': {
+    servicios: renderAutomocionServicios,
+    razones: renderAutomocionRazones,
+    contacto: renderAutomocionContacto,
   },
 };
 
