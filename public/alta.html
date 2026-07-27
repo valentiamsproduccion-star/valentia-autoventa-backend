@@ -394,7 +394,7 @@ const SECTORES = {
       {key:'hero', label:'Foto de la experiencia / espacio'},
     ],
     tipoLabel: 'Tipo de negocio',
-    tipoOptions: ['Museo / centro cultural','Sala de eventos','Escape room','Ocio familiar','Otro'],
+    tipoOptions: ['Museo / centro cultural','Sala de eventos','Escape room','Otro'],
     tablaB: [
       {key:'actividades', label:'Actividades o experiencias', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'detalle',label:'Detalle (duración, jugadores, aforo...)'},{key:'descripcion',label:'Descripción'}]},
       {key:'tarifas', label:'Tarifas / entradas', type:'repeater', sub:[{key:'concepto',label:'Concepto'},{key:'precio',label:'Precio'}]},
@@ -1032,7 +1032,22 @@ aplicarLogoToggle();
 let ultimoOrderId = null;
 
 document.getElementById('btn-generar').addEventListener('click', async () => {
+  const btnGenerar = document.getElementById('btn-generar');
+  // Sin esto el botón no daba ningún feedback mientras esperaba la respuesta
+  // del servidor (que puede tardar varios segundos, o hasta ~30-50s si Render
+  // estaba "dormido" por el plan gratuito -- ver README). El usuario pensaba
+  // que el botón "no funcionaba" y le daba varias veces, disparando varias
+  // peticiones a la vez. Ahora se deshabilita y cambia de texto al instante,
+  // y se restaura siempre (éxito o error) en el `finally` de abajo.
+  if (btnGenerar.disabled) return;
+  const textoOriginalBtn = btnGenerar.textContent;
+  btnGenerar.disabled = true;
+  btnGenerar.style.opacity = '0.6';
+  btnGenerar.style.cursor = 'not-allowed';
+  btnGenerar.textContent = 'Generando vista previa…';
+
   const errorDiv = document.getElementById('error');
+  try {
   errorDiv.style.display = 'none';
   if (!document.getElementById('rgpd').checked) {
     errorDiv.style.display = 'block';
@@ -1148,6 +1163,12 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   } catch (e) {
     errorDiv.style.display = 'block';
     errorDiv.textContent = e.message;
+  }
+  } finally {
+    btnGenerar.disabled = false;
+    btnGenerar.style.opacity = '';
+    btnGenerar.style.cursor = '';
+    btnGenerar.textContent = textoOriginalBtn;
   }
 });
 

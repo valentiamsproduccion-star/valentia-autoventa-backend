@@ -72,6 +72,79 @@ function extractJson(text) {
   }
 }
 
+// Llama a /v1/messages con los mensajes dados y devuelve el texto del
+// modelo. Centraliza la lectura de la respuesta (errores de Anthropic,
+// respuesta vacía) para no repetirlo en cada vía (generar/mejorar) ni en
+// el reintento de abajo.
+async function llamarClaude(apiKey, sistema, messages) {
+  const respuesta = await postJSON(
+    ANTHROPIC_API_URL,
+    '/v1/messages',
+    { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
+    {
+      model: DEFAULT_MODEL,
+      max_tokens: 4096,
+      // claude-sonnet-5 activa razonamiento extendido por defecto, y ese
+      // razonamiento consume el mismo presupuesto de max_tokens -- con
+      // prompts largos se gastaba todo en "thinking" y no quedaba nada para
+      // el JSON de salida (stop_reason: "max_tokens", sin bloque de texto).
+      // Lo desactivamos explícitamente: aquí no hace falta razonamiento,
+      // solo redacción siguiendo reglas ya cerradas en el prompt de sistema.
+      thinking: { type: 'disabled' },
+      system: sistema,
+      messages,
+    }
+  );
+
+  if (respuesta.type === 'error') {
+    throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
+  }
+  const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
+  if (!textoModelo) {
+    // Diagnóstico: qué tipos de bloque llegaron y por qué se paró la
+    // respuesta (p. ej. "max_tokens" si el modelo gastó todo el presupuesto
+    // en razonamiento interno antes de escribir el JSON).
+    const tipos = (respuesta.content || []).map(b => b.type).join(',');
+    throw new Error('La IA no devolvió texto. stop_reason=' + respuesta.stop_reason + ', tipos_de_bloque=[' + tipos + '], usage=' + JSON.stringify(respuesta.usage));
+  }
+  return textoModelo;
+}
+
+// Pide el JSON y, si el modelo se sale del formato (p. ej. porque los datos
+// de entrada le parecen incoherentes y responde con una pregunta o un aviso
+// en vez del JSON pedido -- ver prompts/index.js, regla "responde solo con
+// el JSON"), reintenta UNA vez insistiendo explícitamente en el formato,
+// antes de darle al cliente un error en crudo. Así una respuesta rara del
+// modelo no tira abajo la generación de la vista previa.
+async function pedirJson(apiKey, sistema, mensajeUsuario) {
+  const messages = [{ role: 'user', content: mensajeUsuario }];
+  const textoModelo = await llamarClaude(apiKey, sistema, messages);
+  try {
+    return extractJson(textoModelo);
+  } catch (primerError) {
+    const mensajeCorreccion =
+      'Tu respuesta anterior no era el JSON pedido (empezaba así: "' +
+      textoModelo.slice(0, 200) +
+      '"). Recuerda la regla: responde ÚNICAMENTE con el JSON pedido, sin ' +
+      'preguntas ni comentarios, aunque los datos te parezcan incompletos o ' +
+      'incoherentes -- usa "[PENDIENTE: dato del cliente]" en los campos que ' +
+      'no puedas rellenar con garantías.';
+    const reintento = await llamarClaude(apiKey, sistema, [
+      ...messages,
+      { role: 'assistant', content: textoModelo },
+      { role: 'user', content: mensajeCorreccion },
+    ]);
+    try {
+      return extractJson(reintento);
+    } catch (segundoError) {
+      // Si insistiendo tampoco lo consigue, se propaga el error del PRIMER
+      // intento (suele ser más informativo sobre la causa real -- p. ej. la
+      // objeción original del modelo sobre los datos).
+      throw primerError;
+    }
+  }
+}
+
 // datosEnBruto: el objeto con los campos de la "Tabla B" del sector
 // (Formulario de Alta) tal como los rellenó el cliente.
 async function generarContenido(sector, datosEnBruto) {
@@ -89,37 +162,7 @@ async function generarContenido(sector, datosEnBruto) {
     'ENTRADA DEL CLIENTE (formato esperado: ' + ENTRADA_ESPERADA[sector] + ')\n\n' +
     JSON.stringify(datosEnBruto, null, 2);
 
-  const respuesta = await postJSON(
-    ANTHROPIC_API_URL,
-    '/v1/messages',
-    { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-    {
-      model: DEFAULT_MODEL,
-      max_tokens: 4096,
-      // claude-sonnet-5 activa razonamiento extendido por defecto, y ese
-      // razonamiento consume el mismo presupuesto de max_tokens -- con
-      // prompts largos se gastaba todo en "thinking" y no quedaba nada para
-      // el JSON de salida (stop_reason: "max_tokens", sin bloque de texto).
-      // Lo desactivamos explícitamente: aquí no hace falta razonamiento,
-      // solo redacción siguiendo reglas ya cerradas en el prompt de sistema.
-      thinking: { type: 'disabled' },
-      system: sistema,
-      messages: [{ role: 'user', content: mensajeUsuario }],
-    }
-  );
-
-  if (respuesta.type === 'error') {
-    throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
-  }
-  const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
-  if (!textoModelo) {
-    // Diagnóstico: qué tipos de bloque llegaron y por qué se paró la
-    // respuesta (p. ej. "max_tokens" si el modelo gastó todo el presupuesto
-    // en razonamiento interno antes de escribir el JSON).
-    const tipos = (respuesta.content || []).map(b => b.type).join(',');
-    throw new Error('La IA no devolvió texto. stop_reason=' + respuesta.stop_reason + ', tipos_de_bloque=[' + tipos + '], usage=' + JSON.stringify(respuesta.usage));
-  }
-  return extractJson(textoModelo);
+  return pedirJson(apiKey, sistema, mensajeUsuario);
 }
 
 // Vía "mejora IA": el cliente ya escribió su propio texto por bloque; la IA
@@ -145,28 +188,7 @@ async function mejorarContenido(sector, textoClientePorBloque) {
     'TEXTO DEL CLIENTE POR CAMPO\n\n' +
     JSON.stringify(textoClientePorBloque, null, 2);
 
-  const respuesta = await postJSON(
-    ANTHROPIC_API_URL,
-    '/v1/messages',
-    { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-    {
-      model: DEFAULT_MODEL,
-      max_tokens: 4096,
-      thinking: { type: 'disabled' },
-      system: sistema,
-      messages: [{ role: 'user', content: mensajeUsuario }],
-    }
-  );
-
-  if (respuesta.type === 'error') {
-    throw new Error('Anthropic devolvió un error: ' + JSON.stringify(respuesta.error || respuesta));
-  }
-  const textoModelo = (respuesta.content || []).map(b => b.text || '').join('\n');
-  if (!textoModelo) {
-    const tipos = (respuesta.content || []).map(b => b.type).join(',');
-    throw new Error('La IA no devolvió texto. stop_reason=' + respuesta.stop_reason + ', tipos_de_bloque=[' + tipos + '], usage=' + JSON.stringify(respuesta.usage));
-  }
-  return extractJson(textoModelo);
+  return pedirJson(apiKey, sistema, mensajeUsuario);
 }
 
 module.exports = { generarContenido, mejorarContenido, extractJson };
