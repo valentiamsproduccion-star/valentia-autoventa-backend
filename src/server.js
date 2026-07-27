@@ -13,7 +13,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { Router, readJsonBody, readBody, sendJson, sendHtml } = require('./lib/router');
-const { renderPagina, TEMPLATE_FILE } = require('./services/render');
+const { renderPagina, renderPaginaLegal, TEMPLATE_FILE, TEMPLATE_FILE_LEGAL } = require('./services/render');
 const { validarContenido } = require('./services/validate');
 const { generarContenido, mejorarContenido } = require('./services/ai');
 const { generarTresOpciones, generarFormatosDesdeEleccion } = require('./services/logoIA');
@@ -223,8 +223,17 @@ router.post('/api/alta', async (req, res) => {
     logos, favicon, logoIaSolicitado, fotos, plantillaId,
   } = body;
   requireSector(sector);
-  if (!datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email) {
-    return sendJson(res, 400, { error: 'Faltan datos base del negocio (nombre, ciudad, teléfono, email).' });
+  // Datos fiscales (razón social/forma jurídica/NIF/domicilio) obligatorios:
+  // sin ellos no se puede generar un Aviso Legal real (ver
+  // services/legal.js) -- toda web publicada lleva esas páginas por ley
+  // (LSSI/RGPD), así que se piden ya en el alta en vez de dejarlas para luego.
+  if (
+    !datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email ||
+    !datosBase.razon_social || !datosBase.nif_cif || !datosBase.domicilio_fiscal
+  ) {
+    return sendJson(res, 400, {
+      error: 'Faltan datos del negocio (nombre, ciudad, teléfono, email, razón social, NIF/CIF o domicilio fiscal).',
+    });
   }
 
   let contenidoFinal;
@@ -347,10 +356,33 @@ router.get('/preview/:orderId', async (req, res, params) => {
   const client = await db.getClient(order.client_id);
   const datosBase = {
     nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    razon_social: client.razon_social, forma_juridica: client.forma_juridica,
+    nif_cif: client.nif_cif, domicilio_fiscal: client.domicilio_fiscal,
     logo_url: client.logo_url, favicon_url: client.favicon_url,
     foto_hero_url: client.foto_hero_url, foto_secundaria_url: client.foto_secundaria_url, galeria_urls: client.galeria_urls,
   };
   const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
+  sendHtml(res, 200, html);
+});
+
+// Vista previa de las páginas legales (Aviso Legal, Privacidad, Cookies) --
+// para que el cliente pueda revisarlas ANTES de pagar, igual que la vista
+// previa de la página principal de arriba. `pagina` es una de
+// TEMPLATE_FILE_LEGAL ('aviso-legal' | 'privacidad' | 'cookies').
+router.get('/preview/:orderId/legal/:pagina', async (req, res, params) => {
+  if (!TEMPLATE_FILE_LEGAL.includes(params.pagina)) {
+    return sendJson(res, 404, { error: 'Página legal desconocida: ' + params.pagina });
+  }
+  const order = await db.getOrder(params.orderId);
+  if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
+  const client = await db.getClient(order.client_id);
+  const datosBase = {
+    nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    razon_social: client.razon_social, forma_juridica: client.forma_juridica,
+    nif_cif: client.nif_cif, domicilio_fiscal: client.domicilio_fiscal,
+    logo_url: client.logo_url, favicon_url: client.favicon_url,
+  };
+  const html = renderPaginaLegal(params.pagina, datosBase, { preview: true });
   sendHtml(res, 200, html);
 });
 
@@ -534,8 +566,20 @@ function markTokenReuse() {
 // PUNTO DE EXTENSIÓN: esto sigue siendo un placeholder mínimo para poder ver
 // la web publicada ya mismo; el dominio/subdominio real del cliente sigue
 // pendiente de la reunión técnica (ver README y publish.js).
+// Deriva el "slot" (clave de almacenamiento, ver db.upsertPage) a partir del
+// nombre de archivo pedido. 'index.html' y 'servicios.html' mantienen los
+// nombres de slot históricos ('principal'/'adicional') por compatibilidad
+// con clientes ya publicados antes de las páginas legales; cualquier otro
+// archivo (aviso-legal.html, privacidad.html, cookies.html, y las futuras
+// páginas de Áreas/Equipo/Contacto) usa su propio nombre sin más.
+function slotDesdeArchivo(file) {
+  if (file === 'index.html') return 'principal';
+  if (file === 'servicios.html') return 'adicional';
+  return file.replace(/\.html$/i, '');
+}
+
 async function sendSitePage(res, slug, file) {
-  const slot = file === 'servicios.html' ? 'adicional' : 'principal';
+  const slot = slotDesdeArchivo(file);
   const page = await db.getPageBySlug(slug, slot);
   if (!page || !page.html) {
     return sendHtml(res, 404, '<h1>Página no encontrada</h1><p>Todavía no se ha publicado esta web.</p>');

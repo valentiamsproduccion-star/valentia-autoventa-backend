@@ -78,6 +78,27 @@
 <label>Email de contacto</label>
 <input id="email" type="email" placeholder="hola@tunegocio.com">
 
+<h2>Datos fiscales</h2>
+<p class="hint">Necesarios para generar el Aviso Legal y la Política de Privacidad de tu web (obligatorios por ley). No se muestran en la web salvo en esas páginas legales.</p>
+<div class="row">
+  <div><label>Razón social / nombre legal completo</label><input id="razon_social" placeholder="Ej: Juan Pérez García, o Mi Negocio S.L."></div>
+  <div><label>Forma jurídica</label>
+    <select id="forma_juridica">
+      <option value="Autónomo/a">Autónomo/a (persona física)</option>
+      <option value="Sociedad Limitada (S.L.)">Sociedad Limitada (S.L.)</option>
+      <option value="Sociedad Anónima (S.A.)">Sociedad Anónima (S.A.)</option>
+      <option value="Sociedad Limitada Unipersonal (S.L.U.)">Sociedad Limitada Unipersonal (S.L.U.)</option>
+      <option value="Cooperativa">Cooperativa</option>
+      <option value="Comunidad de bienes">Comunidad de bienes</option>
+      <option value="Otra">Otra</option>
+    </select>
+  </div>
+</div>
+<div class="row">
+  <div><label>NIF / CIF</label><input id="nif_cif" placeholder="12345678A o B12345678"></div>
+  <div><label>Domicilio fiscal completo</label><input id="domicilio_fiscal" placeholder="Calle Mayor 12, 3ºA, 46001 Valencia"></div>
+</div>
+
 <h2>Logo y favicon</h2>
 <div class="via">
   <label><input type="radio" name="tiene_logo" value="si" checked> Ya tengo logo</label>
@@ -1224,21 +1245,31 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   const ciudadVal = document.getElementById('ciudad').value.trim();
   const telefonoVal = document.getElementById('telefono').value.trim();
   const emailVal = document.getElementById('email').value.trim();
+  const razonSocialVal = document.getElementById('razon_social').value.trim();
+  const formaJuridicaVal = document.getElementById('forma_juridica').value.trim();
+  const nifCifVal = document.getElementById('nif_cif').value.trim();
+  const domicilioFiscalVal = document.getElementById('domicilio_fiscal').value.trim();
 
   // Sin esto el servidor rechazaba la petición con un mensaje genérico, o
   // -- peor -- la dejaba pasar hasta la IA sin nombre/tipo/ciudad y la IA
   // se negaba a inventar esos datos, devolviendo texto en vez del JSON
   // esperado (ver src/services/ai.js, extractJson). Cortamos aquí, con un
   // mensaje que dice exactamente qué falta.
+  // Los datos fiscales (razón social/NIF/domicilio) son obligatorios porque
+  // sin ellos el Aviso Legal no puede ser real (ver services/legal.js) --
+  // toda web publicada tiene que llevar esas páginas por ley (LSSI/RGPD).
   const faltan = [];
   if (!nombreNegocioVal) faltan.push('nombre del negocio');
   if (!tipoNegocioVal) faltan.push('tipo');
   if (!ciudadVal) faltan.push('ciudad');
   if (!telefonoVal) faltan.push('teléfono');
   if (!emailVal) faltan.push('email');
+  if (!razonSocialVal) faltan.push('razón social');
+  if (!nifCifVal) faltan.push('NIF/CIF');
+  if (!domicilioFiscalVal) faltan.push('domicilio fiscal');
   if (faltan.length) {
     errorDiv.style.display = 'block';
-    errorDiv.textContent = 'Completa estos datos del negocio antes de generar la vista previa: ' + faltan.join(', ') + '.';
+    errorDiv.textContent = 'Completa estos datos antes de generar la vista previa: ' + faltan.join(', ') + '.';
     return;
   }
 
@@ -1252,6 +1283,10 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       ciudad: ciudadVal,
       telefono: telefonoVal,
       email: emailVal,
+      razon_social: razonSocialVal,
+      forma_juridica: formaJuridicaVal,
+      nif_cif: nifCifVal,
+      domicilio_fiscal: domicilioFiscalVal,
     },
     viaTexto: via,
     paginaAdicional,

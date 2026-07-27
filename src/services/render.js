@@ -54,6 +54,14 @@ function baseContext(datosBase, opts) {
     email: datosBase.email || '',
     anio: String(new Date().getFullYear()),
     preview: !!opts.preview,
+    // Datos fiscales (ver Formulario de Alta, sección "Datos fiscales") --
+    // solo los usan las páginas legales (ver services/legal.js), pero se
+    // exponen aquí porque baseContext() es compartido por todas las
+    // plantillas/páginas de un mismo cliente.
+    razon_social: datosBase.razon_social || '',
+    forma_juridica: datosBase.forma_juridica || '',
+    nif_cif: datosBase.nif_cif || '',
+    domicilio_fiscal: datosBase.domicilio_fiscal || '',
     // Logo/favicon subidos por el cliente en el alta (ver Formulario de
     // Alta, sección "Logo y favicon"). Si no hay, quedan vacíos y las
     // plantillas usan `{{^logo_url}}`/`{{^favicon_url}}` para mostrar el
@@ -214,4 +222,28 @@ function renderPagina(sector, datosBase, contenido, opts) {
   return fn(datosBase, contenido, opts);
 }
 
-module.exports = { renderPagina, TEMPLATE_FILE: Object.keys(TEMPLATE_FILE) };
+// ── Páginas legales (genéricas, iguales para los 9 sectores) ──────────────
+// Ver Tarea "Construir plantillas legales genéricas" -- toda web publicada
+// lleva Aviso Legal, Privacidad y Cookies por ley (LSSI/RGPD), rellenadas
+// con los "Datos fiscales" del Formulario de Alta (ver baseContext()).
+const LEGAL_DIR = path.join(TEMPLATES_DIR, 'legal');
+const TEMPLATE_FILE_LEGAL = {
+  'aviso-legal': 'aviso-legal.mustache',
+  'privacidad': 'privacidad.mustache',
+  'cookies': 'cookies.mustache',
+};
+
+function renderPaginaLegal(pagina, datosBase, opts) {
+  const file = TEMPLATE_FILE_LEGAL[pagina];
+  if (!file) throw new Error('Página legal desconocida: ' + pagina);
+  const ctx = baseContext(datosBase, opts);
+  const template = fs.readFileSync(path.join(LEGAL_DIR, file), 'utf-8');
+  return render(template, ctx);
+}
+
+module.exports = {
+  renderPagina,
+  renderPaginaLegal,
+  TEMPLATE_FILE: Object.keys(TEMPLATE_FILE),
+  TEMPLATE_FILE_LEGAL: Object.keys(TEMPLATE_FILE_LEGAL),
+};

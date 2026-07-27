@@ -16,7 +16,7 @@
 
 'use strict';
 
-const { renderPagina } = require('./render');
+const { renderPagina, renderPaginaLegal, TEMPLATE_FILE_LEGAL } = require('./render');
 const db = require('../db/db');
 
 // Publica (o republica) la página principal de un cliente, y opcionalmente
@@ -27,6 +27,13 @@ async function publicarCliente(client, orderContext) {
     ciudad: client.ciudad,
     telefono: client.telefono,
     email: client.email,
+    // Datos fiscales (ver server.js, POST /api/alta, sección "Datos
+    // fiscales") -- necesarios para las páginas legales reales (Aviso Legal,
+    // Privacidad, ver services/legal.js).
+    razon_social: client.razon_social,
+    forma_juridica: client.forma_juridica,
+    nif_cif: client.nif_cif,
+    domicilio_fiscal: client.domicilio_fiscal,
     // Logo/favicon subidos en el alta (ver server.js, POST /api/alta) --
     // si el cliente no subió nada, quedan undefined y baseContext() los
     // deja vacíos (avatar de iniciales, sin favicon).
@@ -48,6 +55,21 @@ async function publicarCliente(client, orderContext) {
     html: htmlPrincipal,
     published_at: new Date().toISOString(),
   });
+
+  // Páginas legales (Aviso Legal, Privacidad, Cookies) -- toda web publicada
+  // las lleva por ley (LSSI/RGPD), así que se publican siempre, para
+  // cualquier sector, no como un extra de pago (ver Tarea "Construir
+  // plantillas legales genéricas").
+  for (const pagina of TEMPLATE_FILE_LEGAL) {
+    const htmlLegal = renderPaginaLegal(pagina, datosBase, { preview: false });
+    await db.upsertPage({
+      client_id: client.id,
+      slug,
+      slot: pagina,
+      html: htmlLegal,
+      published_at: new Date().toISOString(),
+    });
+  }
 
   let urlPaginaAdicional = null;
   if (orderContext.contenidoAdicional) {
