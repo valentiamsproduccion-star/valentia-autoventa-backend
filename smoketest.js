@@ -251,7 +251,7 @@ async function main() {
   // 1) ALTA vía IA
   const altaResp = await request('POST', '/api/alta', {
     sector: 'servicios-profesionales',
-    datosBase: { nombre_negocio: 'Bufete Smoke SL', ciudad: 'Valencia', telefono: '600111222', email: 'info@smoke.test' },
+    datosBase: { nombre_negocio: 'Bufete Smoke SL', ciudad: 'Valencia', telefono: '600111222', email: 'info@smoke.test', razon_social: 'Bufete Smoke S.L.', forma_juridica: 'SL', nif_cif: 'B12345678', domicilio_fiscal: 'Calle Mayor 1, 46001 Valencia' },
     viaTexto: 'ia',
     datosBrutos: { nombre_negocio: 'Bufete Smoke SL', tipo_negocio: 'Abogacía', ciudad: 'Valencia', especialidades: ['Civil', 'Laboral'], equipo: [{ nombre: 'Ana', rol: 'Socia', credencial: 'Colegiada 1' }], dato_confianza: '+10 años' },
     paginaAdicional: false,
@@ -336,7 +336,7 @@ async function main() {
   // de iniciales.
   const altaConLogoResp = await request('POST', '/api/alta', {
     sector: 'salud-bienestar',
-    datosBase: { nombre_negocio: 'Clínica Smoke', ciudad: 'Madrid', telefono: '600222333', email: 'info@clinica-smoke.test' },
+    datosBase: { nombre_negocio: 'Clínica Smoke', ciudad: 'Madrid', telefono: '600222333', email: 'info@clinica-smoke.test', razon_social: 'Clínica Smoke S.L.', forma_juridica: 'SL', nif_cif: 'B22345678', domicilio_fiscal: 'Calle Alcalá 10, 28001 Madrid' },
     viaTexto: 'ia',
     datosBrutos: { nombre_negocio: 'Clínica Smoke', tipo_negocio: 'Centro de fisioterapia', ciudad: 'Madrid', tratamientos: ['Fisioterapia'], equipo: [{ nombre: 'Bea', rol: 'Fisio', credencial: 'Colegiada 2' }], dato_confianza: '+5 años' },
     paginaAdicional: false,
@@ -360,7 +360,7 @@ async function main() {
   // line item extra (igual que la cuota inicial).
   const altaLogoIaResp = await request('POST', '/api/alta', {
     sector: 'servicios-profesionales',
-    datosBase: { nombre_negocio: 'Consultoría Smoke', ciudad: 'Sevilla', telefono: '600333444', email: 'info@consultoria-smoke.test' },
+    datosBase: { nombre_negocio: 'Consultoría Smoke', ciudad: 'Sevilla', telefono: '600333444', email: 'info@consultoria-smoke.test', razon_social: 'Consultoría Smoke S.L.', forma_juridica: 'SL', nif_cif: 'B32345678', domicilio_fiscal: 'Avenida de la Constitución 5, 41001 Sevilla' },
     viaTexto: 'ia',
     datosBrutos: { nombre_negocio: 'Consultoría Smoke', tipo_negocio: 'Consultoría', ciudad: 'Sevilla', especialidades: ['Fiscal'], equipo: [{ nombre: 'Luis', rol: 'Socio', credencial: 'Colegiado 3' }], dato_confianza: '+8 años' },
     paginaAdicional: false,
@@ -396,7 +396,7 @@ async function main() {
 
     const alta = await request('POST', '/api/alta', {
       sector,
-      datosBase: { nombre_negocio: nombreNegocio, ciudad: 'Bilbao', telefono: '600555666', email: 'info@' + sector.replace(/[^a-z]/g, '') + '.test' },
+      datosBase: { nombre_negocio: nombreNegocio, ciudad: 'Bilbao', telefono: '600555666', email: 'info@' + sector.replace(/[^a-z]/g, '') + '.test', razon_social: nombreNegocio + ' S.L.', forma_juridica: 'SL', nif_cif: 'B99999999', domicilio_fiscal: 'Gran Vía 1, 48001 Bilbao' },
       viaTexto: 'propio',
       contenido,
       paginaAdicional: false,
