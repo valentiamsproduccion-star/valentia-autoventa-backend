@@ -32,6 +32,61 @@ function soloDigitos(str) {
   return String(str || '').replace(/[^\d]/g, '');
 }
 
+// ── Color de marca personalizado (ver Formulario de Alta, sección "Color de
+// marca") ─────────────────────────────────────────────────────────────────
+// Cada plantilla .mustache define su paleta con variables CSS en :root
+// (--accent, --accent-mid, --accent-dim), siempre con el mismo patrón. Si el
+// cliente indica un color propio (su color corporativo), lo convertimos en
+// esos mismos 3 tonos y los inyectamos como un <style> extra justo antes de
+// </head> -- así sobreescribe el :root original del diseño elegido sin tocar
+// ninguna de las ~40 plantillas una a una. Si no indica ninguno, no se
+// inyecta nada y la web usa el color del diseño tal cual, como siempre.
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+function hexToRgbArr(hex) {
+  const num = parseInt(hex.slice(1), 16);
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+// percent negativo = más oscuro (mezcla hacia negro), positivo = más claro
+// (mezcla hacia blanco). Se usa -12% para el tono "mid" de botones/hover,
+// imitando la relación que ya tienen accent/accent-mid en las plantillas.
+function shadeHex(hex, percent) {
+  const [r, g, b] = hexToRgbArr(hex);
+  const target = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent) / 100;
+  const mix = (c) => Math.round((target - c) * p) + c;
+  return '#' + [mix(r), mix(g), mix(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToRgba(hex, alpha) {
+  const [r, g, b] = hexToRgbArr(hex);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
+
+// Devuelve { color_primario, color_primario_mid, color_primario_dim } listos
+// para el contexto de mustache, o campos vacíos si no hay color válido (el
+// cliente no puso ninguno, o lo que puso no es un hexadecimal de 6 dígitos).
+function colorPersonalizado(hex) {
+  const limpio = String(hex || '').trim();
+  if (!HEX_RE.test(limpio)) return { color_primario: '', color_primario_mid: '', color_primario_dim: '' };
+  return {
+    color_primario: limpio,
+    color_primario_mid: shadeHex(limpio, -12),
+    color_primario_dim: hexToRgba(limpio, 0.10),
+  };
+}
+
+// Inyecta el <style> de sobreescritura de color justo antes de `</head>` si
+// el cliente puso un color propio; si no, devuelve el HTML tal cual.
+function withColorOverride(html, ctx) {
+  if (!ctx.color_primario) return html;
+  const style = '<style>:root{--accent:' + ctx.color_primario +
+    ';--accent-mid:' + ctx.color_primario_mid +
+    ';--accent-dim:' + ctx.color_primario_dim + '}</style>';
+  return html.includes('</head>') ? html.replace('</head>', style + '</head>') : html + style;
+}
+
 // Añade el índice "n" (01, 02, ...) a cada elemento de un array, sin mutar
 // el array original -- lo usan las plantillas para numerar bloques (áreas,
 // tratamientos, pasos de consulta/cita).
@@ -77,6 +132,10 @@ function baseContext(datosBase, opts) {
     foto_hero_url: datosBase.foto_hero_url || '',
     foto_secundaria_url: datosBase.foto_secundaria_url || '',
     galeria: (datosBase.galeria_urls || []).map(url => ({ url })),
+    // Color de marca (ver Formulario de Alta, sección "Color de marca") --
+    // se usa vía withColorOverride() más abajo, no directamente en las
+    // plantillas (que ya traen su propio :root con el color del diseño).
+    ...colorPersonalizado(datosBase.color_primario),
   };
 }
 
@@ -101,7 +160,7 @@ const SUBPAGINAS_DIR = path.join(TEMPLATES_DIR, 'subpaginas');
 function renderSubpagina(sector, pagina, ctx) {
   const templatePath = path.join(SUBPAGINAS_DIR, sector + '-' + pagina + '.mustache');
   const template = fs.readFileSync(templatePath, 'utf-8');
-  return render(template, ctx);
+  return withColorOverride(render(template, ctx), ctx);
 }
 
 function renderServiciosProfesionalesAreas(datosBase, contenido, opts) {
@@ -452,7 +511,7 @@ function renderSector(sector, ctx, opts) {
   }
 
   const template = fs.readFileSync(templatePath, 'utf-8');
-  return render(template, ctx);
+  return withColorOverride(render(template, ctx), ctx);
 }
 
 // Punto de entrada único: sector + datos base + contenido -> HTML final.
@@ -480,7 +539,7 @@ function renderPaginaLegal(pagina, datosBase, opts) {
   if (!file) throw new Error('Página legal desconocida: ' + pagina);
   const ctx = baseContext(datosBase, opts);
   const template = fs.readFileSync(path.join(LEGAL_DIR, file), 'utf-8');
-  return render(template, ctx);
+  return withColorOverride(render(template, ctx), ctx);
 }
 
 module.exports = {

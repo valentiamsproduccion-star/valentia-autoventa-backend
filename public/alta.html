@@ -46,6 +46,19 @@
   .logo-ia-resultado-item{display:flex;flex-direction:column;align-items:center;gap:4px}
   .logo-ia-resultado-item img{border:1px solid #E5E7EB;border-radius:6px;background:#fff;padding:4px}
   .logo-ia-resultado-item span{font-size:11px;color:#6B7280}
+  .color-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:8px}
+  .color-row > *{flex:1;min-width:220px}
+  #color_primario_picker{width:44px;height:40px;padding:2px;flex:none;border-radius:6px;cursor:pointer}
+  .color-preview-card{border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;background:#fff}
+  .color-preview-card .cp-nav{display:flex;align-items:center;gap:9px;padding:12px 14px;background:var(--cp-ink,#0F172A)}
+  .color-preview-card .cp-dot{width:16px;height:16px;border-radius:50%;background:var(--cp-accent,#2563EB);flex:none}
+  .color-preview-card .cp-line{width:64px;height:8px;border-radius:4px;background:rgba(255,255,255,.35)}
+  .color-preview-card .cp-body{padding:18px 16px;background:#F8FAFC}
+  .color-preview-card .cp-heading{width:82%;height:12px;border-radius:4px;background:#D1D5DB;margin-bottom:9px}
+  .color-preview-card .cp-sub{width:58%;height:8px;border-radius:4px;background:#E5E7EB;margin-bottom:16px}
+  .color-preview-card .cp-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .color-preview-card .cp-btn{background:var(--cp-accent-mid,#1D4ED8);color:#fff;font-size:12px;font-weight:600;padding:9px 16px;border-radius:6px}
+  .color-preview-card .cp-chip{background:var(--cp-accent-dim,rgba(37,99,235,.10));color:var(--cp-accent-mid,#1D4ED8);font-size:11px;font-weight:700;padding:6px 12px;border-radius:100px}
 </style>
 </head>
 <body>
@@ -136,6 +149,30 @@
       <label style="margin:0 0 6px">Tu logo</label>
       <div id="logo-ia-resultado-grid" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end"></div>
       <button type="button" class="add small" id="btn-rehacer-logo" style="margin-top:10px">Probar otras opciones</button>
+    </div>
+  </div>
+</div>
+
+<h2>Color de marca</h2>
+<p class="hint">Si tu negocio ya tiene un color corporativo (el de tu logo, por ejemplo), ponlo aquí en hexadecimal y tu web lo usará en botones, enlaces y detalles. Si lo dejas en blanco, se usa el color del diseño que has elegido.</p>
+<div class="color-row">
+  <div>
+    <label>Color principal <span class="opt">(opcional)</span></label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="color" id="color_primario_picker" value="#2563EB">
+      <input type="text" id="color_primario_hex" placeholder="#2563EB" maxlength="7">
+    </div>
+    <button type="button" class="add small" id="btn-reset-color">Usar el color del diseño</button>
+  </div>
+  <div>
+    <label style="margin:0 0 6px">Vista previa en directo</label>
+    <div id="color-preview" class="color-preview-card">
+      <div class="cp-nav"><span class="cp-dot"></span><span class="cp-line"></span></div>
+      <div class="cp-body">
+        <div class="cp-heading"></div>
+        <div class="cp-sub"></div>
+        <div class="cp-actions"><span class="cp-btn">Reservar ahora</span><span class="cp-chip">Destacado</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1015,6 +1052,74 @@ document.getElementById('pagina_adicional').addEventListener('change', (e) => {
   document.getElementById('hint-adicional').style.display = e.target.checked ? '' : 'none';
 });
 
+// ───────────────────────── Color de marca ─────────────────────────
+// El cliente puede opcionalmente indicar un color propio (hexadecimal) que
+// sustituye al del diseño elegido en botones/enlaces/detalles -- ver
+// services/render.js, colorPersonalizado()/withColorOverride(), que hace la
+// misma sustitución en el servidor a la hora de generar la web real. Aquí
+// solo pintamos una vista previa aproximada (no la plantilla real, que no
+// existe hasta enviar el formulario) para que el cliente vea el efecto al
+// momento, sin tener que esperar ni enviar nada.
+const SECTOR_COLORS = {
+  'servicios-profesionales': { ink: '#0F172A', accent: '#2563EB' },
+  'salud-bienestar':         { ink: '#0F2A3D', accent: '#2FA8A0' },
+  'hosteleria-restauracion': { ink: '#221019', accent: '#7A2038' },
+  'turismo-alojamiento':     { ink: '#12312E', accent: '#0E7C86' },
+  'comercio-retail':         { ink: '#2A211B', accent: '#B45309' },
+  'reformas-construccion':   { ink: '#1C2129', accent: '#D97706' },
+  'formacion-academias':     { ink: '#1E1B34', accent: '#4F46E5' },
+  'ocio-cultura':            { ink: '#1E1633', accent: '#7C3AED' },
+  'automocion':              { ink: '#0B1220', accent: '#2563EB' },
+};
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+function hexToRgbArr(hex) {
+  const num = parseInt(hex.slice(1), 16);
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+function shadeHex(hex, percent) {
+  const [r, g, b] = hexToRgbArr(hex);
+  const target = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent) / 100;
+  const mix = (c) => Math.round((target - c) * p) + c;
+  return '#' + [mix(r), mix(g), mix(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+function hexToRgba(hex, alpha) {
+  const [r, g, b] = hexToRgbArr(hex);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
+
+const colorPickerEl = document.getElementById('color_primario_picker');
+const colorHexEl = document.getElementById('color_primario_hex');
+const colorPreviewEl = document.getElementById('color-preview');
+
+function sectorColorDefault() {
+  return SECTOR_COLORS[sectorSel.value] || SECTOR_COLORS['servicios-profesionales'];
+}
+
+function pintarColorPreview() {
+  const def = sectorColorDefault();
+  const val = colorHexEl.value.trim();
+  const hex = HEX_RE.test(val) ? val : def.accent;
+  colorPickerEl.value = hex;
+  colorPreviewEl.style.setProperty('--cp-ink', def.ink);
+  colorPreviewEl.style.setProperty('--cp-accent', hex);
+  colorPreviewEl.style.setProperty('--cp-accent-mid', shadeHex(hex, -12));
+  colorPreviewEl.style.setProperty('--cp-accent-dim', hexToRgba(hex, 0.10));
+}
+
+colorPickerEl.addEventListener('input', () => {
+  colorHexEl.value = colorPickerEl.value;
+  pintarColorPreview();
+});
+colorHexEl.addEventListener('input', pintarColorPreview);
+document.getElementById('btn-reset-color').addEventListener('click', () => {
+  colorHexEl.value = '';
+  pintarColorPreview();
+});
+sectorSel.addEventListener('change', pintarColorPreview);
+pintarColorPreview();
+
 // ───────────────────────── Logo y favicon ─────────────────────────
 // "Ya tengo logo" -> se suben archivos (logo en varias versiones + favicon
 // opcional). "Todavía no tengo logo" -> se ofrece la opción de pago de que
@@ -1292,6 +1397,8 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     paginaAdicional,
   };
   if (plantillaIdSeleccionada) payload.plantillaId = plantillaIdSeleccionada;
+  const colorPrimarioVal = colorHexEl.value.trim();
+  if (HEX_RE.test(colorPrimarioVal)) payload.datosBase.color_primario = colorPrimarioVal;
 
   if (via === 'ia') {
     // "Datos del negocio" (nombre, tipo, ciudad) se piden una sola vez al

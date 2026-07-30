@@ -39,6 +39,10 @@ async function publicarCliente(client, orderContext) {
     // deja vacíos (avatar de iniciales, sin favicon).
     logo_url: client.logo_url,
     favicon_url: client.favicon_url,
+    // Color de marca (ver Formulario de Alta, sección "Color de marca") --
+    // si el cliente no puso ninguno, render.js lo deja tal cual (undefined)
+    // y la web usa el color del diseño elegido, como siempre.
+    color_primario: client.color_primario,
   };
 
   const htmlPrincipal = renderPagina(client.sector, datosBase, orderContext.contenidoPrincipal, { preview: false, plantillaId: client.plantilla_id });

@@ -360,6 +360,7 @@ router.get('/preview/:orderId', async (req, res, params) => {
     nif_cif: client.nif_cif, domicilio_fiscal: client.domicilio_fiscal,
     logo_url: client.logo_url, favicon_url: client.favicon_url,
     foto_hero_url: client.foto_hero_url, foto_secundaria_url: client.foto_secundaria_url, galeria_urls: client.galeria_urls,
+    color_primario: client.color_primario,
   };
   const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
   sendHtml(res, 200, html);
@@ -381,6 +382,7 @@ router.get('/preview/:orderId/legal/:pagina', async (req, res, params) => {
     razon_social: client.razon_social, forma_juridica: client.forma_juridica,
     nif_cif: client.nif_cif, domicilio_fiscal: client.domicilio_fiscal,
     logo_url: client.logo_url, favicon_url: client.favicon_url,
+    color_primario: client.color_primario,
   };
   const html = renderPaginaLegal(params.pagina, datosBase, { preview: true });
   sendHtml(res, 200, html);
@@ -400,6 +402,7 @@ router.get('/preview/:orderId/pagina/:pagina', async (req, res, params) => {
   const datosBase = {
     nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
     logo_url: client.logo_url, favicon_url: client.favicon_url,
+    color_primario: client.color_primario,
   };
   const html = renderPaginaSector(order.sector, params.pagina, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
   sendHtml(res, 200, html);
