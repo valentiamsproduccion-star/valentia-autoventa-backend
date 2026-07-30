@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aviso Legal | {{nombre_negocio}}</title>
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<style>
+  :root{--ink:#20242E;--cream:#FBF2EA;--text-body:rgba(32,36,46,.8);--text-muted:rgba(32,36,46,.55);--border:rgba(32,36,46,.12);--accent:#F14141;--sans:'Instrument Sans','Helvetica Neue',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);line-height:1.65;background:#fff}
+  a{color:var(--accent)}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  header{background:var(--cream);border-bottom:1px solid var(--border);padding:22px 0}
+  .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  .brand img{height:28px;width:auto}
+  nav a{font-size:13px;font-weight:600;color:var(--text-muted);margin-left:16px;text-decoration:none}
+  nav a:hover{color:var(--accent)}
+  main{padding:44px 0 70px}
+  h1{font-size:24px;margin-bottom:6px}
+  .updated{font-size:12.5px;color:var(--text-muted);margin-bottom:32px}
+  h2{font-size:16.5px;margin:28px 0 8px}
+  p{color:var(--text-body);font-size:14.5px;margin-bottom:10px}
+  ul{margin:8px 0 14px 20px;color:var(--text-body);font-size:14.5px}
+  li{margin-bottom:4px}
+  .disclaimer{margin-top:40px;padding-top:16px;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text-muted)}
+  .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.9;z-index:9}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a class="brand" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{nombre_negocio}}</a>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="cookies.html">Cookies</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Aviso Legal</h1>
+  <p class="updated">Última actualización: {{anio}}</p>
+
+  <h2>1. Datos identificativos</h2>
+  <p>
+    En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la
+    Información y de Comercio Electrónico (LSSI-CE), se informa de los siguientes datos:
+  </p>
+  <ul>
+    <li><strong>Titular:</strong> {{razon_social}}{{#forma_juridica}} ({{forma_juridica}}){{/forma_juridica}}</li>
+    <li><strong>Nombre comercial:</strong> {{nombre_negocio}}</li>
+    <li><strong>NIF/CIF:</strong> {{nif_cif}}</li>
+    <li><strong>Domicilio:</strong> {{domicilio_fiscal}}</li>
+    <li><strong>Contacto:</strong> {{email}}{{#telefono}} · {{telefono}}{{/telefono}}</li>
+  </ul>
+
+  <h2>2. Objeto</h2>
+  <p>
+    El presente aviso legal regula el uso del sitio web de {{nombre_negocio}} (en adelante, "el sitio web"). La
+    navegación por el sitio web atribuye la condición de usuario e implica la aceptación de todas las
+    condiciones incluidas en este Aviso Legal.
+  </p>
+
+  <h2>3. Condiciones de uso</h2>
+  <p>
+    El usuario se compromete a hacer un uso adecuado y lícito del sitio web, de conformidad con la legislación
+    aplicable, la buena fe, el orden público y el presente Aviso Legal. Queda prohibido su uso con fines
+    ilícitos o lesivos, o que de cualquier forma puedan dañar, inutilizar o deteriorar el sitio web.
+  </p>
+
+  <h2>4. Propiedad intelectual e industrial</h2>
+  <p>
+    Todos los contenidos del sitio web (textos, imágenes, diseño, logotipos y demás elementos) son propiedad de
+    {{razon_social}} o de terceros que han autorizado su uso, y están protegidos por la normativa de propiedad
+    intelectual e industrial. Queda prohibida su reproducción, distribución o comunicación pública sin
+    autorización expresa del titular.
+  </p>
+
+  <h2>5. Exclusión de responsabilidad</h2>
+  <p>
+    {{nombre_negocio}} no se hace responsable de los daños y perjuicios de cualquier naturaleza que puedan
+    derivarse de la falta de disponibilidad o continuidad del funcionamiento del sitio web, ni de los que
+    puedan derivarse del uso ilícito, negligente o fraudulento del mismo por parte de terceros.
+  </p>
+
+  <h2>6. Enlaces</h2>
+  <p>
+    En caso de que el sitio web incluya enlaces a sitios web de terceros, {{nombre_negocio}} no asume ninguna
+    responsabilidad sobre el contenido, funcionamiento o servicios prestados por dichos sitios.
+  </p>
+
+  <h2>7. Legislación aplicable</h2>
+  <p>
+    Las presentes condiciones se rigen por la legislación española. Para cualquier controversia derivada del
+    acceso o uso del sitio web, las partes se someten a los juzgados y tribunales que correspondan conforme a
+    derecho.
+  </p>
+
+  <div class="disclaimer">
+    Este Aviso Legal se ha generado a partir de una plantilla estándar con los datos facilitados por el
+    negocio. No sustituye el asesoramiento de un abogado o gestoría: se recomienda revisarlo antes de
+    considerarlo definitivo, especialmente si el negocio trata datos sensibles o opera en un sector regulado.
+  </div>
+</main>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · Aviso Legal</div>{{/preview}}
+
+</body>
+</html>

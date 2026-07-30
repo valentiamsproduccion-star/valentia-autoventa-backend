@@ -72,7 +72,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(243,245,248,.94);backdro
 .hero-title{font-size:clamp(2rem,4vw,3.1rem);max-width:14em}
 .hero p.sub{font-family:var(--sans);font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:38em;margin:18px 0 28px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.hero-photo{aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
+.hero-photo{object-fit:cover;aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
 
 .trust{display:flex;flex-wrap:wrap;gap:18px 34px;margin-top:30px;color:var(--text-body);font-weight:600;font-size:13.5px}
 .trust span{display:flex;align-items:center;gap:8px}
@@ -172,9 +172,10 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
   <div class="wrap nav">
     <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
     <nav class="nav-links">
-      <a href="#servicios">Servicios</a>
-      <a href="#razones">Por qué nosotros</a>
-      <a href="#cita" class="btn btn-primary">Pedir cita</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="razones.html">Por qué nosotros</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="contacto.html" class="btn btn-primary">Pedir cita</a>
     </nav>
   </div>
 </header>
@@ -193,7 +194,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
       </div>
     </div>
-    <div class="hero-photo">Foto del taller / vehículos</div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del taller / vehículos</div>{{/foto_hero_url}}
   </div>
 </section>
 
@@ -316,9 +317,9 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="foot-grid">
       <div>{{nombre_negocio}} — Automoción</div>
       <div class="foot-links">
-        <a href="#">Aviso legal</a>
-        <a href="#">Política de privacidad</a>
-        <a href="#">Cookies</a>
+        <a href="aviso-legal.html">Aviso legal</a>
+        <a href="privacidad.html">Política de privacidad</a>
+        <a href="cookies.html">Cookies</a>
       </div>
     </div>
     <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>

@@ -13,9 +13,10 @@ const path = require('path');
 const fs = require('fs');
 
 const { Router, readJsonBody, readBody, sendJson, sendHtml } = require('./lib/router');
-const { renderPagina, TEMPLATE_FILE } = require('./services/render');
+const { renderPagina, renderPaginaLegal, TEMPLATE_FILE, TEMPLATE_FILE_LEGAL, renderPaginaSector, subpaginasDeSector } = require('./services/render');
 const { validarContenido } = require('./services/validate');
 const { generarContenido, mejorarContenido } = require('./services/ai');
+const { generarTresOpciones, generarFormatosDesdeEleccion } = require('./services/logoIA');
 const { crearSesionCheckout, verificarFirmaWebhook } = require('./services/stripe');
 const { publicarCliente } = require('./services/publish');
 const { sendMagicLinkEmail, sendLogoIaSolicitadoEmail } = require('./services/email');
@@ -40,6 +41,27 @@ const PRICE_LOGO_IA = process.env.STRIPE_PRICE_LOGO_IA; // 15€, pago único --
 // Bucket público de Supabase Storage donde se guardan los logos/favicons que
 // suben los clientes en el alta (ver src/services/supabase.js, uploadStorageFile).
 const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'logos';
+
+// Bucket público de Supabase Storage para las fotos del negocio (hero, foto
+// secundaria, galería, y las fotos por-tarjeta de equipo/productos/etc. --
+// ver public/alta.html, sección "Fotos del negocio"). Bucket separado de
+// SUPABASE_STORAGE_BUCKET (logos) para no mezclar tipos de archivo, pero
+// puede apuntar al mismo si no quieres crear uno nuevo en Supabase.
+const SUPABASE_FOTOS_BUCKET = process.env.SUPABASE_FOTOS_BUCKET || 'fotos';
+
+// Qué claves de `contenido` llevan tarjetas con foto por sector -- tiene que
+// coincidir exactamente con los `photo:true` de SECTORES[...].tablaA en
+// public/alta.html. Se usa para recorrer contenidoFinal tras la generación/
+// mejora de texto y subir la foto (base64) de cada tarjeta que la tenga.
+const CAMPOS_CON_FOTO_POR_TARJETA = {
+  'servicios-profesionales': ['equipo', 'casos'],
+  'salud-bienestar': ['equipo'],
+  'turismo-alojamiento': ['alojamientos'],
+  'comercio-retail': ['productos'],
+  'reformas-construccion': ['proyectos'],
+  'formacion-academias': ['profes'],
+  'ocio-cultura': ['actividades'],
+};
 
 const router = new Router();
 
@@ -88,6 +110,60 @@ async function subirLogoYFavicon(clientId, logos, favicon) {
   return result;
 }
 
+// Sube las fotos "de sitio" del negocio (hero, foto secundaria, galería --
+// ver public/alta.html, SECTORES[...].fotos) que llegan en base64 dentro del
+// JSON de /api/alta. Igual que subirLogoYFavicon: nada de multipart, se
+// decodifica el base64 a Buffer y se sube tal cual a Supabase Storage.
+async function subirFotosSector(clientId, fotos) {
+  const result = { foto_hero_url: null, foto_secundaria_url: null, galeria_urls: [] };
+  if (!fotos || typeof fotos !== 'object') return result;
+
+  async function subirUna(f, nombreArchivo) {
+    if (!f || !f.base64) return null;
+    const buffer = Buffer.from(f.base64, 'base64');
+    const ext = extensionDeArchivo(f.filename, f.mime);
+    return supabase.uploadStorageFile(SUPABASE_FOTOS_BUCKET, clientId + '/' + nombreArchivo + '.' + ext, buffer, f.mime);
+  }
+
+  if (fotos.hero) result.foto_hero_url = await subirUna(fotos.hero, 'hero');
+  if (fotos.secundaria) result.foto_secundaria_url = await subirUna(fotos.secundaria, 'secundaria');
+  if (Array.isArray(fotos.galeria)) {
+    let n = 0;
+    for (const f of fotos.galeria) {
+      n++;
+      const url = await subirUna(f, 'galeria-' + n);
+      if (url) result.galeria_urls.push(url);
+    }
+  }
+  return result;
+}
+
+// Recorre, dentro del contenido ya generado/mejorado/escrito, las tarjetas de
+// los repeaters que llevan foto por sector (CAMPOS_CON_FOTO_POR_TARJETA) y
+// sube la foto de cada una que la tenga (item.foto = {filename,mime,base64},
+// puesta ahí por hydrateFotosTablaA en el cliente). Sustituye esa foto en
+// bruto por su URL pública (item.foto_url) y borra el base64 para no guardar
+// binario dentro del JSON de Supabase (kv_store.data).
+async function subirFotosPorTarjeta(clientId, sector, contenido) {
+  const keys = CAMPOS_CON_FOTO_POR_TARJETA[sector];
+  if (!keys || !contenido) return;
+  for (const key of keys) {
+    const items = contenido[key];
+    if (!Array.isArray(items)) continue;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item && item.foto && item.foto.base64) {
+        const buffer = Buffer.from(item.foto.base64, 'base64');
+        const ext = extensionDeArchivo(item.foto.filename, item.foto.mime);
+        item.foto_url = await supabase.uploadStorageFile(
+          SUPABASE_FOTOS_BUCKET, clientId + '/' + key + '-' + (i + 1) + '.' + ext, buffer, item.foto.mime
+        );
+        delete item.foto;
+      }
+    }
+  }
+}
+
 // ───────────────────────── 1) ALTA (formulario) ─────────────────────────
 // POST /api/alta
 // Body: { sector, datosBase: {nombre_negocio, ciudad, telefono, email, tipoNegocio},
@@ -108,6 +184,35 @@ async function subirLogoYFavicon(clientId, logos, favicon) {
 //         logos?: [{ filename, mime, base64 }, ...]   (varias versiones/formatos)
 //         favicon?: { filename, mime, base64 }
 //         logoIaSolicitado?: boolean }
+// ───────────────────────── LOGO CON IA (antes de comprar) ─────────────────────────
+// Ver public/alta.html, sección "Logo y favicon". Dos pasos: primero 3
+// opciones para elegir (fase 1), luego los formatos derivados de la elegida
+// (fase 2, favicón + apaisada). Nada de esto toca la base de datos todavía
+// -- las imágenes viajan en la respuesta como base64 y el cliente las
+// adjunta al payload de /api/alta exactamente igual que un logo subido a
+// mano (ver más abajo, `logos`/`favicon`).
+router.post('/api/logo/opciones', async (req, res) => {
+  const body = await readJsonBody(req, { maxBytes: 1 * 1024 * 1024 });
+  const { nombre_negocio, sector, tipo_negocio, ciudad } = body;
+  if (!nombre_negocio) {
+    return sendJson(res, 400, { error: 'Falta el nombre del negocio para generar el logo.' });
+  }
+  const opciones = await generarTresOpciones({ nombre_negocio, sector, tipo_negocio, ciudad });
+  sendJson(res, 200, { opciones });
+});
+
+router.post('/api/logo/formatos', async (req, res) => {
+  // Límite más alto: el cuerpo lleva una imagen PNG en base64 (la opción que
+  // el cliente eligió en la fase 1).
+  const body = await readJsonBody(req, { maxBytes: 8 * 1024 * 1024 });
+  const { base64, nombre_negocio } = body;
+  if (!base64) {
+    return sendJson(res, 400, { error: 'Falta la imagen del logo elegido.' });
+  }
+  const formatos = await generarFormatosDesdeEleccion(base64, { nombre_negocio });
+  sendJson(res, 200, formatos);
+});
+
 router.post('/api/alta', async (req, res) => {
   // Límite más alto que el resto de rutas (2MB por defecto, ver router.js):
   // los archivos de logo/favicon viajan en base64 dentro del mismo JSON.
@@ -115,11 +220,20 @@ router.post('/api/alta', async (req, res) => {
   const {
     sector, datosBase, viaTexto, contenido, datosBrutos, textoCliente, paginaAdicional,
     viaTextoAdicional, contenidoAdicional, datosBrutosAdicional, textoClienteAdicional,
-    logos, favicon, logoIaSolicitado,
+    logos, favicon, logoIaSolicitado, fotos, plantillaId,
   } = body;
   requireSector(sector);
-  if (!datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email) {
-    return sendJson(res, 400, { error: 'Faltan datos base del negocio (nombre, ciudad, teléfono, email).' });
+  // Datos fiscales (razón social/forma jurídica/NIF/domicilio) obligatorios:
+  // sin ellos no se puede generar un Aviso Legal real (ver
+  // services/legal.js) -- toda web publicada lleva esas páginas por ley
+  // (LSSI/RGPD), así que se piden ya en el alta en vez de dejarlas para luego.
+  if (
+    !datosBase || !datosBase.nombre_negocio || !datosBase.ciudad || !datosBase.telefono || !datosBase.email ||
+    !datosBase.razon_social || !datosBase.nif_cif || !datosBase.domicilio_fiscal
+  ) {
+    return sendJson(res, 400, {
+      error: 'Faltan datos del negocio (nombre, ciudad, teléfono, email, razón social, NIF/CIF o domicilio fiscal).',
+    });
   }
 
   let contenidoFinal;
@@ -169,7 +283,7 @@ router.post('/api/alta', async (req, res) => {
     }
   }
 
-  const client = await db.createClient({ sector, ...datosBase });
+  const client = await db.createClient({ sector, plantilla_id: plantillaId || null, ...datosBase });
 
   // Logo/favicon (opcionales): si el cliente adjuntó archivos, se suben a
   // Supabase Storage y se guardan sus URLs en el cliente; si no adjuntó nada
@@ -188,6 +302,29 @@ router.post('/api/alta', async (req, res) => {
       logo_urls: logoInfo.logo_urls,
       favicon_url: logoInfo.favicon_url,
     });
+  }
+
+  // Fotos del negocio (opcionales, ver public/alta.html "Fotos del negocio"):
+  // hero/foto secundaria/galería son propias del cliente (como el logo);
+  // las fotos por-tarjeta (equipo, productos, proyectos...) viajan dentro del
+  // propio contenidoFinal y se suben aparte, sustituyendo el base64 por su URL.
+  if (fotos && typeof fotos === 'object' && Object.keys(fotos).length) {
+    let fotosInfo;
+    try {
+      fotosInfo = await subirFotosSector(client.id, fotos);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudieron subir las fotos del negocio: ' + e.message });
+    }
+    await db.updateClient(client.id, {
+      foto_hero_url: fotosInfo.foto_hero_url,
+      foto_secundaria_url: fotosInfo.foto_secundaria_url,
+      galeria_urls: fotosInfo.galeria_urls,
+    });
+  }
+  try {
+    await subirFotosPorTarjeta(client.id, sector, contenidoFinal);
+  } catch (e) {
+    return sendJson(res, 500, { error: 'No se pudieron subir las fotos del contenido: ' + e.message });
   }
 
   const order = await db.createOrder({
@@ -219,9 +356,52 @@ router.get('/preview/:orderId', async (req, res, params) => {
   const client = await db.getClient(order.client_id);
   const datosBase = {
     nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    razon_social: client.razon_social, forma_juridica: client.forma_juridica,
+    nif_cif: client.nif_cif, domicilio_fiscal: client.domicilio_fiscal,
+    logo_url: client.logo_url, favicon_url: client.favicon_url,
+    foto_hero_url: client.foto_hero_url, foto_secundaria_url: client.foto_secundaria_url, galeria_urls: client.galeria_urls,
+  };
+  const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
+  sendHtml(res, 200, html);
+});
+
+// Vista previa de las páginas legales (Aviso Legal, Privacidad, Cookies) --
+// para que el cliente pueda revisarlas ANTES de pagar, igual que la vista
+// previa de la página principal de arriba. `pagina` es una de
+// TEMPLATE_FILE_LEGAL ('aviso-legal' | 'privacidad' | 'cookies').
+router.get('/preview/:orderId/legal/:pagina', async (req, res, params) => {
+  if (!TEMPLATE_FILE_LEGAL.includes(params.pagina)) {
+    return sendJson(res, 404, { error: 'Página legal desconocida: ' + params.pagina });
+  }
+  const order = await db.getOrder(params.orderId);
+  if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
+  const client = await db.getClient(order.client_id);
+  const datosBase = {
+    nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    razon_social: client.razon_social, forma_juridica: client.forma_juridica,
+    nif_cif: client.nif_cif, domicilio_fiscal: client.domicilio_fiscal,
     logo_url: client.logo_url, favicon_url: client.favicon_url,
   };
-  const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true });
+  const html = renderPaginaLegal(params.pagina, datosBase, { preview: true });
+  sendHtml(res, 200, html);
+});
+
+// Vista previa de las subpáginas reales del sector (Áreas/Equipo/Contacto,
+// ver Tarea "Piloto multi-página: Servicios profesionales") -- para
+// sectores que aún no tienen ninguna, devuelve 404 (sus enlaces de nav
+// siguen siendo anclas dentro de la página principal, ver render.js).
+router.get('/preview/:orderId/pagina/:pagina', async (req, res, params) => {
+  const order = await db.getOrder(params.orderId);
+  if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
+  if (!subpaginasDeSector(order.sector).includes(params.pagina)) {
+    return sendJson(res, 404, { error: 'Este sector todavía no tiene página "' + params.pagina + '".' });
+  }
+  const client = await db.getClient(order.client_id);
+  const datosBase = {
+    nombre_negocio: client.nombre_negocio, ciudad: client.ciudad, telefono: client.telefono, email: client.email,
+    logo_url: client.logo_url, favicon_url: client.favicon_url,
+  };
+  const html = renderPaginaSector(order.sector, params.pagina, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
   sendHtml(res, 200, html);
 });
 
@@ -405,8 +585,20 @@ function markTokenReuse() {
 // PUNTO DE EXTENSIÓN: esto sigue siendo un placeholder mínimo para poder ver
 // la web publicada ya mismo; el dominio/subdominio real del cliente sigue
 // pendiente de la reunión técnica (ver README y publish.js).
+// Deriva el "slot" (clave de almacenamiento, ver db.upsertPage) a partir del
+// nombre de archivo pedido. 'index.html' y 'servicios.html' mantienen los
+// nombres de slot históricos ('principal'/'adicional') por compatibilidad
+// con clientes ya publicados antes de las páginas legales; cualquier otro
+// archivo (aviso-legal.html, privacidad.html, cookies.html, y las futuras
+// páginas de Áreas/Equipo/Contacto) usa su propio nombre sin más.
+function slotDesdeArchivo(file) {
+  if (file === 'index.html') return 'principal';
+  if (file === 'servicios.html') return 'adicional';
+  return file.replace(/\.html$/i, '');
+}
+
 async function sendSitePage(res, slug, file) {
-  const slot = file === 'servicios.html' ? 'adicional' : 'principal';
+  const slot = slotDesdeArchivo(file);
   const page = await db.getPageBySlug(slug, slot);
   if (!page || !page.html) {
     return sendHtml(res, 404, '<h1>Página no encontrada</h1><p>Todavía no se ha publicado esta web.</p>');

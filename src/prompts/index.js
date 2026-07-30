@@ -23,7 +23,12 @@ REGLAS OBLIGATORIAS
    Cuenta caracteres incluidos espacios antes de responder.
 3. Si el cliente no ha aportado testimonios reales, devuelve "testimonios": [].
    No redactes citas ficticias atribuidas a clientes.
-4. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+4. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 car.
@@ -86,7 +91,12 @@ REGLAS OBLIGATORIAS
    No redactes opiniones ficticias atribuidas a pacientes.
 5. El texto de consentimiento RGPD del formulario y la nota legal del footer
    ya están fijados en la plantilla — no los generes ni los modifiques.
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 car. / hero_title: 60 car. / hero_subtitle: 170 car.
@@ -141,7 +151,12 @@ REGLAS OBLIGATORIAS
    No redactes opiniones ficticias atribuidas a comensales.
 4. El bloque de eventos solo se genera si el cliente indica que es un bar o
    tiene agenda de actividades; si no aplica, devuelve "events": [].
-5. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+5. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 42 car. / hero_title: 60 car. / hero_subtitle: 170 car.
@@ -198,7 +213,12 @@ REGLAS OBLIGATORIAS
    (check-in, mascotas, cancelación, parking...); no inventes políticas
    concretas que el cliente no haya indicado — si falta el dato, formula la
    respuesta de forma general o marca "[PENDIENTE: dato del cliente]".
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 / hero_title: 60 / hero_subtitle: 170
@@ -251,7 +271,12 @@ REGLAS OBLIGATORIAS
    redactes opiniones ficticias.
 5. Los horarios son datos del cliente; no inventes días ni franjas. Si faltan,
    marca "[PENDIENTE: dato del cliente]".
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 / hero_title: 60 / hero_subtitle: 170
@@ -302,7 +327,12 @@ REGLAS OBLIGATORIAS
 4. El bloque de proyectos solo se genera si el cliente aporta trabajos reales;
    si no, devuelve "proyectos": []. No inventes obras.
 5. Si el cliente no ha aportado reseñas reales, devuelve "reviews": [].
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 / hero_title: 60 / hero_subtitle: 180
@@ -353,7 +383,12 @@ REGLAS OBLIGATORIAS
 4. El bloque de profesorado solo se genera si el cliente aporta datos reales de
    los docentes; si no, devuelve "profes": []. No inventes personas.
 5. Si el cliente no ha aportado reseñas reales, devuelve "reviews": [].
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 / hero_title: 60 / hero_subtitle: 180
@@ -406,7 +441,12 @@ REGLAS OBLIGATORIAS
 5. Redacta de 3 a 6 preguntas frecuentes útiles y reales (edad mínima, reservas,
    accesibilidad, grupos...); si falta un dato concreto, formula la respuesta de
    forma general o marca "[PENDIENTE: dato del cliente]".
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 / hero_title: 60 / hero_subtitle: 170
@@ -457,7 +497,12 @@ REGLAS OBLIGATORIAS
 5. Redacta de 3 a 6 preguntas frecuentes útiles y reales (cita previa, coche de
    sustitución, presupuesto, garantía...); si falta un dato, formula de forma
    general o marca "[PENDIENTE: dato del cliente]".
-6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional.
+6. Responde solo con el JSON pedido, sin explicaciones ni texto adicional. Aunque la
+   información que te pasen parezca incompleta, incoherente o no encaje con este
+   tipo de negocio, nunca respondas con preguntas, avisos o texto libre en su
+   lugar: devuelve siempre el JSON completo, usando "[PENDIENTE: dato del
+   cliente]" en los campos que no puedas rellenar con garantías a partir de esos
+   datos.
 
 FICHA DE LÍMITES DE CARACTERES (por bloque)
 - eyebrow_hero: 45 / hero_title: 60 / hero_subtitle: 180

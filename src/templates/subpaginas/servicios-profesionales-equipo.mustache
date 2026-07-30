@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipo — {{nombre_negocio}}</title>
+<meta name="description" content="Conoce al equipo de {{nombre_negocio}}.">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:        #0F172A;
+  --ink-mid:    #1E293B;
+  --paper:      #F8FAFC;
+  --white-pure: #ffffff;
+  --accent:     #2563EB;
+  --accent-mid: #1D4ED8;
+  --accent-dim: rgba(37,99,235,.10);
+  --text-body:  #334155;
+  --text-muted: #64748B;
+  --border:     #E5E7EB;
+  --border-acc: rgba(37,99,235,.30);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans:  'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--ink);line-height:1.6;background:var(--paper)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.18;font-weight:560;letter-spacing:-.015em}
+.btn{display:inline-block;font-family:var(--sans);font-weight:700;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;padding:.9rem 1.8rem;border-radius:var(--radius-sm);cursor:pointer;transition:.25s ease;border:1px solid transparent}
+.btn-primary{background:var(--accent-mid);color:#fff;border-color:var(--accent-mid)}
+.btn-primary:hover{background:transparent;color:var(--accent-mid)}
+.btn-outline{background:transparent;color:var(--ink);border-color:var(--border)}
+.btn-outline:hover{border-color:var(--border-acc);color:var(--accent)}
+.eyebrow{display:flex;align-items:center;gap:.85rem;margin-bottom:1.1rem;font-family:var(--sans);font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted)}
+.eyebrow::before{content:'';width:1.7rem;height:2px;background:var(--accent);flex:none}
+header{position:sticky;top:0;z-index:50;background:rgba(248,250,252,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:19px;color:var(--ink);flex:none}
+.logo .mark{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:15px}
+.logo img{height:36px;width:auto;display:block}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a:not(.btn){color:var(--text-body);font-weight:600;font-size:14px}
+.nav-links a:not(.btn):hover{color:var(--accent)}
+.nav-links a.current{color:var(--accent)}
+.nav .btn{padding:10px 18px;font-size:12.5px}
+@media(max-width:760px){.nav-links a:not(.btn){display:none}}
+@media(max-width:480px){.nav .btn{display:none}.logo{font-size:17px}}
+.page-header{padding:clamp(2.6rem,4vw,3.6rem) 0;background:linear-gradient(180deg,var(--paper) 0%,#E5E7EB 100%)}
+.page-header h1{font-size:clamp(1.9rem,3.4vw,2.7rem);max-width:20em}
+.page-header .lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
+section.blk{padding:4rem 0}
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+@media(max-width:760px){.team{grid-template-columns:1fr}}
+.member{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.member .ph{object-fit:cover;aspect-ratio:4/5;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.member .info{padding:1.3rem 1.4rem}
+.member h3{font-size:16px;font-weight:600}
+.member .role{color:var(--accent-mid);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.member .cred{color:var(--text-muted);font-size:13px;margin-top:8px}
+.cta-block{background:var(--ink);color:#fff;border-radius:var(--radius-md);padding:2.4rem;text-align:center;margin-top:3rem}
+.cta-block h2{color:#fff;font-size:1.5rem}
+.cta-block p{color:rgba(255,255,255,.68);margin:10px 0 20px;font-size:14.5px}
+.cta-block .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-size:13px}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:#fff}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11.5px;color:rgba(255,255,255,.4);line-height:1.6}
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61;font-family:var(--sans)}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</a>
+    <nav class="nav-links">
+      <a href="areas.html">Áreas de práctica</a>
+      <a href="equipo.html" class="current">Equipo</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="contacto.html" class="btn btn-primary">Solicitar consulta</a>
+    </nav>
+  </div>
+</header>
+
+<section class="page-header">
+  <div class="wrap">
+    <div class="eyebrow">Equipo</div>
+    <h1>Quién lleva tu caso.</h1>
+    <p class="lead">Profesionales colegiados, con especialización acreditada en cada área.</p>
+  </div>
+</section>
+
+<section class="blk">
+  <div class="wrap">
+    <div class="team">
+      {{#equipo}}
+      <div class="member">
+        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto</div>{{/foto_url}}
+        <div class="info">
+          <h3>{{nombre}}</h3>
+          <div class="role">{{rol}}</div>
+          <p class="cred">{{credencial}}</p>
+        </div>
+      </div>
+      {{/equipo}}
+    </div>
+
+    <div class="cta-block">
+      <h2>¿Quieres hablar con nosotros?</h2>
+      <p>Pide tu primera consulta y te asignamos al profesional adecuado.</p>
+      <div class="btns">
+        <a href="contacto.html" class="btn btn-primary">Solicitar consulta</a>
+        <a href="tel:{{telefono}}" class="btn btn-outline" style="border-color:rgba(255,255,255,.3);color:#fff">Llamar ahora</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Servicios profesionales</div>
+      <div class="foot-links">
+        <a href="aviso-legal.html">Aviso legal</a>
+        <a href="privacidad.html">Política de privacidad</a>
+        <a href="cookies.html">Cookies</a>
+      </div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar">
+  <a href="tel:{{telefono}}" class="btn btn-outline">Llamar</a>
+  <a href="contacto.html" class="btn btn-primary">Solicitar consulta</a>
+</div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>

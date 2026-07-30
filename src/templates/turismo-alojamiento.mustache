@@ -72,7 +72,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(246,242,234,.94);backdro
 .hero-title{font-size:clamp(2rem,4vw,3.1rem);max-width:14em}
 .hero p.sub{font-family:var(--sans);font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:38em;margin:18px 0 28px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.hero-photo{aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
+.hero-photo{object-fit:cover;aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
 
 .trust{display:flex;flex-wrap:wrap;gap:18px 34px;margin-top:30px;color:var(--text-body);font-weight:600;font-size:13.5px}
 .trust span{display:flex;align-items:center;gap:8px}
@@ -89,7 +89,7 @@ section.blk{padding:5rem 0}
 @media(max-width:860px){.units{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.units{grid-template-columns:1fr}}
 .unit{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;display:flex;flex-direction:column}
-.unit .ph{aspect-ratio:16/10;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.unit .ph{object-fit:cover;aspect-ratio:16/10;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
 .unit .info{padding:1.3rem 1.4rem;display:flex;flex-direction:column;gap:8px;flex:1}
 .unit h3{font-size:17px;font-weight:600}
 .unit .cap{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-mid)}
@@ -115,7 +115,7 @@ section.blk{padding:5rem 0}
 /* GALERIA */
 .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:3rem}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr)}}
-.gph{aspect-ratio:1;background:var(--ink-mid);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px}
+.gph{object-fit:cover;aspect-ratio:1;background:var(--ink-mid);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px}
 
 /* RESERVA / FORM */
 .reserva{background:var(--ink);color:#fff}
@@ -193,10 +193,11 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
   <div class="wrap nav">
     <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
     <nav class="nav-links">
-      <a href="#alojamiento">Alojamiento</a>
+      <a href="alojamiento.html">Alojamiento</a>
       <a href="#servicios">Servicios</a>
-      <a href="#entorno">Entorno</a>
-      <a href="#reserva" class="btn btn-primary">Reservar</a>
+      <a href="entorno.html">Entorno</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="contacto.html" class="btn btn-primary">Reservar</a>
     </nav>
   </div>
 </header>
@@ -215,7 +216,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
       </div>
     </div>
-    <div class="hero-photo">Foto del alojamiento / entorno</div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del alojamiento / entorno</div>{{/foto_hero_url}}
   </div>
 </section>
 
@@ -227,7 +228,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="units">
       {{#alojamientos}}
       <div class="unit">
-        <div class="ph">Foto de la unidad</div>
+        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto de la unidad</div>{{/foto_url}}
         <div class="info">
           <div class="cap">{{capacidad}}</div>
           <h3>{{titulo}}</h3>
@@ -275,10 +276,10 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="eyebrow">Galería</div>
     <h2 class="h2">Un vistazo al alojamiento.</h2>
     <div class="gallery">
+      {{#galeria}}<img class="gph" src="{{url}}">{{/galeria}}{{^galeria}}<div class="gph">Foto</div>
       <div class="gph">Foto</div>
       <div class="gph">Foto</div>
-      <div class="gph">Foto</div>
-      <div class="gph">Foto</div>
+      <div class="gph">Foto</div>{{/galeria}}
     </div>
   </div>
 </section>
@@ -366,9 +367,9 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="foot-grid">
       <div>{{nombre_negocio}} — Alojamiento</div>
       <div class="foot-links">
-        <a href="#">Aviso legal</a>
-        <a href="#">Política de privacidad</a>
-        <a href="#">Cookies</a>
+        <a href="aviso-legal.html">Aviso legal</a>
+        <a href="privacidad.html">Política de privacidad</a>
+        <a href="cookies.html">Cookies</a>
       </div>
     </div>
     <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>

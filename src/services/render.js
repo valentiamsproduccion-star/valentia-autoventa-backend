@@ -9,6 +9,12 @@ const path = require('path');
 const { render } = require('../lib/mustache');
 
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+// Plantillas por-diseño (una por cada diseño de la galería, según se vayan
+// convirtiendo -- ver Tarea "Infraestructura plantilla_id"). Si el archivo
+// {plantillaId}.mustache no existe aquí todavía, se usa el genérico del
+// sector (TEMPLATE_FILE) sin que el cliente note ninguna diferencia: así se
+// pueden ir convirtiendo los ~150 diseños uno a uno sin romper nada.
+const PLANTILLAS_DIR = path.join(TEMPLATES_DIR, 'plantillas');
 
 const TEMPLATE_FILE = {
   'servicios-profesionales': 'servicios-profesionales.mustache',
@@ -48,12 +54,29 @@ function baseContext(datosBase, opts) {
     email: datosBase.email || '',
     anio: String(new Date().getFullYear()),
     preview: !!opts.preview,
+    // Datos fiscales (ver Formulario de Alta, sección "Datos fiscales") --
+    // solo los usan las páginas legales (ver services/legal.js), pero se
+    // exponen aquí porque baseContext() es compartido por todas las
+    // plantillas/páginas de un mismo cliente.
+    razon_social: datosBase.razon_social || '',
+    forma_juridica: datosBase.forma_juridica || '',
+    nif_cif: datosBase.nif_cif || '',
+    domicilio_fiscal: datosBase.domicilio_fiscal || '',
     // Logo/favicon subidos por el cliente en el alta (ver Formulario de
     // Alta, sección "Logo y favicon"). Si no hay, quedan vacíos y las
     // plantillas usan `{{^logo_url}}`/`{{^favicon_url}}` para mostrar el
     // avatar de iniciales y omitir el <link rel="icon">.
     logo_url: datosBase.logo_url || '',
     favicon_url: datosBase.favicon_url || '',
+    // Fotos "de sitio" del negocio subidas en el alta (ver Formulario de
+    // Alta, sección "Fotos del negocio" -- SECTORES[...].fotos en
+    // public/alta.html). Si faltan, las plantillas usan `{{^foto_hero_url}}`
+    // etc. para seguir mostrando el hueco de "Foto" de siempre. `galeria` se
+    // expone como lista de objetos ({{#galeria}}{{url}}{{/galeria}}) para
+    // poder iterarla directamente en mustache.
+    foto_hero_url: datosBase.foto_hero_url || '',
+    foto_secundaria_url: datosBase.foto_secundaria_url || '',
+    galeria: (datosBase.galeria_urls || []).map(url => ({ url })),
   };
 }
 
@@ -65,7 +88,249 @@ function renderServiciosProfesionales(datosBase, contenido, opts) {
     hay_testimonios: Array.isArray(contenido.testimonios) && contenido.testimonios.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('servicios-profesionales', ctx);
+  return renderSector('servicios-profesionales', ctx, opts);
+}
+
+// ── Subpáginas reales (Áreas/Equipo/Contacto en vez de anclas #areas/#equipo/
+// #contacto en la misma página) -- ver Tarea "Piloto multi-página: Servicios
+// profesionales". Cada subpágina reutiliza el mismo `contenido` de la
+// página principal (no hace falta pedirle nada nuevo al cliente); solo se
+// muestra en una plantilla propia bajo templates/subpaginas/.
+const SUBPAGINAS_DIR = path.join(TEMPLATES_DIR, 'subpaginas');
+
+function renderSubpagina(sector, pagina, ctx) {
+  const templatePath = path.join(SUBPAGINAS_DIR, sector + '-' + pagina + '.mustache');
+  const template = fs.readFileSync(templatePath, 'utf-8');
+  return render(template, ctx);
+}
+
+function renderServiciosProfesionalesAreas(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    areas: withIndex(contenido.areas),
+  });
+  return renderSubpagina('servicios-profesionales', 'areas', ctx);
+}
+
+function renderServiciosProfesionalesEquipo(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('servicios-profesionales', 'equipo', ctx);
+}
+
+function renderServiciosProfesionalesContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    areas: withIndex(contenido.areas), // para el <select> del formulario de consulta
+    consulta_points: withIndex(contenido.consulta_points),
+  });
+  return renderSubpagina('servicios-profesionales', 'contacto', ctx);
+}
+
+// ── Salud y bienestar: Tratamientos / Equipo / Contacto ──────────────────
+function renderSaludBienestarTratamientos(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    treats: withIndex(contenido.treats),
+  });
+  return renderSubpagina('salud-bienestar', 'tratamientos', ctx);
+}
+function renderSaludBienestarEquipo(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('salud-bienestar', 'equipo', ctx);
+}
+function renderSaludBienestarContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    cita_points: withIndex(contenido.cita_points),
+  });
+  return renderSubpagina('salud-bienestar', 'contacto', ctx);
+}
+
+// ── Hostelería y restauración: Carta / Nosotros / Contacto ───────────────
+function renderHosteleriaRestauracionCarta(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('hosteleria-restauracion', 'carta', ctx);
+}
+function renderHosteleriaRestauracionNosotros(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('hosteleria-restauracion', 'nosotros', ctx);
+}
+function renderHosteleriaRestauracionContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('hosteleria-restauracion', 'contacto', ctx);
+}
+
+// ── Turismo y alojamiento: Alojamiento / Entorno / Contacto ──────────────
+function renderTurismoAlojamientoAlojamiento(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    comodidades: (contenido.comodidades || []).filter(Boolean),
+  });
+  return renderSubpagina('turismo-alojamiento', 'alojamiento', ctx);
+}
+function renderTurismoAlojamientoEntorno(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    entorno: withIndex(contenido.entorno),
+  });
+  return renderSubpagina('turismo-alojamiento', 'entorno', ctx);
+}
+function renderTurismoAlojamientoContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    reserva_points: withIndex(contenido.reserva_points),
+  });
+  return renderSubpagina('turismo-alojamiento', 'contacto', ctx);
+}
+
+// ── Comercio y retail: Productos / Tienda / Contacto ─────────────────────
+function renderComercioRetailProductos(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    razones: withIndex(contenido.razones),
+  });
+  return renderSubpagina('comercio-retail', 'productos', ctx);
+}
+function renderComercioRetailTienda(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('comercio-retail', 'tienda', ctx);
+}
+function renderComercioRetailContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('comercio-retail', 'contacto', ctx);
+}
+
+// ── Reformas y construcción: Servicios / Proceso / Contacto ──────────────
+function renderReformasConstruccionServicios(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('reformas-construccion', 'servicios', ctx);
+}
+function renderReformasConstruccionProceso(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    proceso: withIndex(contenido.proceso),
+    hay_proyectos: Array.isArray(contenido.proyectos) && contenido.proyectos.length > 0,
+  });
+  return renderSubpagina('reformas-construccion', 'proceso', ctx);
+}
+function renderReformasConstruccionContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    presupuesto_points: withIndex(contenido.presupuesto_points),
+  });
+  return renderSubpagina('reformas-construccion', 'contacto', ctx);
+}
+
+// ── Formación y academias: Cursos / Metodología / Contacto ───────────────
+function renderFormacionAcademiasCursos(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('formacion-academias', 'cursos', ctx);
+}
+function renderFormacionAcademiasMetodologia(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    metodo: withIndex(contenido.metodo),
+    hay_profes: Array.isArray(contenido.profes) && contenido.profes.length > 0,
+  });
+  return renderSubpagina('formacion-academias', 'metodologia', ctx);
+}
+function renderFormacionAcademiasContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    matricula_points: withIndex(contenido.matricula_points),
+  });
+  return renderSubpagina('formacion-academias', 'contacto', ctx);
+}
+
+// ── Ocio y cultura: Actividades / Tarifas / Contacto ──────────────────────
+function renderOcioCulturaActividades(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('ocio-cultura', 'actividades', ctx);
+}
+function renderOcioCulturaTarifas(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('ocio-cultura', 'tarifas', ctx);
+}
+function renderOcioCulturaContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    reserva_points: withIndex(contenido.reserva_points),
+  });
+  return renderSubpagina('ocio-cultura', 'contacto', ctx);
+}
+
+// ── Automoción: Servicios / Razones / Contacto ───────────────────────────
+function renderAutomocionServicios(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {});
+  return renderSubpagina('automocion', 'servicios', ctx);
+}
+function renderAutomocionRazones(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    razones: withIndex(contenido.razones),
+  });
+  return renderSubpagina('automocion', 'razones', ctx);
+}
+function renderAutomocionContacto(datosBase, contenido, opts) {
+  const ctx = Object.assign({}, baseContext(datosBase, opts), contenido, {
+    cita_points: withIndex(contenido.cita_points),
+  });
+  return renderSubpagina('automocion', 'contacto', ctx);
+}
+
+// Mapa sector -> { nombre_pagina: función renderer }. Los sectores que no
+// aparezcan aquí todavía no tienen subpáginas reales (ver Tarea "Replicar
+// estructura multi-página a los 8 sectores restantes") -- sus enlaces de
+// nav siguen siendo anclas (#areas, etc.) hasta que se conviertan.
+const SUBPAGINA_RENDERERS = {
+  'servicios-profesionales': {
+    areas: renderServiciosProfesionalesAreas,
+    equipo: renderServiciosProfesionalesEquipo,
+    contacto: renderServiciosProfesionalesContacto,
+  },
+  'salud-bienestar': {
+    tratamientos: renderSaludBienestarTratamientos,
+    equipo: renderSaludBienestarEquipo,
+    contacto: renderSaludBienestarContacto,
+  },
+  'hosteleria-restauracion': {
+    carta: renderHosteleriaRestauracionCarta,
+    nosotros: renderHosteleriaRestauracionNosotros,
+    contacto: renderHosteleriaRestauracionContacto,
+  },
+  'turismo-alojamiento': {
+    alojamiento: renderTurismoAlojamientoAlojamiento,
+    entorno: renderTurismoAlojamientoEntorno,
+    contacto: renderTurismoAlojamientoContacto,
+  },
+  'comercio-retail': {
+    productos: renderComercioRetailProductos,
+    tienda: renderComercioRetailTienda,
+    contacto: renderComercioRetailContacto,
+  },
+  'reformas-construccion': {
+    servicios: renderReformasConstruccionServicios,
+    proceso: renderReformasConstruccionProceso,
+    contacto: renderReformasConstruccionContacto,
+  },
+  'formacion-academias': {
+    cursos: renderFormacionAcademiasCursos,
+    metodologia: renderFormacionAcademiasMetodologia,
+    contacto: renderFormacionAcademiasContacto,
+  },
+  'ocio-cultura': {
+    actividades: renderOcioCulturaActividades,
+    tarifas: renderOcioCulturaTarifas,
+    contacto: renderOcioCulturaContacto,
+  },
+  'automocion': {
+    servicios: renderAutomocionServicios,
+    razones: renderAutomocionRazones,
+    contacto: renderAutomocionContacto,
+  },
+};
+
+// Lista de nombres de subpágina reales de un sector (p. ej. ['areas',
+// 'equipo', 'contacto']), o [] si el sector todavía no tiene ninguna.
+function subpaginasDeSector(sector) {
+  return Object.keys(SUBPAGINA_RENDERERS[sector] || {});
+}
+
+// Punto de entrada para las subpáginas, paralelo a renderPagina() de más
+// abajo. Devuelve null si el sector no tiene esa subpágina todavía (el
+// llamador decide qué hacer -- ver publish.js, que simplemente no publica
+// nada en ese caso).
+function renderPaginaSector(sector, pagina, datosBase, contenido, opts) {
+  const sectorMap = SUBPAGINA_RENDERERS[sector];
+  const fn = sectorMap && sectorMap[pagina];
+  if (!fn) return null;
+  return fn(datosBase, contenido, opts);
 }
 
 function renderSaludBienestar(datosBase, contenido, opts) {
@@ -75,7 +340,7 @@ function renderSaludBienestar(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('salud-bienestar', ctx);
+  return renderSector('salud-bienestar', ctx, opts);
 }
 
 function renderHosteleriaRestauracion(datosBase, contenido, opts) {
@@ -84,7 +349,7 @@ function renderHosteleriaRestauracion(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('hosteleria-restauracion', ctx);
+  return renderSector('hosteleria-restauracion', ctx, opts);
 }
 
 // ── Sectores añadidos (fase 2): turismo, comercio, reformas, formación ──
@@ -102,7 +367,7 @@ function renderTurismoAlojamiento(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('turismo-alojamiento', ctx);
+  return renderSector('turismo-alojamiento', ctx, opts);
 }
 
 function renderComercioRetail(datosBase, contenido, opts) {
@@ -111,7 +376,7 @@ function renderComercioRetail(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('comercio-retail', ctx);
+  return renderSector('comercio-retail', ctx, opts);
 }
 
 function renderReformasConstruccion(datosBase, contenido, opts) {
@@ -122,7 +387,7 @@ function renderReformasConstruccion(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('reformas-construccion', ctx);
+  return renderSector('reformas-construccion', ctx, opts);
 }
 
 function renderFormacionAcademias(datosBase, contenido, opts) {
@@ -133,7 +398,7 @@ function renderFormacionAcademias(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('formacion-academias', ctx);
+  return renderSector('formacion-academias', ctx, opts);
 }
 
 function renderOcioCultura(datosBase, contenido, opts) {
@@ -142,7 +407,7 @@ function renderOcioCultura(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('ocio-cultura', ctx);
+  return renderSector('ocio-cultura', ctx, opts);
 }
 
 function renderAutomocion(datosBase, contenido, opts) {
@@ -152,7 +417,7 @@ function renderAutomocion(datosBase, contenido, opts) {
     hay_reviews: Array.isArray(contenido.reviews) && contenido.reviews.length > 0,
     hay_faqs: Array.isArray(contenido.faqs) && contenido.faqs.length > 0,
   });
-  return renderSector('automocion', ctx);
+  return renderSector('automocion', ctx, opts);
 }
 
 const RENDERERS = {
@@ -167,10 +432,25 @@ const RENDERERS = {
   'automocion': renderAutomocion,
 };
 
-function renderSector(sector, ctx) {
+function renderSector(sector, ctx, opts) {
   const file = TEMPLATE_FILE[sector];
   if (!file) throw new Error('Sector desconocido: ' + sector);
-  const templatePath = path.join(TEMPLATES_DIR, file);
+
+  // Si este cliente eligió un diseño concreto de la galería (plantilla_id) Y
+  // ese diseño ya tiene su plantilla real convertida (ver Tarea "Convertir
+  // piloto: 5 diseños de Taller"), se usa esa en vez de la genérica del
+  // sector -- así la web final reproduce el diseño exacto que vio el
+  // cliente. Si todavía no existe (la mayoría de los ~150 diseños, por
+  // ahora), cae automáticamente en la plantilla genérica de siempre.
+  const plantillaId = opts && opts.plantillaId;
+  let templatePath = path.join(TEMPLATES_DIR, file);
+  if (plantillaId) {
+    const plantillaPath = path.join(PLANTILLAS_DIR, plantillaId + '.mustache');
+    if (fs.existsSync(plantillaPath)) {
+      templatePath = plantillaPath;
+    }
+  }
+
   const template = fs.readFileSync(templatePath, 'utf-8');
   return render(template, ctx);
 }
@@ -184,4 +464,30 @@ function renderPagina(sector, datosBase, contenido, opts) {
   return fn(datosBase, contenido, opts);
 }
 
-module.exports = { renderPagina, TEMPLATE_FILE: Object.keys(TEMPLATE_FILE) };
+// ── Páginas legales (genéricas, iguales para los 9 sectores) ──────────────
+// Ver Tarea "Construir plantillas legales genéricas" -- toda web publicada
+// lleva Aviso Legal, Privacidad y Cookies por ley (LSSI/RGPD), rellenadas
+// con los "Datos fiscales" del Formulario de Alta (ver baseContext()).
+const LEGAL_DIR = path.join(TEMPLATES_DIR, 'legal');
+const TEMPLATE_FILE_LEGAL = {
+  'aviso-legal': 'aviso-legal.mustache',
+  'privacidad': 'privacidad.mustache',
+  'cookies': 'cookies.mustache',
+};
+
+function renderPaginaLegal(pagina, datosBase, opts) {
+  const file = TEMPLATE_FILE_LEGAL[pagina];
+  if (!file) throw new Error('Página legal desconocida: ' + pagina);
+  const ctx = baseContext(datosBase, opts);
+  const template = fs.readFileSync(path.join(LEGAL_DIR, file), 'utf-8');
+  return render(template, ctx);
+}
+
+module.exports = {
+  renderPagina,
+  renderPaginaLegal,
+  renderPaginaSector,
+  subpaginasDeSector,
+  TEMPLATE_FILE: Object.keys(TEMPLATE_FILE),
+  TEMPLATE_FILE_LEGAL: Object.keys(TEMPLATE_FILE_LEGAL),
+};

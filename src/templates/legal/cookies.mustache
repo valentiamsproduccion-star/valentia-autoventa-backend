@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Cookies | {{nombre_negocio}}</title>
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<style>
+  :root{--ink:#20242E;--cream:#FBF2EA;--text-body:rgba(32,36,46,.8);--text-muted:rgba(32,36,46,.55);--border:rgba(32,36,46,.12);--accent:#F14141;--sans:'Instrument Sans','Helvetica Neue',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);line-height:1.65;background:#fff}
+  a{color:var(--accent)}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  header{background:var(--cream);border-bottom:1px solid var(--border);padding:22px 0}
+  .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  .brand img{height:28px;width:auto}
+  nav a{font-size:13px;font-weight:600;color:var(--text-muted);margin-left:16px;text-decoration:none}
+  nav a:hover{color:var(--accent)}
+  main{padding:44px 0 70px}
+  h1{font-size:24px;margin-bottom:6px}
+  .updated{font-size:12.5px;color:var(--text-muted);margin-bottom:32px}
+  h2{font-size:16.5px;margin:28px 0 8px}
+  p{color:var(--text-body);font-size:14.5px;margin-bottom:10px}
+  table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:13.5px}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;color:var(--text-body)}
+  th{background:var(--cream);font-size:12.5px}
+  .disclaimer{margin-top:40px;padding-top:16px;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text-muted)}
+  .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.9;z-index:9}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a class="brand" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{nombre_negocio}}</a>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="aviso-legal.html">Aviso legal</a>
+      <a href="privacidad.html">Privacidad</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Política de Cookies</h1>
+  <p class="updated">Última actualización: {{anio}}</p>
+
+  <h2>1. Qué son las cookies</h2>
+  <p>
+    Las cookies son pequeños archivos que se almacenan en tu navegador al visitar un sitio web. Se utilizan,
+    entre otras cosas, para recordar tus preferencias y para el correcto funcionamiento técnico de la página.
+  </p>
+
+  <h2>2. Cookies utilizadas en este sitio</h2>
+  <p>
+    Actualmente, el sitio web de {{nombre_negocio}} únicamente utiliza cookies técnicas, estrictamente
+    necesarias para su funcionamiento (por ejemplo, para mantener la sesión al rellenar un formulario). No se
+    utilizan cookies de analítica, publicidad ni de terceros.
+  </p>
+  <table>
+    <tr><th>Tipo</th><th>Finalidad</th><th>Consentimiento</th></tr>
+    <tr><td>Técnicas / necesarias</td><td>Funcionamiento básico del sitio</td><td>No requiere consentimiento previo</td></tr>
+  </table>
+
+  <h2>3. Cambios futuros</h2>
+  <p>
+    Si en el futuro se incorporan cookies de analítica, personalización o publicidad (por ejemplo, para medir
+    visitas con Google Analytics), esta política se actualizará y se solicitará tu consentimiento mediante el
+    correspondiente aviso de cookies antes de instalarlas.
+  </p>
+
+  <h2>4. Cómo gestionar las cookies</h2>
+  <p>
+    Puedes permitir, bloquear o eliminar las cookies instaladas en tu equipo mediante la configuración de las
+    opciones del navegador que utilices.
+  </p>
+
+  <div class="disclaimer">
+    Esta Política de Cookies se ha generado a partir de una plantilla estándar. No sustituye el asesoramiento
+    de un abogado o gestoría: revísala y actualízala si el sitio incorpora cookies adicionales en el futuro.
+  </div>
+</main>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · Cookies</div>{{/preview}}
+
+</body>
+</html>

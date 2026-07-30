@@ -73,7 +73,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(248,250,252,.94);backdro
 .hero-title{font-size:clamp(2rem,4vw,3.1rem);max-width:14em}
 .hero p.sub{font-family:var(--sans);font-size:clamp(15.5px,1.7vw,18px);color:var(--text-body);max-width:38em;margin:18px 0 28px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.hero-photo{aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
+.hero-photo{object-fit:cover;aspect-ratio:4/3;background:var(--ink);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-family:var(--serif);font-size:14px;letter-spacing:.04em;text-align:center;padding:20px}
 
 .trust{display:flex;flex-wrap:wrap;gap:18px 34px;margin-top:30px;color:var(--text-body);font-weight:600;font-size:13.5px}
 .trust span{display:flex;align-items:center;gap:8px}
@@ -98,7 +98,7 @@ section.blk{padding:5rem 0}
 .team{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
 @media(max-width:760px){.team{grid-template-columns:1fr}}
 .member{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
-.member .ph{aspect-ratio:4/5;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.member .ph{object-fit:cover;aspect-ratio:4/5;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
 .member .info{padding:1.3rem 1.4rem}
 .member h3{font-size:16px;font-weight:600}
 .member .role{color:var(--accent-mid);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
@@ -108,7 +108,7 @@ section.blk{padding:5rem 0}
 .cases{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
 @media(max-width:760px){.cases{grid-template-columns:1fr}}
 .case{background:var(--white-pure);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
-.case .ph{aspect-ratio:16/10;background:var(--ink);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
+.case .ph{object-fit:cover;aspect-ratio:16/10;background:var(--ink);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:var(--serif);font-size:13px}
 .case .info{padding:1.2rem 1.3rem}
 .case h3{font-size:15.5px;font-weight:600}
 .case p{color:var(--text-muted);font-size:12.8px;margin-top:6px}
@@ -189,9 +189,10 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
   <div class="wrap nav">
     <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
     <nav class="nav-links">
-      <a href="#areas">Áreas de práctica</a>
-      <a href="#equipo">Equipo</a>
+      <a href="areas.html">Áreas de práctica</a>
+      <a href="equipo.html">Equipo</a>
       {{#hay_casos}}<a href="#casos">Casos</a>{{/hay_casos}}
+      <a href="contacto.html">Contacto</a>
       <a href="#consulta" class="btn btn-primary">Solicitar consulta</a>
     </nav>
   </div>
@@ -211,7 +212,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
         {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
       </div>
     </div>
-    <div class="hero-photo">Foto del despacho / equipo</div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del despacho / equipo</div>{{/foto_hero_url}}
   </div>
 </section>
 
@@ -229,6 +230,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
       </div>
       {{/areas}}
     </div>
+    <p style="margin-top:2rem"><a href="areas.html" class="btn btn-outline">Ver todas las áreas de práctica</a></p>
   </div>
 </section>
 
@@ -240,7 +242,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="team">
       {{#equipo}}
       <div class="member">
-        <div class="ph">Foto</div>
+        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto</div>{{/foto_url}}
         <div class="info">
           <h3>{{nombre}}</h3>
           <div class="role">{{rol}}</div>
@@ -249,6 +251,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
       </div>
       {{/equipo}}
     </div>
+    <p style="margin-top:2rem"><a href="equipo.html" class="btn btn-outline">Conoce a todo el equipo</a></p>
   </div>
 </section>
 
@@ -261,7 +264,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="cases">
       {{#casos}}
       <div class="case">
-        <div class="ph">Foto / imagen</div>
+        {{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto / imagen</div>{{/foto_url}}
         <div class="info">
           <h3>{{titulo}}</h3>
           <p>{{descripcion}}</p>
@@ -371,9 +374,9 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
     <div class="foot-grid">
       <div>{{nombre_negocio}} — Servicios profesionales</div>
       <div class="foot-links">
-        <a href="#">Aviso legal</a>
-        <a href="#">Política de privacidad</a>
-        <a href="#">Cookies</a>
+        <a href="aviso-legal.html">Aviso legal</a>
+        <a href="privacidad.html">Política de privacidad</a>
+        <a href="cookies.html">Cookies</a>
       </div>
     </div>
     <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>

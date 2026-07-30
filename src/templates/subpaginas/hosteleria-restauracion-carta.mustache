@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#221019">
-<title>{{nombre_negocio}} — Hostelería</title>
+<title>{{nombre_negocio}} — Carta</title>
 {{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
-<meta name="description" content="{{hero_subtitle}}">
+<meta name="description" content="{{lead_carta}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -176,6 +176,15 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61;font-family:var(--sans)}
 @media(max-width:600px){.tpl-badge{bottom:78px}}
+
+.page-header{padding:clamp(2.6rem,4vw,3.6rem) 0;background:linear-gradient(180deg,var(--paper) 0%,#00000010 100%)}
+.page-header h1{font-size:clamp(1.9rem,3.4vw,2.7rem);max-width:20em}
+.page-header .lead{color:var(--text-body);font-size:16.5px;max-width:640px;margin-top:12px}
+.nav-links a.current{color:var(--accent-mid,var(--accent))}
+.cta-block{background:var(--ink);color:#fff;border-radius:var(--radius-md);padding:2.4rem;text-align:center;margin-top:3rem}
+.cta-block h2{color:#fff;font-size:1.5rem}
+.cta-block p{color:rgba(255,255,255,.68);margin:10px 0 20px;font-size:14.5px}
+.cta-block .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -184,46 +193,26 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <header>
   <div class="wrap nav">
-    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
+    <a class="logo" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</a>
     <nav class="nav-links">
-      <a href="carta.html">Carta</a>
+      <a href="carta.html" class="current">Carta</a>
       <a href="nosotros.html">Nosotros</a>
-      {{#hay_events}}<a href="#eventos">Eventos</a>{{/hay_events}}
       <a href="contacto.html">Contacto</a>
       <a href="contacto.html" class="btn btn-primary">Reservar</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <div class="eyebrow">{{eyebrow_hero}}</div>
-      <h1 class="hero-title">{{hero_title}}</h1>
-      <p class="sub">{{hero_subtitle}}</p>
-      <div class="hero-cta">
-        <a href="#reservas" class="btn btn-primary">Reservar mesa</a>
-        <a href="#carta" class="btn btn-outline">Ver la carta</a>
-      </div>
-      <div class="trust">
-        {{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}
-      </div>
-    </div>
-    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del local / plato destacado</div>{{/foto_hero_url}}
+<section class="page-header">
+  <div class="wrap">
+    <div class="eyebrow">La carta</div>
+    <h1>Lo que cocinamos hoy.</h1>
+    <p class="lead">{{lead_carta}}</p>
   </div>
 </section>
 
-<section class="blk" id="carta">
+<section class="blk">
   <div class="wrap">
-    <div class="eyebrow">La carta</div>
-    <h2 class="h2">Lo que cocinamos hoy.</h2>
-    <p class="lead">{{lead_carta}}</p>
-    {{#preview}}
-    <div class="page-toggle">
-      <span class="opt on">Carta / menú</span>
-      <span class="opt off">+ Página de servicios (catering, eventos privados) — suplemento</span>
-    </div>
-    {{/preview}}
     <div class="menu-cats">
       {{#menu_cats}}
       <div class="menu-cat">
@@ -234,127 +223,23 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
       </div>
       {{/menu_cats}}
     </div>
-  </div>
-</section>
 
-<section class="blk alt" id="nosotros">
-  <div class="wrap">
-    <div class="eyebrow">Nuestra historia</div>
-    <h2 class="h2">Tres generaciones en la cocina.</h2>
-    <div class="story-grid">
-      {{#foto_secundaria_url}}<img class="story-photo" src="{{foto_secundaria_url}}" alt="{{nombre_negocio}}">{{/foto_secundaria_url}}{{^foto_secundaria_url}}<div class="story-photo">Foto del equipo / cocina</div>{{/foto_secundaria_url}}
-      <div>
-        <p class="lead" style="margin-top:0">{{historia_p1}}</p>
-        <p class="lead">{{historia_p2}}</p>
+    <div class="cta-block">
+      <h2>¿Quieres reservar mesa?</h2>
+      <p>Te confirmamos disponibilidad al momento por WhatsApp.</p>
+      <div class="btns">
+        <a href="contacto.html" class="btn btn-primary">Reservar</a>
+        <a href="tel:{{telefono}}" class="btn btn-outline" style="border-color:rgba(255,255,255,.3);color:#fff">Llamar ahora</a>
       </div>
     </div>
-  </div>
-</section>
 
-{{#hay_events}}
-<section class="blk" id="eventos">
-  <div class="wrap">
-    <div class="eyebrow">Agenda</div>
-    <h2 class="h2">Próximos eventos.</h2>
-    <div class="events">
-      {{#events}}
-      <div class="event"><div class="date">{{fecha}}</div><div class="what">{{what}}</div><div class="desc">{{desc}}</div></div>
-      {{/events}}
-    </div>
-  </div>
-</section>
-{{/hay_events}}
-
-<section class="blk reservas" id="reservas">
-  <div class="wrap">
-    <div class="eyebrow">Reservas</div>
-    <h2 class="h2">Resérvanos una mesa.</h2>
-    <p class="lead">La forma más rápida es escribirnos por WhatsApp. También puedes reservar desde plataformas externas.</p>
-    <div class="res-grid">
-      <div class="res-card">
-        <h3>Reserva directa</h3>
-        <p>{{res_directa_texto}}</p>
-        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary">Reservar por WhatsApp</a>
-      </div>
-      <div class="res-card">
-        <h3>Plataformas externas</h3>
-        <p>También puedes reservar desde tu plataforma habitual.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a href="#" class="btn btn-outline" style="border-color:rgba(255,255,255,.25);color:#fff">TheFork</a>
-          <a href="#" class="btn btn-outline" style="border-color:rgba(255,255,255,.25);color:#fff">Google Reservations</a>
-        </div>
-        {{#preview}}<p style="margin-top:14px;font-size:11.5px;color:rgba(255,255,255,.45)">Función ampliable: integración con motor de reservas externo, con disponibilidad en tiempo real.</p>{{/preview}}
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="blk alt">
-  <div class="wrap">
-    <div class="eyebrow">Galería</div>
-    <h2 class="h2">El local y los platos.</h2>
-    <div class="gallery">
-      {{#galeria}}<img class="gph" src="{{url}}">{{/galeria}}{{^galeria}}<div class="gph">Foto</div>
-      <div class="gph">Foto</div>
-      <div class="gph">Foto</div>
-      <div class="gph">Foto</div>{{/galeria}}
-    </div>
-  </div>
-</section>
-
-{{#hay_reviews}}
-<section class="blk">
-  <div class="wrap">
-    <div class="eyebrow">Opiniones</div>
-    <h2 class="h2">Lo que dicen nuestros comensales.</h2>
-    <div class="reviews">
-      {{#reviews}}
-      <div class="review"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}</div></div>
-      {{/reviews}}
-    </div>
-  </div>
-</section>
-{{/hay_reviews}}
-
-{{#hay_faqs}}
-<section class="blk" id="faq">
-  <div class="wrap">
-    <div class="eyebrow">Dudas frecuentes</div>
-    <h2 class="h2">Antes de venir.</h2>
-    <div class="faq">
-      {{#faqs}}
-      <details>
-        <summary>{{pregunta}}</summary>
-        <p>{{respuesta}}</p>
-      </details>
-      {{/faqs}}
-    </div>
-  </div>
-</section>
-{{/hay_faqs}}
-
-<section class="blk alt" id="contacto">
-  <div class="wrap">
-    <div class="eyebrow">Contacto</div>
-    <h2 class="h2">Dónde estamos.</h2>
-    <div class="contact-grid">
-      <div class="contact-list">
-        <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
-        <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
-        <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
-        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-outline" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
-      </div>
-      <div class="map-embed">
-        <iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
-    </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
     <div class="foot-grid">
-      <div>{{nombre_negocio}} — Hostelería</div>
+      <div>{{nombre_negocio}} — Hostelería y restauración</div>
       <div class="foot-links">
         <a href="aviso-legal.html">Aviso legal</a>
         <a href="privacidad.html">Política de privacidad</a>
@@ -367,7 +252,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.55);padding:34px 0;font-siz
 
 <div class="cta-bar">
   <a href="tel:{{telefono}}" class="btn btn-outline">Llamar</a>
-  <a href="#reservas" class="btn btn-primary">Reservar</a>
+  <a href="contacto.html" class="btn btn-primary">Reservar</a>
 </div>
 
 <a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Reservar por WhatsApp">

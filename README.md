@@ -103,6 +103,15 @@ algo que se pueda automatizar por seguridad:
    ver en la web publicada del cliente. No hace falta ninguna tabla nueva:
    los archivos se guardan como objetos normales del bucket, bajo una
    carpeta por cliente (`{client_id}/logo-1.png`, etc.).
+6. **Fotos del negocio** (mismo mecanismo, bucket aparte): en el formulario
+   de alta, cada sector pide además sus propias fotos (hero, foto
+   secundaria, galería, y una foto por tarjeta de equipo/productos/proyectos/
+   actividades/alojamientos según el sector — ver `public/alta.html`,
+   `SECTORES[...].fotos` y los campos con `photo:true`). Crea otro bucket
+   **público** llamado `fotos` (o el nombre que pongas en
+   `SUPABASE_FOTOS_BUCKET`) igual que el de `logos`. Si un cliente no sube
+   alguna foto, la web se publica igual con el hueco de "Foto" de siempre
+   hasta que la envíe.
 
 ## Email (Resend)
 

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidad | {{nombre_negocio}}</title>
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<style>
+  :root{--ink:#20242E;--cream:#FBF2EA;--text-body:rgba(32,36,46,.8);--text-muted:rgba(32,36,46,.55);--border:rgba(32,36,46,.12);--accent:#F14141;--sans:'Instrument Sans','Helvetica Neue',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);line-height:1.65;background:#fff}
+  a{color:var(--accent)}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  header{background:var(--cream);border-bottom:1px solid var(--border);padding:22px 0}
+  .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  .brand img{height:28px;width:auto}
+  nav a{font-size:13px;font-weight:600;color:var(--text-muted);margin-left:16px;text-decoration:none}
+  nav a:hover{color:var(--accent)}
+  main{padding:44px 0 70px}
+  h1{font-size:24px;margin-bottom:6px}
+  .updated{font-size:12.5px;color:var(--text-muted);margin-bottom:32px}
+  h2{font-size:16.5px;margin:28px 0 8px}
+  p{color:var(--text-body);font-size:14.5px;margin-bottom:10px}
+  ul{margin:8px 0 14px 20px;color:var(--text-body);font-size:14.5px}
+  li{margin-bottom:4px}
+  .disclaimer{margin-top:40px;padding-top:16px;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text-muted)}
+  .tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.9;z-index:9}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a class="brand" href="index.html">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{nombre_negocio}}</a>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="aviso-legal.html">Aviso legal</a>
+      <a href="cookies.html">Cookies</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Política de Privacidad</h1>
+  <p class="updated">Última actualización: {{anio}}</p>
+
+  <h2>1. Responsable del tratamiento</h2>
+  <ul>
+    <li><strong>Responsable:</strong> {{razon_social}}{{#forma_juridica}} ({{forma_juridica}}){{/forma_juridica}}</li>
+    <li><strong>NIF/CIF:</strong> {{nif_cif}}</li>
+    <li><strong>Domicilio:</strong> {{domicilio_fiscal}}</li>
+    <li><strong>Contacto:</strong> {{email}}{{#telefono}} · {{telefono}}{{/telefono}}</li>
+  </ul>
+
+  <h2>2. Finalidad del tratamiento</h2>
+  <p>
+    Los datos personales que nos facilites a través de los formularios de contacto o reserva de este sitio web
+    se tratan con la finalidad de atender tu solicitud, responder a tus consultas y, en su caso, gestionar la
+    relación comercial con {{nombre_negocio}}.
+  </p>
+
+  <h2>3. Legitimación</h2>
+  <p>
+    La base legal para el tratamiento de tus datos es tu consentimiento, otorgado al enviar el formulario
+    correspondiente, y/o la ejecución de una relación precontractual o contractual contigo.
+  </p>
+
+  <h2>4. Destinatarios</h2>
+  <p>
+    No se ceden datos a terceros salvo obligación legal. Los datos pueden ser tratados por proveedores que
+    prestan servicios técnicos a {{nombre_negocio}} (por ejemplo, hosting o email), actuando como encargados
+    del tratamiento conforme al artículo 28 del RGPD.
+  </p>
+
+  <h2>5. Derechos de las personas interesadas</h2>
+  <p>Puedes ejercer los siguientes derechos escribiendo a {{email}}:</p>
+  <ul>
+    <li>Acceso a tus datos personales.</li>
+    <li>Rectificación de datos inexactos.</li>
+    <li>Supresión de tus datos.</li>
+    <li>Limitación y oposición al tratamiento.</li>
+    <li>Portabilidad de los datos, cuando sea aplicable.</li>
+  </ul>
+  <p>
+    Asimismo, tienes derecho a presentar una reclamación ante la Agencia Española de Protección de Datos
+    (<a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>) si consideras que el
+    tratamiento de tus datos no se ajusta a la normativa vigente.
+  </p>
+
+  <h2>6. Plazo de conservación</h2>
+  <p>
+    Los datos se conservarán mientras exista un interés mutuo para mantener el fin del tratamiento, y cuando ya
+    no sea necesario, se suprimirán con las medidas de seguridad adecuadas.
+  </p>
+
+  <h2>7. Procedencia de los datos</h2>
+  <p>
+    Los datos personales tratados proceden directamente del propio interesado, a través de los formularios
+    disponibles en este sitio web.
+  </p>
+
+  <div class="disclaimer">
+    Esta Política de Privacidad se ha generado a partir de una plantilla estándar adaptada a los datos
+    facilitados por el negocio. No sustituye el asesoramiento de un abogado o gestoría: se recomienda
+    revisarla antes de considerarla definitiva, especialmente si el negocio trata datos de categoría especial
+    (por ejemplo, datos de salud).
+  </div>
+</main>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · Privacidad</div>{{/preview}}
+
+</body>
+</html>

@@ -37,6 +37,15 @@
   #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
   iframe{width:100%;height:480px;border:1px solid #E5E7EB;border-radius:8px;margin-top:12px}
   #campos-adicional{display:none}
+  .logo-ia-thumb{width:96px;height:96px;border:2px solid #E5E7EB;border-radius:8px;padding:4px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .logo-ia-thumb img{width:100%;height:72px;object-fit:contain}
+  .logo-ia-thumb span{font-size:10.5px;color:#6B7280;text-align:center;line-height:1.2}
+  .logo-ia-thumb:hover{border-color:#9CA3AF}
+  .logo-ia-thumb.elegido{border-color:#20242E;background:#F3F4F6}
+  .logo-ia-thumb:disabled{opacity:.5;cursor:default}
+  .logo-ia-resultado-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .logo-ia-resultado-item img{border:1px solid #E5E7EB;border-radius:6px;background:#fff;padding:4px}
+  .logo-ia-resultado-item span{font-size:11px;color:#6B7280}
 </style>
 </head>
 <body>
@@ -69,6 +78,27 @@
 <label>Email de contacto</label>
 <input id="email" type="email" placeholder="hola@tunegocio.com">
 
+<h2>Datos fiscales</h2>
+<p class="hint">Necesarios para generar el Aviso Legal y la Política de Privacidad de tu web (obligatorios por ley). No se muestran en la web salvo en esas páginas legales.</p>
+<div class="row">
+  <div><label>Razón social / nombre legal completo</label><input id="razon_social" placeholder="Ej: Juan Pérez García, o Mi Negocio S.L."></div>
+  <div><label>Forma jurídica</label>
+    <select id="forma_juridica">
+      <option value="Autónomo/a">Autónomo/a (persona física)</option>
+      <option value="Sociedad Limitada (S.L.)">Sociedad Limitada (S.L.)</option>
+      <option value="Sociedad Anónima (S.A.)">Sociedad Anónima (S.A.)</option>
+      <option value="Sociedad Limitada Unipersonal (S.L.U.)">Sociedad Limitada Unipersonal (S.L.U.)</option>
+      <option value="Cooperativa">Cooperativa</option>
+      <option value="Comunidad de bienes">Comunidad de bienes</option>
+      <option value="Otra">Otra</option>
+    </select>
+  </div>
+</div>
+<div class="row">
+  <div><label>NIF / CIF</label><input id="nif_cif" placeholder="12345678A o B12345678"></div>
+  <div><label>Domicilio fiscal completo</label><input id="domicilio_fiscal" placeholder="Calle Mayor 12, 3ºA, 46001 Valencia"></div>
+</div>
+
 <h2>Logo y favicon</h2>
 <div class="via">
   <label><input type="radio" name="tiene_logo" value="si" checked> Ya tengo logo</label>
@@ -89,8 +119,30 @@
     <input type="checkbox" id="logo_ia" style="width:auto">
     Quiero que la IA me diseñe un logo (+15€, pago único)
   </label>
-  <p class="hint">Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
+  <p class="hint">La IA genera tu logo ANTES de pagar, con 3 propuestas para elegir. Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
+
+  <div id="logo-ia-generador" style="display:none">
+    <button type="button" class="add" id="btn-generar-logo">Generar opciones de logo</button>
+    <p id="logo-ia-error" class="hint" style="display:none;color:#DC2626"></p>
+
+    <div id="logo-ia-opciones" style="display:none;margin-top:12px">
+      <label style="margin:0 0 6px">Elige la que más te guste</label>
+      <div id="logo-ia-opciones-grid" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+    </div>
+
+    <div id="logo-ia-cargando-formatos" class="hint" style="display:none;margin-top:10px">Preparando el favicón y la versión apaisada…</div>
+
+    <div id="logo-ia-resultado" style="display:none;margin-top:14px">
+      <label style="margin:0 0 6px">Tu logo</label>
+      <div id="logo-ia-resultado-grid" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end"></div>
+      <button type="button" class="add small" id="btn-rehacer-logo" style="margin-top:10px">Probar otras opciones</button>
+    </div>
+  </div>
 </div>
+
+<h2>Fotos del negocio</h2>
+<p class="hint">Sube las fotos que pide tu plantilla (según el sector elegido arriba). Si dejas alguna sin subir, tu web se publica igualmente con un hueco de "Foto" hasta que nos la envíes.</p>
+<div id="campos-fotos"></div>
 
 <label style="margin-top:20px">¿Cómo quieres el texto?</label>
 <div class="via">
@@ -137,6 +189,9 @@
 
 const SECTORES = {
   'servicios-profesionales': {
+    fotos: [
+      {key:'hero', label:'Foto del despacho / equipo'},
+    ],
     tipoLabel: 'Tipo de servicio',
     tipoOptions: ['Abogacía','Asesoría fiscal','Inmobiliaria','Arquitectura e interiorismo','Consultoría','Coaching'],
     tablaB: [
@@ -153,9 +208,9 @@ const SECTORES = {
       {type:'textarea', key:'lead_areas', label:'Texto de apoyo del bloque de áreas', max:140},
       {type:'repeater', key:'areas', label:'Áreas de práctica', min:1, max:4,
         fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
-      {type:'repeater', key:'equipo', label:'Equipo', min:1, max:4,
+      {type:'repeater', key:'equipo', label:'Equipo', min:1, max:4, photo:true,
         fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Credencial real',max:95}]},
-      {type:'repeater', key:'casos', label:'Casos destacados', optional:true, min:0, max:3,
+      {type:'repeater', key:'casos', label:'Casos destacados', optional:true, min:0, max:3, photo:true,
         fields:[{key:'titulo',label:'Título',max:35},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
       {type:'text', key:'h2_consulta', label:'Título del bloque de primera consulta', max:55},
       {type:'textarea', key:'lead_consulta', label:'Texto de apoyo', max:140},
@@ -168,6 +223,9 @@ const SECTORES = {
     ],
   },
   'salud-bienestar': {
+    fotos: [
+      {key:'hero', label:'Foto de la consulta'},
+    ],
     tipoLabel: 'Tipo de centro',
     tipoOptions: ['Clínica','Centro de belleza','Gimnasio'],
     tablaB: [
@@ -184,7 +242,7 @@ const SECTORES = {
       {type:'textarea', key:'lead_tratamientos', label:'Texto de apoyo', max:140},
       {type:'repeater', key:'treats', label:'Tratamientos', min:1, max:6,
         fields:[{key:'titulo',label:'Título',max:26},{key:'descripcion',label:'Descripción',max:95,textarea:true,hintExtra:'No prometas resultados clínicos garantizados.'}]},
-      {type:'repeater', key:'equipo', label:'Profesionales', min:1, max:4,
+      {type:'repeater', key:'equipo', label:'Profesionales', min:1, max:4, photo:true,
         fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Colegiado / titulación real',max:95}]},
       {type:'text', key:'h2_cita', label:'Título del bloque de pedir cita', max:55},
       {type:'textarea', key:'lead_cita', label:'Texto de apoyo', max:140},
@@ -197,6 +255,11 @@ const SECTORES = {
     ],
   },
   'hosteleria-restauracion': {
+    fotos: [
+      {key:'hero', label:'Foto del local / plato destacado'},
+      {key:'secundaria', label:'Foto del equipo / cocina'},
+      {key:'galeria', label:'Galería del local', count:4},
+    ],
     tipoLabel: 'Tipo de local',
     tipoOptions: ['Restaurante','Cafetería','Bar','Food truck','Catering'],
     tablaB: [
@@ -223,6 +286,10 @@ const SECTORES = {
     ],
   },
   'turismo-alojamiento': {
+    fotos: [
+      {key:'hero', label:'Foto del alojamiento / entorno'},
+      {key:'galeria', label:'Galería del alojamiento', count:4},
+    ],
     tipoLabel: 'Tipo de alojamiento',
     tipoOptions: ['Hotel rural','Casa rural','Apartamento turístico','Camping','Hostal','Hotel'],
     tablaB: [
@@ -238,7 +305,7 @@ const SECTORES = {
       {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "Wifi gratis", "Parking")', count:3, max:30},
       {type:'text', key:'h2_alojamiento', label:'Título del bloque de alojamiento', max:55},
       {type:'textarea', key:'lead_alojamiento', label:'Texto de apoyo del bloque de alojamiento', max:140},
-      {type:'repeater', key:'alojamientos', label:'Estancias / unidades', min:1, max:6,
+      {type:'repeater', key:'alojamientos', label:'Estancias / unidades', min:1, max:6, photo:true,
         fields:[{key:'titulo',label:'Nombre',max:30},{key:'descripcion',label:'Descripción',max:110,textarea:true},{key:'capacidad',label:'Capacidad (p. ej. "2-4 personas")',max:24},{key:'precio_desde',label:'Precio (p. ej. "desde 80 €/noche")',max:24}]},
       {type:'text', key:'h2_servicios', label:'Título del bloque de servicios', max:55},
       {type:'textarea', key:'lead_servicios', label:'Texto de apoyo del bloque de servicios', max:140},
@@ -258,6 +325,10 @@ const SECTORES = {
     ],
   },
   'comercio-retail': {
+    fotos: [
+      {key:'hero', label:'Foto de la tienda / escaparate'},
+      {key:'secundaria', label:'Foto del equipo / interior'},
+    ],
     tipoLabel: 'Tipo de comercio',
     tipoOptions: ['Moda','Decoración','Alimentación','Artesanía','Librería','Floristería','Otro'],
     tablaB: [
@@ -274,7 +345,7 @@ const SECTORES = {
       {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "Producto local", "Atención cercana")', count:3, max:30},
       {type:'text', key:'h2_productos', label:'Título del bloque de productos', max:55},
       {type:'textarea', key:'lead_productos', label:'Texto de apoyo del bloque de productos', max:140},
-      {type:'repeater', key:'productos', label:'Productos destacados', min:2, max:8,
+      {type:'repeater', key:'productos', label:'Productos destacados', min:2, max:8, photo:true,
         fields:[{key:'titulo',label:'Nombre',max:30},{key:'descripcion',label:'Descripción',max:90,textarea:true},{key:'precio',label:'Precio (opcional)',max:24}]},
       {type:'text', key:'h2_tienda', label:'Título del bloque "la tienda"', max:55},
       {type:'textarea', key:'historia_p1', label:'Sobre la tienda — párrafo 1', max:280},
@@ -294,6 +365,9 @@ const SECTORES = {
     ],
   },
   'reformas-construccion': {
+    fotos: [
+      {key:'hero', label:'Foto de una obra / equipo'},
+    ],
     tipoLabel: 'Tipo de actividad',
     tipoOptions: ['Reformas integrales','Fontanería','Electricidad','Carpintería','Pintura','Jardinería','Albañilería'],
     tablaB: [
@@ -314,7 +388,7 @@ const SECTORES = {
       {type:'textarea', key:'lead_proceso', label:'Texto de apoyo', max:140},
       {type:'repeater', key:'proceso', label:'Pasos del proceso', min:3, max:4,
         fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:90,textarea:true}]},
-      {type:'repeater', key:'proyectos', label:'Proyectos destacados', optional:true, min:0, max:6,
+      {type:'repeater', key:'proyectos', label:'Proyectos destacados', optional:true, min:0, max:6, photo:true,
         fields:[{key:'titulo',label:'Título',max:35},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
       {type:'text', key:'h2_presupuesto', label:'Título del bloque de presupuesto', max:55},
       {type:'textarea', key:'lead_presupuesto', label:'Texto de apoyo', max:140},
@@ -327,6 +401,9 @@ const SECTORES = {
     ],
   },
   'formacion-academias': {
+    fotos: [
+      {key:'hero', label:'Foto del centro / alumnos'},
+    ],
     tipoLabel: 'Tipo de centro',
     tipoOptions: ['Academia','Centro de idiomas','Autoescuela','Formación online','Clases particulares'],
     tablaB: [
@@ -348,7 +425,7 @@ const SECTORES = {
       {type:'textarea', key:'lead_metodo', label:'Texto de apoyo', max:140},
       {type:'repeater', key:'metodo', label:'Pasos de la metodología', min:3, max:4,
         fields:[{key:'titulo',label:'Título',max:28},{key:'descripcion',label:'Descripción',max:90,textarea:true}]},
-      {type:'repeater', key:'profes', label:'Profesorado', optional:true, min:0, max:6,
+      {type:'repeater', key:'profes', label:'Profesorado', optional:true, min:0, max:6, photo:true,
         fields:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol',max:30},{key:'credencial',label:'Titulación real',max:95}]},
       {type:'text', key:'h2_matricula', label:'Título del bloque de matrícula', max:55},
       {type:'textarea', key:'lead_matricula', label:'Texto de apoyo', max:140},
@@ -361,8 +438,11 @@ const SECTORES = {
     ],
   },
   'ocio-cultura': {
+    fotos: [
+      {key:'hero', label:'Foto de la experiencia / espacio'},
+    ],
     tipoLabel: 'Tipo de negocio',
-    tipoOptions: ['Museo / centro cultural','Sala de eventos','Escape room','Ocio familiar','Otro'],
+    tipoOptions: ['Museo / centro cultural','Sala de eventos','Escape room','Otro'],
     tablaB: [
       {key:'actividades', label:'Actividades o experiencias', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'detalle',label:'Detalle (duración, jugadores, aforo...)'},{key:'descripcion',label:'Descripción'}]},
       {key:'tarifas', label:'Tarifas / entradas', type:'repeater', sub:[{key:'concepto',label:'Concepto'},{key:'precio',label:'Precio'}]},
@@ -376,7 +456,7 @@ const SECTORES = {
       {type:'fixedText', key:'trust_badges', label:'3 sellos de confianza (p. ej. "Para grupos", "Aparcamiento")', count:3, max:30},
       {type:'text', key:'h2_actividades', label:'Título del bloque de actividades', max:55},
       {type:'textarea', key:'lead_actividades', label:'Texto de apoyo del bloque de actividades', max:140},
-      {type:'repeater', key:'actividades', label:'Actividades / experiencias', min:2, max:8,
+      {type:'repeater', key:'actividades', label:'Actividades / experiencias', min:2, max:8, photo:true,
         fields:[{key:'titulo',label:'Nombre',max:32},{key:'detalle',label:'Detalle (p. ej. "60 min · 2-6 jugadores")',max:30},{key:'descripcion',label:'Descripción',max:100,textarea:true}]},
       {type:'text', key:'h2_tarifas', label:'Título del bloque de tarifas', max:55},
       {type:'textarea', key:'lead_tarifas', label:'Texto de apoyo del bloque de tarifas', max:140},
@@ -395,6 +475,9 @@ const SECTORES = {
     ],
   },
   'automocion': {
+    fotos: [
+      {key:'hero', label:'Foto del taller / vehículos'},
+    ],
     tipoLabel: 'Tipo de negocio',
     tipoOptions: ['Taller','Concesionario','Alquiler de vehículos'],
     tablaB: [
@@ -434,6 +517,7 @@ const camposIADiv = document.getElementById('campos-ia');
 const camposIAAdicionalDiv = document.getElementById('campos-ia-adicional');
 const camposTablaADiv = document.getElementById('campos-tablaA');
 const camposTablaAAdicionalDiv = document.getElementById('campos-tablaA-adicional');
+const camposFotosDiv = document.getElementById('campos-fotos');
 
 function renderTipoOptions() {
   const cfg = SECTORES[sectorSel.value];
@@ -626,16 +710,16 @@ function repeaterFieldA(field) {
   const addBtn = document.createElement('button');
   addBtn.type = 'button'; addBtn.className = 'add'; addBtn.textContent = '+ Añadir';
   const refreshAddBtn = () => { addBtn.disabled = field.max ? list.children.length >= field.max : false; };
-  addBtn.onclick = () => { addCardA(list, field.fields); refreshAddBtn(); };
+  addBtn.onclick = () => { addCardA(list, field.fields, field.photo); refreshAddBtn(); };
   wrap.appendChild(addBtn);
   const initialCount = field.min || (field.optional ? 0 : 1);
-  for (let i = 0; i < initialCount; i++) addCardA(list, field.fields);
+  for (let i = 0; i < initialCount; i++) addCardA(list, field.fields, field.photo);
   refreshAddBtn();
   list.addEventListener('cardremoved', refreshAddBtn);
   return wrap;
 }
 
-function addCardA(list, subFields) {
+function addCardA(list, subFields, photo) {
   const card = document.createElement('div');
   card.className = 'card';
   const del = document.createElement('button');
@@ -647,6 +731,15 @@ function addCardA(list, subFields) {
     input.dataset.sub = sf.key;
     card.appendChild(wrap);
   });
+  if (photo) {
+    const fl = document.createElement('label');
+    fl.textContent = 'Foto (opcional)';
+    fl.style.marginTop = '6px';
+    const fi = document.createElement('input');
+    fi.type = 'file'; fi.accept = 'image/*'; fi.dataset.fotoinput = '1';
+    card.appendChild(fl);
+    card.appendChild(fi);
+  }
   list.appendChild(card);
 }
 
@@ -811,6 +904,82 @@ function collectTablaA(div) {
   return out;
 }
 
+// ───────────────────────── Fotos del negocio (por sector/plantilla) ─────────────────────────
+// Cada sector declara en SECTORES[...].fotos las fotos "de sitio" que pide su
+// plantilla (hero, foto secundaria, galería) -- independientes de la vía de
+// texto elegida. Además, algunos repeaters de tablaA (equipo, productos,
+// proyectos, actividades, alojamientos...) llevan `photo:true` y por eso
+// addCardA les añade un input de archivo por tarjeta (ver arriba). Las fotos
+// por-tarjeta solo se ofrecen en las vías "Lo escribo yo" / "Escribo yo y que
+// la IA lo pula" (tablaA): en la vía "IA desde cero" el contenido final lo
+// redacta la IA a partir de datos en bruto y puede no conservar el mismo
+// número/orden de tarjetas, así que no hay forma fiable de emparejar cada
+// foto con su elemento final -- limitación conocida, no un descuido.
+
+function renderFotosSector(div) {
+  div.innerHTML = '';
+  const cfg = SECTORES[sectorSel.value];
+  (cfg.fotos || []).forEach(foto => {
+    const count = foto.count || 1;
+    const wrap = document.createElement('div');
+    wrap.dataset.fotoKey = foto.key;
+    wrap.dataset.fotoCount = String(count);
+    const l = document.createElement('label');
+    l.textContent = foto.label;
+    wrap.appendChild(l);
+    for (let i = 0; i < count; i++) {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*';
+      inp.dataset.fotoIdx = String(i);
+      wrap.appendChild(inp);
+    }
+    if (count > 1) {
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = 'Puedes rellenar solo alguna, deja el resto vacía si no tienes más fotos ahora.';
+      wrap.appendChild(hint);
+    }
+    div.appendChild(wrap);
+  });
+}
+
+async function collectFotosSector(div) {
+  const out = {};
+  const wraps = Array.from(div.querySelectorAll(':scope > [data-foto-key]'));
+  for (const wrap of wraps) {
+    const key = wrap.dataset.fotoKey;
+    const count = Number(wrap.dataset.fotoCount || '1');
+    const inputs = Array.from(wrap.querySelectorAll('input[type=file]'));
+    const files = [];
+    for (const inp of inputs) {
+      const file = (inp.files || [])[0];
+      if (file) files.push(await fileToBase64(file));
+    }
+    if (!files.length) continue;
+    out[key] = count > 1 ? files : files[0];
+  }
+  return out;
+}
+
+// Recorre, tras collectTablaA, las tarjetas de los repeaters marcados
+// `photo:true` y adjunta la foto (si se seleccionó una) al mismo elemento del
+// objeto ya recogido, emparejando por posición (misma tarjeta -> mismo índice).
+async function hydrateFotosTablaA(div, cfg, contenido) {
+  const photoFields = (cfg.tablaA || []).filter(f => f.type === 'repeater' && f.photo);
+  for (const field of photoFields) {
+    const wrap = div.querySelector(':scope > [data-key="' + field.key + '"]');
+    if (!wrap) continue;
+    const cards = Array.from(wrap.querySelectorAll(':scope > div > .card'));
+    const items = contenido[field.key];
+    if (!Array.isArray(items)) continue;
+    for (let i = 0; i < cards.length && i < items.length; i++) {
+      const fi = cards[i].querySelector('[data-fotoinput]');
+      const file = fi && (fi.files || [])[0];
+      if (file) items[i].foto = await fileToBase64(file);
+    }
+  }
+}
+
 // Comprueba en el navegador los mismos límites que src/services/validate.js
 // (solo se usa para bloquear el envío en la vía "propio" — en "mejora IA" es
 // orientativo, ver hint del selector de vía).
@@ -826,6 +995,7 @@ function renderTodo() {
   renderTablaA(camposTablaADiv);
   renderCamposIA(camposIAAdicionalDiv);
   renderTablaA(camposTablaAAdicionalDiv);
+  renderFotosSector(camposFotosDiv);
   aplicarVia();
 }
 
@@ -856,6 +1026,136 @@ function aplicarLogoToggle() {
 }
 document.querySelectorAll('input[name=tiene_logo]').forEach(r => r.addEventListener('change', aplicarLogoToggle));
 
+// ───────────────────────── Logo con IA (antes de comprar) ─────────────────────────
+// Casilla "Quiero que la IA me diseñe un logo": genera 3 propuestas reales
+// (POST /api/logo/opciones), el cliente elige una, y a partir de esa se
+// derivan el favicón y la versión apaisada (POST /api/logo/formatos) --
+// todo ANTES del pago, para que el cliente vea y apruebe el resultado final.
+// El resultado se guarda aquí (logoIaFormatos) y viaja en el payload de
+// /api/alta como si fuera un logo subido a mano (mismo formato que
+// collectLogoFiles/collectFavicon más abajo).
+let logoIaFormatos = null; // { cuadrada:{base64,mime}, favicon:{...}, apaisada:{...} }
+
+const btnGenerarLogo = document.getElementById('btn-generar-logo');
+const logoIaErrorEl = document.getElementById('logo-ia-error');
+const logoIaOpcionesEl = document.getElementById('logo-ia-opciones');
+const logoIaOpcionesGrid = document.getElementById('logo-ia-opciones-grid');
+const logoIaCargandoFormatos = document.getElementById('logo-ia-cargando-formatos');
+const logoIaResultadoEl = document.getElementById('logo-ia-resultado');
+const logoIaResultadoGrid = document.getElementById('logo-ia-resultado-grid');
+const btnRehacerLogo = document.getElementById('btn-rehacer-logo');
+
+document.getElementById('logo_ia').addEventListener('change', (e) => {
+  document.getElementById('logo-ia-generador').style.display = e.target.checked ? '' : 'none';
+});
+
+function mostrarErrorLogoIa(msg) {
+  logoIaErrorEl.style.display = msg ? 'block' : 'none';
+  logoIaErrorEl.textContent = msg || '';
+}
+
+async function generarOpcionesLogo() {
+  mostrarErrorLogoIa('');
+  logoIaOpcionesEl.style.display = 'none';
+  logoIaResultadoEl.style.display = 'none';
+  logoIaFormatos = null;
+
+  const nombreNegocioVal = document.getElementById('nombre_negocio').value.trim();
+  const tipoNegocioVal = document.getElementById('tipo_negocio').value.trim();
+  const ciudadVal = document.getElementById('ciudad').value.trim();
+  if (!nombreNegocioVal) {
+    mostrarErrorLogoIa('Rellena antes el nombre del negocio (arriba del todo) para poder generar el logo.');
+    return;
+  }
+
+  btnGenerarLogo.disabled = true;
+  const textoOriginal = btnGenerarLogo.textContent;
+  btnGenerarLogo.textContent = 'Generando 3 propuestas… (puede tardar ~30s)';
+  try {
+    const resp = await fetch('/api/logo/opciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre_negocio: nombreNegocioVal,
+        sector: sectorSel.value,
+        tipo_negocio: tipoNegocioVal,
+        ciudad: ciudadVal,
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudieron generar las opciones de logo.');
+
+    logoIaOpcionesGrid.innerHTML = '';
+    data.opciones.forEach(op => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'logo-ia-thumb';
+      btn.innerHTML = '<img src="data:' + op.mime + ';base64,' + op.base64 + '" alt="' + op.nombre + '"><span>' + op.nombre + '</span>';
+      btn.addEventListener('click', () => elegirOpcionLogo(op, btn));
+      logoIaOpcionesGrid.appendChild(btn);
+    });
+    logoIaOpcionesEl.style.display = '';
+  } catch (e) {
+    mostrarErrorLogoIa(e.message);
+  } finally {
+    btnGenerarLogo.disabled = false;
+    btnGenerarLogo.textContent = textoOriginal;
+  }
+}
+
+async function elegirOpcionLogo(opcion, btnElegido) {
+  mostrarErrorLogoIa('');
+  Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => {
+    b.disabled = true;
+    b.classList.toggle('elegido', b === btnElegido);
+  });
+  logoIaCargandoFormatos.style.display = 'block';
+  logoIaResultadoEl.style.display = 'none';
+  try {
+    const nombreNegocioVal = document.getElementById('nombre_negocio').value.trim();
+    const resp = await fetch('/api/logo/formatos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64: opcion.base64, nombre_negocio: nombreNegocioVal }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudieron preparar los formatos del logo.');
+
+    logoIaFormatos = data; // { cuadrada, favicon, apaisada }
+    logoIaResultadoGrid.innerHTML = '';
+    const items = [
+      { key: 'cuadrada', label: 'Cuadrada', w: 90 },
+      { key: 'favicon', label: 'Favicón', w: 48 },
+      { key: 'apaisada', label: 'Apaisada', w: 150 },
+    ];
+    items.forEach(it => {
+      const img = data[it.key];
+      const wrap = document.createElement('div');
+      wrap.className = 'logo-ia-resultado-item';
+      wrap.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.base64 + '" style="width:' + it.w + 'px;height:auto"><span>' + it.label + '</span>';
+      logoIaResultadoGrid.appendChild(wrap);
+    });
+    logoIaResultadoEl.style.display = '';
+    logoIaOpcionesEl.style.display = 'none';
+  } catch (e) {
+    mostrarErrorLogoIa(e.message);
+    Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => { b.disabled = false; });
+  } finally {
+    logoIaCargandoFormatos.style.display = 'none';
+  }
+}
+
+btnGenerarLogo.addEventListener('click', generarOpcionesLogo);
+btnRehacerLogo.addEventListener('click', () => {
+  logoIaFormatos = null;
+  logoIaResultadoEl.style.display = 'none';
+  logoIaOpcionesEl.style.display = '';
+  Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => {
+    b.disabled = false;
+    b.classList.remove('elegido');
+  });
+});
+
 // Lee un File como base64 (sin el prefijo "data:...;base64,"). El backend no
 // tiene parseo de multipart (ver src/lib/router.js), así que los archivos
 // viajan dentro del mismo JSON de /api/alta.
@@ -882,14 +1182,57 @@ async function collectFavicon() {
   return file ? fileToBase64(file) : null;
 }
 
+// Preselección desde el botón "Implementar esta plantilla" de las galerías
+// de diseño (plantilla-viewer.html las añade a la URL como
+// ?sector=...&tipo=...&plantilla=...) para que el formulario llegue ya
+// apuntando al sector y subtipo exactos de la plantilla que se estaba viendo,
+// en vez de al formulario en blanco. `plantilla` es el ID del diseño exacto
+// (nombre de archivo sin extensión, p. ej. "taller-01-urgencia-mecanica-24h")
+// -- se guarda para que la web final del cliente reproduzca ese mismo diseño
+// visual en vez del genérico del sector (ver src/services/render.js).
+let plantillaIdSeleccionada = '';
+(function aplicarPreseleccionDesdeURL() {
+  const qp = new URLSearchParams(window.location.search);
+  const sectorParam = qp.get('sector');
+  const tipoParam = qp.get('tipo');
+  const plantillaParam = qp.get('plantilla');
+  if (sectorParam && SECTORES[sectorParam]) {
+    sectorSel.value = sectorParam;
+  }
+  if (plantillaParam) plantillaIdSeleccionada = plantillaParam;
+})();
+
 renderTipoOptions();
 renderTodo();
 aplicarLogoToggle();
 
+(function aplicarTipoDesdeURL() {
+  const qp = new URLSearchParams(window.location.search);
+  const tipoParam = qp.get('tipo');
+  if (!tipoParam) return;
+  const match = Array.from(tipoSel.options).find(o => o.value.toLowerCase() === tipoParam.toLowerCase());
+  if (match) tipoSel.value = match.value;
+})();
+
 let ultimoOrderId = null;
 
 document.getElementById('btn-generar').addEventListener('click', async () => {
+  const btnGenerar = document.getElementById('btn-generar');
+  // Sin esto el botón no daba ningún feedback mientras esperaba la respuesta
+  // del servidor (que puede tardar varios segundos, o hasta ~30-50s si Render
+  // estaba "dormido" por el plan gratuito -- ver README). El usuario pensaba
+  // que el botón "no funcionaba" y le daba varias veces, disparando varias
+  // peticiones a la vez. Ahora se deshabilita y cambia de texto al instante,
+  // y se restaura siempre (éxito o error) en el `finally` de abajo.
+  if (btnGenerar.disabled) return;
+  const textoOriginalBtn = btnGenerar.textContent;
+  btnGenerar.disabled = true;
+  btnGenerar.style.opacity = '0.6';
+  btnGenerar.style.cursor = 'not-allowed';
+  btnGenerar.textContent = 'Generando vista previa…';
+
   const errorDiv = document.getElementById('error');
+  try {
   errorDiv.style.display = 'none';
   if (!document.getElementById('rgpd').checked) {
     errorDiv.style.display = 'block';
@@ -902,21 +1245,31 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   const ciudadVal = document.getElementById('ciudad').value.trim();
   const telefonoVal = document.getElementById('telefono').value.trim();
   const emailVal = document.getElementById('email').value.trim();
+  const razonSocialVal = document.getElementById('razon_social').value.trim();
+  const formaJuridicaVal = document.getElementById('forma_juridica').value.trim();
+  const nifCifVal = document.getElementById('nif_cif').value.trim();
+  const domicilioFiscalVal = document.getElementById('domicilio_fiscal').value.trim();
 
   // Sin esto el servidor rechazaba la petición con un mensaje genérico, o
   // -- peor -- la dejaba pasar hasta la IA sin nombre/tipo/ciudad y la IA
   // se negaba a inventar esos datos, devolviendo texto en vez del JSON
   // esperado (ver src/services/ai.js, extractJson). Cortamos aquí, con un
   // mensaje que dice exactamente qué falta.
+  // Los datos fiscales (razón social/NIF/domicilio) son obligatorios porque
+  // sin ellos el Aviso Legal no puede ser real (ver services/legal.js) --
+  // toda web publicada tiene que llevar esas páginas por ley (LSSI/RGPD).
   const faltan = [];
   if (!nombreNegocioVal) faltan.push('nombre del negocio');
   if (!tipoNegocioVal) faltan.push('tipo');
   if (!ciudadVal) faltan.push('ciudad');
   if (!telefonoVal) faltan.push('teléfono');
   if (!emailVal) faltan.push('email');
+  if (!razonSocialVal) faltan.push('razón social');
+  if (!nifCifVal) faltan.push('NIF/CIF');
+  if (!domicilioFiscalVal) faltan.push('domicilio fiscal');
   if (faltan.length) {
     errorDiv.style.display = 'block';
-    errorDiv.textContent = 'Completa estos datos del negocio antes de generar la vista previa: ' + faltan.join(', ') + '.';
+    errorDiv.textContent = 'Completa estos datos antes de generar la vista previa: ' + faltan.join(', ') + '.';
     return;
   }
 
@@ -930,10 +1283,15 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       ciudad: ciudadVal,
       telefono: telefonoVal,
       email: emailVal,
+      razon_social: razonSocialVal,
+      forma_juridica: formaJuridicaVal,
+      nif_cif: nifCifVal,
+      domicilio_fiscal: domicilioFiscalVal,
     },
     viaTexto: via,
     paginaAdicional,
   };
+  if (plantillaIdSeleccionada) payload.plantillaId = plantillaIdSeleccionada;
 
   if (via === 'ia') {
     // "Datos del negocio" (nombre, tipo, ciudad) se piden una sola vez al
@@ -954,6 +1312,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       return;
     }
     const contenido = collectTablaA(camposTablaADiv);
+    await hydrateFotosTablaA(camposTablaADiv, SECTORES[sectorSel.value], contenido);
     if (via === 'propio') payload.contenido = contenido;
     else payload.textoCliente = contenido;
 
@@ -977,11 +1336,37 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       const favicon = await collectFavicon();
       if (favicon) payload.favicon = favicon;
     } else {
-      payload.logoIaSolicitado = document.getElementById('logo_ia').checked;
+      const logoIaChecked = document.getElementById('logo_ia').checked;
+      payload.logoIaSolicitado = logoIaChecked;
+      // Si el cliente marcó la casilla, exigimos que haya elegido una de las
+      // 3 propuestas antes de seguir -- si no, el "antes de la compra" de la
+      // promesa del logo con IA no se cumple y el cliente pagaría sin haber
+      // visto ni aprobado nada.
+      if (logoIaChecked) {
+        if (!logoIaFormatos) {
+          errorDiv.style.display = 'block';
+          errorDiv.textContent = 'Genera y elige un logo con IA antes de continuar (o desmarca la casilla si prefieres el logo de texto simple por ahora).';
+          return;
+        }
+        payload.logos = [
+          { filename: 'logo-cuadrado.png', mime: logoIaFormatos.cuadrada.mime, base64: logoIaFormatos.cuadrada.base64 },
+          { filename: 'logo-apaisado.png', mime: logoIaFormatos.apaisada.mime, base64: logoIaFormatos.apaisada.base64 },
+        ];
+        payload.favicon = { filename: 'favicon.png', mime: logoIaFormatos.favicon.mime, base64: logoIaFormatos.favicon.base64 };
+      }
     }
   } catch (e) {
     errorDiv.style.display = 'block';
     errorDiv.textContent = 'No se pudo leer el logo/favicon: ' + e.message;
+    return;
+  }
+
+  try {
+    const fotos = await collectFotosSector(camposFotosDiv);
+    if (Object.keys(fotos).length) payload.fotos = fotos;
+  } catch (e) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = 'No se pudieron leer las fotos del negocio: ' + e.message;
     return;
   }
 
@@ -995,6 +1380,12 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   } catch (e) {
     errorDiv.style.display = 'block';
     errorDiv.textContent = e.message;
+  }
+  } finally {
+    btnGenerar.disabled = false;
+    btnGenerar.style.opacity = '';
+    btnGenerar.style.cursor = '';
+    btnGenerar.textContent = textoOriginalBtn;
   }
 });
 
