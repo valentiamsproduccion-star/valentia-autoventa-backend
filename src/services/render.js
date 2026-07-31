@@ -77,14 +77,84 @@ function colorPersonalizado(hex) {
   };
 }
 
-// Inyecta el <style> de sobreescritura de color justo antes de `</head>` si
-// el cliente puso un color propio; si no, devuelve el HTML tal cual.
+// Color secundario (ver Formulario de Alta, sección "Color de marca") -- a
+// diferencia del principal, NO se expone como variable CSS (ninguna de las
+// ~40 plantillas la usa), se aplica con reglas de override directas a dos
+// elementos decorativos que SÍ existen, con el mismo nombre de clase, en las
+// 9 plantillas de sector y sus subpáginas (comprobado con grep): el guion
+// antes de los "eyebrow" (`.eyebrow::before`) y el icono "+" de las
+// preguntas frecuentes (`.faq summary::after`). Así se nota la
+// personalización sin tener que tocar ni rediseñar cada plantilla.
+function colorSecundario(hex) {
+  const limpio = String(hex || '').trim();
+  return { color_secundario: HEX_RE.test(limpio) ? limpio : '' };
+}
+
+// ── Tipografía personalizada (ver Formulario de Alta, sección "Tipografía")
+// ─────────────────────────────────────────────────────────────────────────
+// Todas las plantillas usan las mismas dos variables CSS para tipografía
+// (--serif para titulares, --sans para texto y UI), cargadas desde Google
+// Fonts en el <head> de cada plantilla. Igual que con el color, se puede
+// sobreescribir con un <style> al final del <head> -- pero aquí además hace
+// falta cargar la hoja de Google Fonts nueva, porque la tipografía por
+// defecto de la plantilla no la tiene disponible. Se limita a una lista
+// cerrada (no texto libre) para no depender de que el cliente escriba bien
+// un nombre de fuente real ni arriesgarse a inyectar una URL rara.
+const FUENTES_DISPONIBLES = {
+  clasica: {
+    serif: "'Fraunces', Georgia, serif",
+    sans: "'Instrument Sans', 'Helvetica Neue', Arial, sans-serif",
+    google: 'Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,560;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400',
+  },
+  moderna: {
+    serif: "'Sora', 'Helvetica Neue', Arial, sans-serif",
+    sans: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+    google: 'Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700',
+  },
+  cercana: {
+    serif: "'Poppins', 'Helvetica Neue', Arial, sans-serif",
+    sans: "'Karla', 'Helvetica Neue', Arial, sans-serif",
+    google: 'Poppins:wght@400;500;600;700;800&family=Karla:wght@400;500;600;700',
+  },
+  elegante: {
+    serif: "'Playfair Display', Georgia, serif",
+    sans: "'Work Sans', 'Helvetica Neue', Arial, sans-serif",
+    google: 'Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,900;1,500&family=Work+Sans:wght@400;500;600;700',
+  },
+};
+
+// Devuelve la definición de la fuente elegida, o null si no hay id, el id no
+// existe, o es 'clasica' (que ya es la tipografía por defecto de todas las
+// plantillas -- no hace falta inyectar nada ni cargar una hoja extra).
+function fuentePersonalizada(id) {
+  if (!id || id === 'clasica') return null;
+  return FUENTES_DISPONIBLES[id] || null;
+}
+
+// Inyecta justo antes de `</head>` los <style>/<link> de sobreescritura de
+// color de marca (principal y secundario) y tipografía, según lo que el
+// cliente haya indicado en el alta; si no indicó nada, devuelve el HTML tal
+// cual, sin tocarlo.
 function withColorOverride(html, ctx) {
-  if (!ctx.color_primario) return html;
-  const style = '<style>:root{--accent:' + ctx.color_primario +
-    ';--accent-mid:' + ctx.color_primario_mid +
-    ';--accent-dim:' + ctx.color_primario_dim + '}</style>';
-  return html.includes('</head>') ? html.replace('</head>', style + '</head>') : html + style;
+  let extra = '';
+  if (ctx.color_primario) {
+    extra += '<style>:root{--accent:' + ctx.color_primario +
+      ';--accent-mid:' + ctx.color_primario_mid +
+      ';--accent-dim:' + ctx.color_primario_dim + '}</style>';
+  }
+  if (ctx.color_secundario) {
+    extra += '<style>.eyebrow::before{background:' + ctx.color_secundario +
+      ' !important}.faq summary::after{color:' + ctx.color_secundario + ' !important}</style>';
+  }
+  const fuente = fuentePersonalizada(ctx.fuente_id);
+  if (fuente) {
+    extra += '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+      '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+      '<link href="https://fonts.googleapis.com/css2?family=' + fuente.google + '&display=swap" rel="stylesheet">' +
+      '<style>:root{--serif:' + fuente.serif + ';--sans:' + fuente.sans + '}</style>';
+  }
+  if (!extra) return html;
+  return html.includes('</head>') ? html.replace('</head>', extra + '</head>') : html + extra;
 }
 
 // Añade el índice "n" (01, 02, ...) a cada elemento de un array, sin mutar
@@ -136,6 +206,10 @@ function baseContext(datosBase, opts) {
     // se usa vía withColorOverride() más abajo, no directamente en las
     // plantillas (que ya traen su propio :root con el color del diseño).
     ...colorPersonalizado(datosBase.color_primario),
+    ...colorSecundario(datosBase.color_secundario),
+    // Tipografía elegida (ver Formulario de Alta, sección "Tipografía") --
+    // igual que el color, se usa vía withColorOverride() más abajo.
+    fuente_id: datosBase.fuente_id || '',
   };
 }
 

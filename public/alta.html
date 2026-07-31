@@ -60,7 +60,23 @@
   .color-preview-card .cp-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .color-preview-card .cp-btn{background:var(--cp-accent-mid,#1D4ED8);color:#fff;font-size:12px;font-weight:600;padding:9px 16px;border-radius:6px}
   .color-preview-card .cp-chip{background:var(--cp-accent-dim,rgba(37,99,235,.10));color:var(--cp-accent-mid,#1D4ED8);font-size:11px;font-weight:700;padding:6px 12px;border-radius:100px}
+  .color-preview-card .cp-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .color-preview-card .cp-eyebrow-dash{width:20px;height:2px;background:var(--cp-accent2,var(--cp-accent,#2563EB));flex:none}
+  .color-preview-card .cp-eyebrow-text{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94A3B8}
+  .color-preview-card .cp-faq{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #E5E7EB;font-size:12px;color:#334155}
+  .color-preview-card .cp-faq-plus{font-size:16px;font-weight:700;line-height:1;color:var(--cp-accent2,var(--cp-accent,#2563EB))}
+  #color_secundario_picker{width:44px;height:40px;padding:2px;flex:none;border-radius:6px;cursor:pointer}
+  .fuente-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:8px}
+  .fuente-card{border:1.5px solid #E5E7EB;border-radius:10px;padding:14px;cursor:pointer;background:#fff}
+  .fuente-card:hover{border-color:#CBD5E1}
+  .fuente-card.selected{border-color:#20242E;box-shadow:0 0 0 1px #20242E}
+  .fuente-card .fc-heading{font-size:19px;margin-bottom:3px;line-height:1.2}
+  .fuente-card .fc-sample{font-size:12px;color:#6B7280;line-height:1.3}
+  .fuente-card .fc-label{font-size:11.5px;font-weight:600;color:#20242E;margin-top:10px;display:block}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Sora:wght@600;700&family=Poppins:wght@600;700&family=Playfair+Display:wght@600;700&family=Instrument+Sans:wght@400&family=Inter:wght@400&family=Karla:wght@400&family=Work+Sans:wght@400&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -155,7 +171,7 @@
 </div>
 
 <h2>Color de marca</h2>
-<p class="hint">Si tu negocio ya tiene un color corporativo (el de tu logo, por ejemplo), ponlo aquí en hexadecimal y tu web lo usará en botones, enlaces y detalles. Si lo dejas en blanco, se usa el color del diseño que has elegido.</p>
+<p class="hint">Si tu negocio ya tiene colores corporativos (los de tu logo, por ejemplo), ponlos aquí en hexadecimal y tu web los usará en botones, enlaces y detalles. Si lo dejas en blanco, se usa el color del diseño que has elegido.</p>
 <div class="color-row">
   <div>
     <label>Color principal <span class="opt">(opcional)</span></label>
@@ -164,19 +180,33 @@
       <input type="text" id="color_primario_hex" placeholder="#2563EB" maxlength="7">
     </div>
     <button type="button" class="add small" id="btn-reset-color">Usar el color del diseño</button>
+
+    <label style="margin-top:18px">Color secundario <span class="opt">(opcional)</span></label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="color" id="color_secundario_picker" value="#2563EB">
+      <input type="text" id="color_secundario_hex" placeholder="#2563EB" maxlength="7">
+    </div>
+    <button type="button" class="add small" id="btn-reset-color-secundario">Quitar color secundario</button>
+    <p class="hint">Se usa en detalles pequeños (un guion antes de algunos títulos y el "+" de las preguntas frecuentes), para que tu web no se vea idéntica a otras con el mismo diseño.</p>
   </div>
   <div>
     <label style="margin:0 0 6px">Vista previa en directo</label>
     <div id="color-preview" class="color-preview-card">
       <div class="cp-nav"><span class="cp-dot"></span><span class="cp-line"></span></div>
       <div class="cp-body">
+        <div class="cp-eyebrow"><span class="cp-eyebrow-dash"></span><span class="cp-eyebrow-text">Sección destacada</span></div>
         <div class="cp-heading"></div>
         <div class="cp-sub"></div>
         <div class="cp-actions"><span class="cp-btn">Reservar ahora</span><span class="cp-chip">Destacado</span></div>
+        <div class="cp-faq"><span>¿Tenéis aparcamiento?</span><span class="cp-faq-plus">+</span></div>
       </div>
     </div>
   </div>
 </div>
+
+<h2>Tipografía</h2>
+<p class="hint">Elige el estilo de letra de tu web. Las cuatro son legibles y profesionales — solo cambia el carácter.</p>
+<div class="fuente-grid" id="fuente-grid"></div>
 
 <h2>Fotos del negocio</h2>
 <p class="hint">Sube las fotos que pide tu plantilla (según el sector elegido arriba). Si dejas alguna sin subir, tu web se publica igualmente con un hueco de "Foto" hasta que nos la envíes.</p>
@@ -1180,6 +1210,11 @@ function hexToRgba(hex, alpha) {
 const colorPickerEl = document.getElementById('color_primario_picker');
 const colorHexEl = document.getElementById('color_primario_hex');
 const colorPreviewEl = document.getElementById('color-preview');
+// Color secundario: mismo patrón que el principal, pero sin sombras (mid/dim)
+// -- solo se usa tal cual en dos detalles decorativos (ver render.js,
+// withColorOverride()), no hace falta calcular variantes.
+const colorSecundarioPickerEl = document.getElementById('color_secundario_picker');
+const colorSecundarioHexEl = document.getElementById('color_secundario_hex');
 
 function sectorColorDefault() {
   return SECTOR_COLORS[sectorSel.value] || SECTOR_COLORS['servicios-profesionales'];
@@ -1194,6 +1229,18 @@ function pintarColorPreview() {
   colorPreviewEl.style.setProperty('--cp-accent', hex);
   colorPreviewEl.style.setProperty('--cp-accent-mid', shadeHex(hex, -12));
   colorPreviewEl.style.setProperty('--cp-accent-dim', hexToRgba(hex, 0.10));
+
+  const valSec = colorSecundarioHexEl.value.trim();
+  if (HEX_RE.test(valSec)) {
+    colorSecundarioPickerEl.value = valSec;
+    colorPreviewEl.style.setProperty('--cp-accent2', valSec);
+  } else {
+    // Sin color secundario válido: se quita la variable para que la vista
+    // previa caiga de vuelta al color principal (mismo fallback que hace la
+    // web real, ver render.js -- si no hay color_secundario, esos detalles
+    // usan var(--accent) tal cual).
+    colorPreviewEl.style.removeProperty('--cp-accent2');
+  }
 }
 
 colorPickerEl.addEventListener('input', () => {
@@ -1205,8 +1252,44 @@ document.getElementById('btn-reset-color').addEventListener('click', () => {
   colorHexEl.value = '';
   pintarColorPreview();
 });
+colorSecundarioPickerEl.addEventListener('input', () => {
+  colorSecundarioHexEl.value = colorSecundarioPickerEl.value;
+  pintarColorPreview();
+});
+colorSecundarioHexEl.addEventListener('input', pintarColorPreview);
+document.getElementById('btn-reset-color-secundario').addEventListener('click', () => {
+  colorSecundarioHexEl.value = '';
+  pintarColorPreview();
+});
 sectorSel.addEventListener('change', pintarColorPreview);
 pintarColorPreview();
+
+// ───────────────────────── Tipografía ─────────────────────────
+// Mismas 4 combinaciones que sirve el servidor (ver services/render.js,
+// FUENTES_DISPONIBLES) -- si se cambia una lista hay que cambiar la otra.
+// 'clasica' es la que ya traen todas las plantillas por defecto (Fraunces +
+// Instrument Sans), así que no hace falta mandarla al servidor como override.
+const FUENTES = [
+  { id: 'clasica', label: 'Clásica', heading: "'Fraunces', Georgia, serif", body: "'Instrument Sans', sans-serif" },
+  { id: 'moderna', label: 'Moderna', heading: "'Sora', sans-serif", body: "'Inter', sans-serif" },
+  { id: 'cercana', label: 'Cercana', heading: "'Poppins', sans-serif", body: "'Karla', sans-serif" },
+  { id: 'elegante', label: 'Elegante', heading: "'Playfair Display', Georgia, serif", body: "'Work Sans', sans-serif" },
+];
+let fuenteSeleccionada = 'clasica';
+const fuenteGridEl = document.getElementById('fuente-grid');
+FUENTES.forEach(f => {
+  const card = document.createElement('div');
+  card.className = 'fuente-card' + (f.id === fuenteSeleccionada ? ' selected' : '');
+  card.dataset.fuenteId = f.id;
+  card.innerHTML = '<div class="fc-heading" style="font-family:' + f.heading + '">Tu negocio</div>' +
+    '<div class="fc-sample" style="font-family:' + f.body + '">Así se ve el texto normal de tu web.</div>' +
+    '<span class="fc-label">' + f.label + '</span>';
+  card.addEventListener('click', () => {
+    fuenteSeleccionada = f.id;
+    fuenteGridEl.querySelectorAll('.fuente-card').forEach(c => c.classList.toggle('selected', c.dataset.fuenteId === f.id));
+  });
+  fuenteGridEl.appendChild(card);
+});
 
 // ───────────────────────── Vista previa a pantalla completa ─────────────────────────
 // El iframe #preview-frame carga la vista previa real (misma plantilla, mismo
@@ -1455,6 +1538,7 @@ if (editToken) {
   ocultarSeccion('Datos fiscales');
   ocultarSeccion('Logo y favicon');
   ocultarSeccion('Color de marca');
+  ocultarSeccion('Tipografía');
   sectorSel.style.display = 'none';
   if (sectorSel.previousElementSibling) sectorSel.previousElementSibling.style.display = 'none';
 
@@ -1630,6 +1714,9 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   if (plantillaIdSeleccionada) payload.plantillaId = plantillaIdSeleccionada;
   const colorPrimarioVal = colorHexEl.value.trim();
   if (HEX_RE.test(colorPrimarioVal)) payload.datosBase.color_primario = colorPrimarioVal;
+  const colorSecundarioVal = colorSecundarioHexEl.value.trim();
+  if (HEX_RE.test(colorSecundarioVal)) payload.datosBase.color_secundario = colorSecundarioVal;
+  if (fuenteSeleccionada && fuenteSeleccionada !== 'clasica') payload.datosBase.fuente_id = fuenteSeleccionada;
 
   if (via === 'ia') {
     // "Datos del negocio" (nombre, tipo, ciudad) se piden una sola vez al

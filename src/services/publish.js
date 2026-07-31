@@ -43,6 +43,10 @@ async function publicarCliente(client, orderContext) {
     // si el cliente no puso ninguno, render.js lo deja tal cual (undefined)
     // y la web usa el color del diseño elegido, como siempre.
     color_primario: client.color_primario,
+    color_secundario: client.color_secundario,
+    // Tipografía elegida (ver Formulario de Alta, sección "Tipografía") --
+    // mismo patrón que el color: si no eligió ninguna, se usa la del diseño.
+    fuente_id: client.fuente_id,
   };
 
   const htmlPrincipal = renderPagina(client.sector, datosBase, orderContext.contenidoPrincipal, { preview: false, plantillaId: client.plantilla_id });
