@@ -36,6 +36,7 @@
   #resultado{margin-top:28px;padding:18px;border-radius:8px;background:#F0FDF4;border:1px solid #BBF7D0;display:none}
   #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
   iframe{width:100%;height:480px;border:1px solid #E5E7EB;border-radius:8px;margin-top:12px}
+  iframe:fullscreen{border-radius:0;border:none;height:100%}
   #campos-adicional{display:none}
   .logo-ia-thumb{width:96px;height:96px;border:2px solid #E5E7EB;border-radius:8px;padding:4px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
   .logo-ia-thumb img{width:100%;height:72px;object-fit:contain}
@@ -211,7 +212,13 @@
 <button class="primary" id="btn-generar">Generar vista previa</button>
 <div id="error"></div>
 <div id="resultado">
-  <strong>Vista previa generada.</strong>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <strong>Vista previa generada.</strong>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="add small" id="btn-preview-fullscreen">Ver a pantalla completa</button>
+      <button type="button" class="add small" id="btn-preview-newtab">Abrir en pestaña nueva</button>
+    </div>
+  </div>
   <iframe id="preview-frame"></iframe>
   <button class="primary" id="btn-pagar">Continuar al pago</button>
 </div>
@@ -941,6 +948,87 @@ function collectTablaA(div) {
   return out;
 }
 
+// Inverso de collectTablaA: rellena los campos ya renderizados por
+// renderTablaA con un `contenido` existente -- solo se usa en modo edición
+// (enlace mágico post-compra, ver "Modo edición" más abajo) para que el
+// cliente vea su texto actual en vez de campos en blanco. Añade tarjetas de
+// más en los repeaters si el contenido guardado tiene más elementos que los
+// que renderTablaA pinta por defecto.
+function fillTablaA(div, cfg, contenido) {
+  if (!contenido) return;
+  div.querySelectorAll(':scope > [data-key]').forEach(wrap => {
+    const key = wrap.dataset.key, kind = wrap.dataset.kind;
+    const val = contenido[key];
+    if (val == null) return;
+    if (kind === 'text' || kind === 'textarea') {
+      const input = wrap.querySelector('[data-self]');
+      input.value = val;
+      input.dispatchEvent(new Event('input'));
+    } else if (kind === 'fixedText') {
+      const inputs = Array.from(wrap.querySelectorAll('input'));
+      (val || []).forEach((v, i) => {
+        if (!inputs[i]) return;
+        inputs[i].value = v || '';
+        inputs[i].dispatchEvent(new Event('input'));
+      });
+    } else if (kind === 'fixedPair') {
+      const cards = Array.from(wrap.querySelectorAll(':scope > .card'));
+      (val || []).forEach((item, i) => {
+        const card = cards[i]; if (!card) return;
+        card.querySelectorAll('[data-sub]').forEach(inp => {
+          if (item[inp.dataset.sub] == null) return;
+          inp.value = item[inp.dataset.sub];
+          inp.dispatchEvent(new Event('input'));
+        });
+      });
+    } else if (kind === 'repeater') {
+      const list = wrap.querySelector(':scope > div');
+      const field = cfg.tablaA.find(f => f.key === key);
+      const items = val || [];
+      while (list.querySelectorAll(':scope > .card').length < items.length) {
+        addCardA(list, field.fields, field.photo);
+      }
+      list.dispatchEvent(new Event('cardremoved')); // refresca el estado del botón "+ Añadir"
+      const cards = Array.from(list.querySelectorAll(':scope > .card'));
+      items.forEach((item, i) => {
+        const card = cards[i]; if (!card) return;
+        card.querySelectorAll('[data-sub]').forEach(inp => {
+          if (item[inp.dataset.sub] == null) return;
+          inp.value = item[inp.dataset.sub];
+          inp.dispatchEvent(new Event('input'));
+        });
+        if (item.foto_url) {
+          const fotoLabel = document.createElement('div');
+          fotoLabel.className = 'hint';
+          fotoLabel.textContent = 'Ya tienes una foto guardada aquí. Sube otra solo si quieres cambiarla.';
+          card.appendChild(fotoLabel);
+        }
+      });
+    } else if (kind === 'menu') {
+      const cats = Array.from(wrap.children).find(el => el.tagName === 'DIV' && !el.className);
+      const items = val || [];
+      items.forEach((catData, i) => {
+        if (i > 0 || cats.children.length === 0) addCategoriaA(cats, cfg.tablaA.find(f => f.key === key));
+        const catCard = cats.children[i];
+        if (!catCard) return;
+        catCard.querySelector('[data-role=categoria]').value = catData.categoria || '';
+        const platosWrap = catCard.querySelector(':scope > div');
+        const platos = catData.platos || [];
+        while (platosWrap.querySelectorAll('[data-plato]').length < platos.length) {
+          addPlatoA(platosWrap, cfg.tablaA.find(f => f.key === key));
+        }
+        const rows = Array.from(platosWrap.querySelectorAll('[data-plato]'));
+        platos.forEach((plato, pi) => {
+          const row = rows[pi]; if (!row) return;
+          row.querySelector('[data-role=nombre]').value = plato.nombre || '';
+          row.querySelector('[data-role=descripcion]').value = plato.descripcion || '';
+          row.querySelector('[data-role=precio]').value = plato.precio || '';
+        });
+      });
+    }
+  });
+}
+
 // ───────────────────────── Fotos del negocio (por sector/plantilla) ─────────────────────────
 // Cada sector declara en SECTORES[...].fotos las fotos "de sitio" que pide su
 // plantilla (hero, foto secundaria, galería) -- independientes de la vía de
@@ -1119,6 +1207,24 @@ document.getElementById('btn-reset-color').addEventListener('click', () => {
 });
 sectorSel.addEventListener('change', pintarColorPreview);
 pintarColorPreview();
+
+// ───────────────────────── Vista previa a pantalla completa ─────────────────────────
+// El iframe #preview-frame carga la vista previa real (misma plantilla, mismo
+// contenido, mismo color de marca) desde /preview/:orderId -- ver más abajo,
+// donde se le pone el src tras el POST a /api/alta. Aquí solo se añade la
+// forma de verlo más grande: Fullscreen API sobre el propio iframe (sin
+// recargar nada) y, como alternativa siempre disponible, abrir la misma URL
+// en una pestaña nueva del navegador.
+const previewFrameEl = document.getElementById('preview-frame');
+document.getElementById('btn-preview-fullscreen').addEventListener('click', () => {
+  if (!previewFrameEl.src) return;
+  if (previewFrameEl.requestFullscreen) previewFrameEl.requestFullscreen();
+  else if (previewFrameEl.webkitRequestFullscreen) previewFrameEl.webkitRequestFullscreen();
+  else window.open(previewFrameEl.src, '_blank');
+});
+document.getElementById('btn-preview-newtab').addEventListener('click', () => {
+  if (previewFrameEl.src) window.open(previewFrameEl.src, '_blank');
+});
 
 // ───────────────────────── Logo y favicon ─────────────────────────
 // "Ya tengo logo" -> se suben archivos (logo en varias versiones + favicon
@@ -1319,6 +1425,99 @@ aplicarLogoToggle();
   if (match) tipoSel.value = match.value;
 })();
 
+// ───────────────────────── Modo edición (enlace mágico post-compra) ─────────────────────────
+// Esta misma página, servida en /mi-pagina/:token/editar (ver server.js),
+// se reutiliza como "editor básico": el cliente ya pagó, así que se ocultan
+// sector/datos fiscales/logo/página adicional/RGPD (ya fijados en el alta) y
+// solo queda visible lo que puede tocar de verdad -- texto y fotos -- ya
+// relleno con lo que tiene publicado ahora mismo. Al guardar, en vez de
+// crear un pedido y pasar por Stripe, se llama a /api/mi-pagina/:token/editar
+// y la web se vuelve a publicar al momento con los cambios.
+const editMatch = window.location.pathname.match(/^\/mi-pagina\/([a-f0-9]+)\/editar\/?$/);
+const editToken = editMatch ? editMatch[1] : null;
+
+// Oculta un bloque completo (su <h2> y todo lo que le sigue hasta el
+// siguiente <h2>) -- las secciones de alta.html son hermanas al mismo nivel,
+// delimitadas por <h2>, así que esto evita tener que envolver cada una en un
+// <div> aparte solo para el modo edición.
+function ocultarSeccion(tituloH2) {
+  const h2 = Array.from(document.querySelectorAll('h2')).find(h => h.textContent.trim() === tituloH2);
+  if (!h2) return;
+  let el = h2;
+  while (el && (el === h2 || el.tagName !== 'H2')) {
+    el.style.display = 'none';
+    el = el.nextElementSibling;
+  }
+}
+
+if (editToken) {
+  ocultarSeccion('Datos del negocio');
+  ocultarSeccion('Datos fiscales');
+  ocultarSeccion('Logo y favicon');
+  ocultarSeccion('Color de marca');
+  sectorSel.style.display = 'none';
+  if (sectorSel.previousElementSibling) sectorSel.previousElementSibling.style.display = 'none';
+
+  // Solo "Lo escribo yo" / "Escribo yo y que la IA lo pula" tienen sentido
+  // editando texto ya existente -- "Que lo redacte la IA desde cero" se
+  // oculta y "propio" queda como opción por defecto.
+  const viaIaRadio = document.querySelector('input[name=via][value=ia]');
+  if (viaIaRadio) viaIaRadio.closest('label').style.display = 'none';
+  const viaPropioRadio = document.querySelector('input[name=via][value=propio]');
+  viaPropioRadio.checked = true;
+
+  document.getElementById('pagina_adicional').closest('label').style.display = 'none';
+  document.getElementById('hint-adicional').style.display = 'none';
+  document.getElementById('campos-adicional').style.display = 'none';
+
+  const rgpdCheckbox = document.getElementById('rgpd');
+  rgpdCheckbox.checked = true; // ya se aceptó en el alta original
+  rgpdCheckbox.closest('label').style.display = 'none';
+
+  document.querySelector('h1').textContent = 'Edita tu web';
+  document.querySelector('h1').nextElementSibling.textContent = 'Cambia el texto y las fotos de tu web ya publicada. Los cambios se ven al momento.';
+  document.getElementById('btn-generar').textContent = 'Cargando tus datos…';
+  document.getElementById('btn-generar').disabled = true;
+
+  (async () => {
+    try {
+      const resp = await fetch('/api/mi-pagina/' + editToken + '/contenido');
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'No se pudo cargar tu web.');
+
+      sectorSel.value = data.sector;
+      renderTipoOptions();
+      if (data.tipo_negocio) {
+        const match = Array.from(tipoSel.options).find(o => o.value === data.tipo_negocio);
+        if (match) tipoSel.value = match.value;
+      }
+      renderTodo();
+      aplicarVia();
+
+      fillTablaA(camposTablaADiv, SECTORES[data.sector], data.contenido);
+
+      const fotosCfg = SECTORES[data.sector].fotos || [];
+      fotosCfg.forEach(foto => {
+        const url = data.fotos && data.fotos[foto.key + '_url'];
+        const urls = data.fotos && data.fotos[foto.key + '_urls'];
+        if (!url && !urls) return;
+        const wrap = camposFotosDiv.querySelector(':scope > [data-foto-key="' + foto.key + '"]');
+        if (!wrap) return;
+        const hint = document.createElement('div');
+        hint.className = 'hint';
+        hint.textContent = 'Ya tienes foto subida. Sube otra solo si quieres cambiarla.';
+        wrap.appendChild(hint);
+      });
+    } catch (e) {
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = e.message;
+    } finally {
+      document.getElementById('btn-generar').textContent = 'Guardar cambios';
+      document.getElementById('btn-generar').disabled = false;
+    }
+  })();
+}
+
 let ultimoOrderId = null;
 
 document.getElementById('btn-generar').addEventListener('click', async () => {
@@ -1339,6 +1538,38 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   const errorDiv = document.getElementById('error');
   try {
   errorDiv.style.display = 'none';
+
+  if (editToken) {
+    btnGenerar.textContent = 'Guardando…';
+    const via = document.querySelector('input[name=via]:checked').value;
+    const payload = { viaTexto: via };
+    if (via === 'propio') {
+      if (!validarTablaAEnCliente(camposTablaADiv)) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = 'Hay campos que superan el límite de caracteres (marcados en rojo). Ajústalos antes de continuar.';
+        return;
+      }
+      payload.contenido = collectTablaA(camposTablaADiv);
+    } else {
+      payload.textoCliente = collectTablaA(camposTablaADiv);
+    }
+    await hydrateFotosTablaA(camposTablaADiv, SECTORES[sectorSel.value], payload.contenido || payload.textoCliente);
+    const fotos = await collectFotosSector(camposFotosDiv);
+    if (Object.keys(fotos).length) payload.fotos = fotos;
+
+    const resp = await fetch('/api/mi-pagina/' + editToken + '/editar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error + (data.detalles ? '\n- ' + data.detalles.join('\n- ') : ''));
+
+    document.getElementById('resultado').style.display = 'block';
+    document.querySelector('#resultado strong').textContent = 'Cambios guardados. Así se ve tu web ahora:';
+    document.getElementById('btn-pagar').style.display = 'none';
+    document.getElementById('preview-frame').src = data.url + '?t=' + Date.now(); // evita ver la versión en caché
+    return;
+  }
+
   if (!document.getElementById('rgpd').checked) {
     errorDiv.style.display = 'block';
     errorDiv.textContent = 'Marca la casilla de RGPD para continuar.';

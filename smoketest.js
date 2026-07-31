@@ -331,6 +331,36 @@ async function main() {
   console.log('8) enlace mágico sigue activo tras usarlo (permanente por diseño):', stillValid);
   if (!stillValid) throw new Error('El enlace mágico se invalidó y no debería');
 
+  // 8b) EDITOR BÁSICO (mismo enlace mágico, feedback de Raquel 31/07/2026):
+  // GET /mi-pagina/:token/editar debe servir el formulario, GET .../contenido
+  // debe devolver el contenido actual del cliente, y POST .../editar debe
+  // guardar el cambio y republicar -- se comprueba que el nuevo titular
+  // aparece en la web publicada de verdad.
+  const editarPageResp = await request('GET', '/mi-pagina/' + magicToken + '/editar');
+  console.log('8b) GET /mi-pagina/:token/editar ->', editarPageResp.statusCode, typeof editarPageResp.raw === 'string' && editarPageResp.raw.includes('Crea tu web') ? 'sirve el formulario' : 'FALLO');
+  if (editarPageResp.statusCode !== 200) throw new Error('Fallo al servir el editor');
+
+  const contenidoActualResp = await request('GET', '/api/mi-pagina/' + magicToken + '/contenido');
+  console.log('8c) GET /api/mi-pagina/:token/contenido ->', contenidoActualResp.statusCode, contenidoActualResp.body.sector === 'servicios-profesionales' ? 'sector OK' : contenidoActualResp.body);
+  if (contenidoActualResp.statusCode !== 200) throw new Error('Fallo al leer el contenido actual para el editor');
+  if (!contenidoActualResp.body.contenido || !contenidoActualResp.body.contenido.hero_title) throw new Error('El contenido devuelto no trae el hero_title original');
+
+  const contenidoEditado = Object.assign({}, contenidoActualResp.body.contenido, {
+    hero_title: 'Titular editado desde el editor básico',
+  });
+  const guardarResp = await request('POST', '/api/mi-pagina/' + magicToken + '/editar', { viaTexto: 'propio', contenido: contenidoEditado });
+  console.log('8d) POST /api/mi-pagina/:token/editar ->', guardarResp.statusCode, guardarResp.body.url || guardarResp.body);
+  if (guardarResp.statusCode !== 200) throw new Error('Fallo al guardar la edición: ' + JSON.stringify(guardarResp.body));
+
+  const sitioReeditadoResp = await request('GET', '/sites/bufete-smoke-sl');
+  const reflejaEdicion = typeof sitioReeditadoResp.raw === 'string' && sitioReeditadoResp.raw.includes('Titular editado desde el editor básico');
+  console.log('8e) la web publicada refleja el texto editado:', reflejaEdicion);
+  if (!reflejaEdicion) throw new Error('La web publicada no refleja el cambio hecho desde el editor');
+
+  const ordenPrincipalTrasEditar = await db.getOrder(orderId);
+  console.log('8f) el pedido principal (no la página adicional) es el que se actualizó:', ordenPrincipalTrasEditar.contenido_principal.hero_title === 'Titular editado desde el editor básico');
+  if (ordenPrincipalTrasEditar.contenido_principal.hero_title !== 'Titular editado desde el editor básico') throw new Error('Se actualizó el pedido equivocado');
+
   // 9) ALTA con logo/favicon subidos por el cliente -- verifica que se sube
   // a Storage (mock) y que la vista previa usa la imagen en vez del avatar
   // de iniciales.

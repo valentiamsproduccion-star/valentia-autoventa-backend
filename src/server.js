@@ -580,6 +580,117 @@ function markTokenReuse() {
   // implícito, que es una decisión y no un olvido.
 }
 
+// ───────────────────────── 5b) EDITOR BÁSICO (mismo enlace mágico) ─────────
+// Feedback de Raquel (31/07/2026): tras pagar, el cliente esperaba llegar a
+// un editor para poder modificar algo -- no existía (decisión original de
+// alcance: "sin panel completo"). Esto añade justo eso, sin contraseña ni
+// panel nuevo: reutiliza el mismo enlace mágico permanente, y solo permite
+// tocar texto y fotos (no sector, no datos fiscales, no logo, no color) --
+// ver public/alta.html, bloque "Modo edición", que es la misma página del
+// alta sirviendo de editor cuando se abre en /mi-pagina/:token/editar.
+//
+// El pedido "principal" de un cliente es el que tiene contenido_principal
+// (creado en /api/alta) y NO es una página adicional -- puede haber varios
+// pedidos por cliente si compró la página adicional después, así que se
+// busca explícitamente y se coge el más reciente ya pagado.
+async function pedidoPrincipalDeCliente(clientId) {
+  const orders = await db.getOrdersForClient(clientId);
+  return orders
+    .filter(o => !o.es_pagina_adicional && o.status === 'paid' && o.contenido_principal)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] || null;
+}
+
+// GET /mi-pagina/:token/editar -- sirve la misma alta.html; el modo edición
+// lo activa el propio JS del cliente al detectar esta URL (ver alta.html).
+router.get('/mi-pagina/:token/editar', async (req, res, params) => {
+  const tokenRecord = await db.findValidMagicToken(params.token);
+  if (!tokenRecord) return sendHtml(res, 404, '<h1>Enlace no válido o caducado</h1>');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'alta.html'), 'utf-8');
+  sendHtml(res, 200, html);
+});
+
+// GET /api/mi-pagina/:token/contenido -- datos actuales del cliente para
+// prellenar el editor (ver alta.html, fillTablaA()).
+router.get('/api/mi-pagina/:token/contenido', async (req, res, params) => {
+  const tokenRecord = await db.findValidMagicToken(params.token);
+  if (!tokenRecord) return sendJson(res, 404, { error: 'Enlace no válido o caducado.' });
+  const client = await db.getClient(tokenRecord.client_id);
+  const order = await pedidoPrincipalDeCliente(client.id);
+  if (!order) return sendJson(res, 404, { error: 'No se encontró tu web publicada todavía.' });
+  sendJson(res, 200, {
+    sector: client.sector,
+    tipo_negocio: client.tipo_negocio || '',
+    contenido: order.contenido_principal,
+    fotos: {
+      hero_url: client.foto_hero_url || null,
+      secundaria_url: client.foto_secundaria_url || null,
+      galeria_urls: client.galeria_urls || [],
+    },
+  });
+});
+
+// POST /api/mi-pagina/:token/editar -- guarda el texto/fotos editados y
+// vuelve a publicar la web al momento (misma plantilla/diseño de siempre,
+// solo cambia el contenido). No toca la página adicional ni el color de
+// marca -- fuera del alcance de este editor básico.
+router.post('/api/mi-pagina/:token/editar', async (req, res, params) => {
+  const tokenRecord = await db.findValidMagicToken(params.token);
+  if (!tokenRecord) return sendJson(res, 404, { error: 'Enlace no válido o caducado.' });
+  const client = await db.getClient(tokenRecord.client_id);
+  const order = await pedidoPrincipalDeCliente(client.id);
+  if (!order) return sendJson(res, 404, { error: 'No se encontró tu web publicada todavía.' });
+
+  const body = await readJsonBody(req, { maxBytes: 15 * 1024 * 1024 });
+  const { viaTexto, contenido, textoCliente, fotos } = body;
+
+  let contenidoFinal;
+  if (viaTexto === 'mejora') {
+    if (!textoCliente) return sendJson(res, 400, { error: 'Falta el texto a mejorar.' });
+    contenidoFinal = await mejorarContenido(client.sector, textoCliente);
+  } else {
+    if (!contenido) return sendJson(res, 400, { error: 'Falta el contenido.' });
+    const { valid, errors } = validarContenido(client.sector, contenido);
+    if (!valid) return sendJson(res, 400, { error: 'El texto supera los límites de caracteres.', detalles: errors });
+    contenidoFinal = contenido;
+  }
+
+  // Fotos de sitio (hero/secundaria/galería): solo se sustituyen las que el
+  // cliente haya subido de nuevo -- si no tocó alguna, se conserva la que ya
+  // tenía (subirFotosSector devuelve null/[] para las que no llegaron).
+  let clienteActualizado = client;
+  if (fotos && typeof fotos === 'object' && Object.keys(fotos).length) {
+    let fotosInfo;
+    try {
+      fotosInfo = await subirFotosSector(client.id, fotos);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudieron subir las fotos: ' + e.message });
+    }
+    clienteActualizado = await db.updateClient(client.id, {
+      foto_hero_url: fotosInfo.foto_hero_url || client.foto_hero_url,
+      foto_secundaria_url: fotosInfo.foto_secundaria_url || client.foto_secundaria_url,
+      galeria_urls: (fotosInfo.galeria_urls && fotosInfo.galeria_urls.length) ? fotosInfo.galeria_urls : client.galeria_urls,
+    });
+  }
+
+  // Fotos por-tarjeta (equipo/productos/proyectos/...) dentro del propio
+  // contenido, igual que en el alta original.
+  try {
+    await subirFotosPorTarjeta(client.id, client.sector, contenidoFinal);
+  } catch (e) {
+    return sendJson(res, 500, { error: 'No se pudieron subir las fotos del contenido: ' + e.message });
+  }
+
+  await db.updateOrder(order.id, { contenido_principal: contenidoFinal });
+
+  const result = await publicarCliente(clienteActualizado, {
+    contenidoPrincipal: contenidoFinal,
+    contenidoAdicional: null, // la página adicional (si existe) no se toca aquí
+  });
+
+  markTokenReuse(tokenRecord);
+  sendJson(res, 200, { ok: true, url: PUBLIC_BASE_URL + result.urlPrincipal });
+});
+
 // ───────────────────────── SITIOS PUBLICADOS ─────────────────────────
 // GET /sites/:slug y /sites/:slug/:file -- sirve el HTML que publish.js
 // guarda en Supabase (tabla kv_store, colección "pages"). Antes se leía de

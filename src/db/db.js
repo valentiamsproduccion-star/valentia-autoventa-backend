@@ -76,6 +76,14 @@ async function findOrderByStripeSession(sessionId) {
   return kvSelectOne({ collection: 'orders', 'data->>stripe_session_id': sessionId });
 }
 
+// Todos los pedidos de un cliente (alta original + páginas adicionales
+// compradas después) -- lo usa el editor básico post-compra (ver server.js,
+// /api/mi-pagina/:token/editar) para encontrar el pedido "principal" (el que
+// NO es página adicional) y actualizar su contenido.
+async function getOrdersForClient(clientId) {
+  return kvSelect({ collection: 'orders', 'data->>client_id': clientId });
+}
+
 async function updateOrder(orderId, patch) {
   const order = await getOrder(orderId);
   if (!order) throw new Error('Pedido no encontrado: ' + orderId);
@@ -157,7 +165,7 @@ async function findMagicTokensForClient(clientId) {
 
 module.exports = {
   createClient, getClient, updateClient,
-  createOrder, getOrder, findOrderByStripeSession, updateOrder,
+  createOrder, getOrder, findOrderByStripeSession, getOrdersForClient, updateOrder,
   upsertPage, getPagesForClient, getPageBySlug,
   createMagicToken, findValidMagicToken, markMagicTokenUsed, findMagicTokensForClient,
   slugify,
