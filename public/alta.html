@@ -36,7 +36,14 @@
   #resultado{margin-top:28px;padding:18px;border-radius:8px;background:#F0FDF4;border:1px solid #BBF7D0;display:none}
   #error{margin-top:16px;padding:14px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;font-size:13.5px;display:none;white-space:pre-wrap}
   iframe{width:100%;height:480px;border:1px solid #E5E7EB;border-radius:8px;margin-top:12px}
-  iframe:fullscreen{border-radius:0;border:none;height:100%}
+  /* La pantalla completa se pide sobre #preview-frame-wrap, NO sobre el
+     <iframe> directamente -- pedirla sobre el iframe hace que algunos
+     navegadores lo recarguen al salir de pantalla completa (se pierde la
+     vista previa ya generada y aparece un error de "pedido no
+     encontrado" si para entonces esa vista previa ya no es la última).
+     Aquí el iframe solo se estira dentro del contenedor. */
+  #preview-frame-wrap:fullscreen{background:#fff}
+  #preview-frame-wrap:fullscreen iframe{height:100%;border:none;border-radius:0;margin-top:0}
   #campos-adicional{display:none}
   .logo-ia-thumb{width:96px;height:96px;border:2px solid #E5E7EB;border-radius:8px;padding:4px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
   .logo-ia-thumb img{width:100%;height:72px;object-fit:contain}
@@ -249,7 +256,9 @@
       <button type="button" class="add small" id="btn-preview-newtab">Abrir en pestaña nueva</button>
     </div>
   </div>
-  <iframe id="preview-frame"></iframe>
+  <div id="preview-frame-wrap">
+    <iframe id="preview-frame"></iframe>
+  </div>
   <button class="primary" id="btn-pagar">Continuar al pago</button>
 </div>
 
@@ -1313,14 +1322,21 @@ FUENTES.forEach(f => {
 // El iframe #preview-frame carga la vista previa real (misma plantilla, mismo
 // contenido, mismo color de marca) desde /preview/:orderId -- ver más abajo,
 // donde se le pone el src tras el POST a /api/alta. Aquí solo se añade la
-// forma de verlo más grande: Fullscreen API sobre el propio iframe (sin
-// recargar nada) y, como alternativa siempre disponible, abrir la misma URL
-// en una pestaña nueva del navegador.
+// forma de verlo más grande: Fullscreen API sobre #preview-frame-wrap (el
+// <div> que envuelve al iframe), NO sobre el iframe directamente -- pedir
+// pantalla completa sobre un <iframe> hace que algunos navegadores lo
+// recarguen al salir de pantalla completa, y si para entonces esa vista
+// previa ya no es la última generada, la recarga devuelve "Pedido no
+// encontrado" en vez de la web (bug reportado en pruebas reales). Al pedirla
+// sobre el div contenedor, el iframe nunca se recarga, solo se estira con
+// CSS (ver iframe:fullscreen más arriba). Como alternativa siempre
+// disponible, se puede abrir la misma URL en una pestaña nueva.
 const previewFrameEl = document.getElementById('preview-frame');
+const previewFrameWrapEl = document.getElementById('preview-frame-wrap');
 document.getElementById('btn-preview-fullscreen').addEventListener('click', () => {
   if (!previewFrameEl.src) return;
-  if (previewFrameEl.requestFullscreen) previewFrameEl.requestFullscreen();
-  else if (previewFrameEl.webkitRequestFullscreen) previewFrameEl.webkitRequestFullscreen();
+  if (previewFrameWrapEl.requestFullscreen) previewFrameWrapEl.requestFullscreen();
+  else if (previewFrameWrapEl.webkitRequestFullscreen) previewFrameWrapEl.webkitRequestFullscreen();
   else window.open(previewFrameEl.src, '_blank');
 });
 document.getElementById('btn-preview-newtab').addEventListener('click', () => {
