@@ -1071,6 +1071,18 @@ function fillTablaA(div, cfg, contenido) {
 // número/orden de tarjetas, así que no hay forma fiable de emparejar cada
 // foto con su elemento final -- limitación conocida, no un descuido.
 
+// Proporción con la que se recorta cada foto en la plantilla final
+// (object-fit:cover sobre aspect-ratio fijo -- comprobado en las 9
+// plantillas de sector, ver .hero-photo/.story-photo (4:3) y .gph (1:1)).
+// Si sube una foto con otra proporción, se recorta igualmente para
+// encajar -- este aviso es para que el recorte no le quite algo importante
+// (una cara, un logo) y para que no se vea pixelada al ampliarse.
+const FOTO_DIMENSIONES = {
+  hero: 'Horizontal, proporción 4:3 (por ejemplo 1600×1200 px). Se recorta a esa forma, así que centra lo importante.',
+  secundaria: 'Horizontal, proporción 4:3 (por ejemplo 1600×1200 px). Se recorta a esa forma, así que centra lo importante.',
+  galeria: 'Cuadrada, proporción 1:1 (por ejemplo 1200×1200 px).',
+};
+
 function renderFotosSector(div) {
   div.innerHTML = '';
   const cfg = SECTORES[sectorSel.value];
@@ -1087,6 +1099,12 @@ function renderFotosSector(div) {
       inp.type = 'file'; inp.accept = 'image/*';
       inp.dataset.fotoIdx = String(i);
       wrap.appendChild(inp);
+    }
+    if (FOTO_DIMENSIONES[foto.key]) {
+      const dimHint = document.createElement('div');
+      dimHint.className = 'hint';
+      dimHint.textContent = FOTO_DIMENSIONES[foto.key];
+      wrap.appendChild(dimHint);
     }
     if (count > 1) {
       const hint = document.createElement('div');
