@@ -52,6 +52,16 @@ async function getClient(clientId) {
   return kvSelectOne({ collection: 'clients', id: clientId });
 }
 
+// Busca un cliente por su dominio propio ya comprado y conectado (ver
+// services/openprovider.js + services/renderDominios.js, y server.js,
+// sección "Compra de dominio tras el pago" -- ahí se guarda `dominio_propio`
+// en el cliente en cuanto la compra/conexión a Render se completa). Lo usa
+// el enrutado por cabecera Host de server.js para servir la web de un
+// cliente en su propio dominio, no solo en /sites/:slug.
+async function getClientByDominio(dominio) {
+  return kvSelectOne({ collection: 'clients', 'data->>dominio_propio': dominio });
+}
+
 async function updateClient(clientId, patch) {
   const client = await getClient(clientId);
   if (!client) throw new Error('Cliente no encontrado: ' + clientId);
@@ -164,7 +174,7 @@ async function findMagicTokensForClient(clientId) {
 }
 
 module.exports = {
-  createClient, getClient, updateClient,
+  createClient, getClient, getClientByDominio, updateClient,
   createOrder, getOrder, findOrderByStripeSession, getOrdersForClient, updateOrder,
   upsertPage, getPagesForClient, getPageBySlug,
   createMagicToken, findValidMagicToken, markMagicTokenUsed, findMagicTokensForClient,

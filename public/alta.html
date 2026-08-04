@@ -136,6 +136,24 @@
   <div><label>Domicilio fiscal completo</label><input id="domicilio_fiscal" placeholder="Calle Mayor 12, 3ºA, 46001 Valencia"></div>
 </div>
 
+<h2>Tu dominio</h2>
+<p class="hint">Puedes comprar un dominio propio (por ejemplo tunegocio.es) para tu web. Si más adelante quieres cambiarlo, puedes seguir usando el enlace de Valentia por ahora.</p>
+<div class="via">
+  <label><input type="radio" name="via_dominio" value="comprar" checked> Quiero comprar un dominio</label>
+  <label><input type="radio" name="via_dominio" value="luego"> Todavía no, lo decido más adelante</label>
+</div>
+
+<div id="dominio-comprar">
+  <label>Nombre de dominio</label>
+  <div class="row">
+    <input id="dominio_nombre" placeholder="tunegocio" style="flex:2">
+    <button type="button" class="add" id="btn-check-dominio" style="flex:1;margin-top:6px">Comprobar disponibilidad</button>
+  </div>
+  <p class="hint">Se comprueba en varias extensiones a la vez (.es, .com, .net, .org, .eu). Solo letras, números y guiones.</p>
+  <p id="dominio-error" class="hint" style="display:none;color:#DC2626"></p>
+  <div id="dominio-resultados" style="display:none;margin-top:10px"></div>
+</div>
+
 <h2>Logo y favicon</h2>
 <div class="via">
   <label><input type="radio" name="tiene_logo" value="si" checked> Ya tengo logo</label>
@@ -1318,6 +1336,86 @@ FUENTES.forEach(f => {
   fuenteGridEl.appendChild(card);
 });
 
+// ───────────────────────── Tu dominio ─────────────────────────
+// Lista cerrada de TLDs vendibles -- debe coincidir con
+// services/openprovider.js, TLDS_PERMITIDOS (ver comentario allí: se limita
+// a baratos/predecibles para que la renovación quepa en la cuota mensual).
+// Comprueba disponibilidad vía GET /api/dominio/disponibilidad; el usuario
+// elige un resultado disponible con un radio, y eso se manda en el alta
+// como datosBase.dominio_elegido -- server.js lo compra y conecta tras el
+// pago (ver comprarDominioParaCliente() en server.js). Si el servicio no
+// está configurado todavía (faltan variables de entorno de Openprovider),
+// /api/dominio/disponibilidad responde {configurado:false} y aquí se avisa
+// de que se puede seguir sin dominio propio por ahora -- el alta no se
+// bloquea por esto en ningún caso.
+const DOMINIO_TLDS = ['es', 'com', 'net', 'org', 'eu'];
+let dominioElegido = null;
+const dominioComprarDiv = document.getElementById('dominio-comprar');
+function actualizarViaDominio() {
+  const val = document.querySelector('input[name=via_dominio]:checked').value;
+  dominioComprarDiv.style.display = val === 'comprar' ? 'block' : 'none';
+  if (val !== 'comprar') dominioElegido = null;
+}
+document.querySelectorAll('input[name=via_dominio]').forEach(r => r.addEventListener('change', actualizarViaDominio));
+actualizarViaDominio();
+
+document.getElementById('btn-check-dominio').addEventListener('click', async () => {
+  const nombre = document.getElementById('dominio_nombre').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const errEl = document.getElementById('dominio-error');
+  const resEl = document.getElementById('dominio-resultados');
+  errEl.style.display = 'none';
+  resEl.style.display = 'none';
+  resEl.innerHTML = '';
+  dominioElegido = null;
+  if (!nombre) {
+    errEl.textContent = 'Escribe un nombre para tu dominio (solo letras, números y guiones).';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('btn-check-dominio');
+  btn.disabled = true;
+  btn.textContent = 'Comprobando…';
+  try {
+    const resp = await fetch('/api/dominio/disponibilidad?nombre=' + encodeURIComponent(nombre) + '&tlds=' + DOMINIO_TLDS.join(','));
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudo comprobar la disponibilidad.');
+    if (data.configurado === false) {
+      errEl.textContent = 'La compra de dominio todavía no está disponible -- puedes seguir sin él y añadirlo más adelante.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const resultados = data.resultados || [];
+    resEl.style.display = 'block';
+    resultados.forEach(r => {
+      const row = document.createElement('label');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;border:1px solid #E5E7EB;border-radius:6px;padding:10px 12px;margin-top:6px;font-weight:400;' + (r.disponible ? 'cursor:pointer' : 'opacity:.5');
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'dominio_elegido_radio';
+      radio.style.width = 'auto';
+      radio.disabled = !r.disponible;
+      radio.addEventListener('change', () => { dominioElegido = { nombre, tld: r.tld }; });
+      const span = document.createElement('span');
+      span.textContent = r.dominio + (r.disponible ? ' — disponible' : r.premium ? ' — dominio premium (no disponible por ahora)' : ' — no disponible');
+      row.appendChild(radio);
+      row.appendChild(span);
+      resEl.appendChild(row);
+    });
+    if (!resultados.some(r => r.disponible)) {
+      const p = document.createElement('p');
+      p.className = 'hint';
+      p.textContent = 'Ninguna de estas extensiones está libre para ese nombre. Prueba con otro nombre.';
+      resEl.appendChild(p);
+    }
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Comprobar disponibilidad';
+  }
+});
+
 // ───────────────────────── Vista previa a pantalla completa ─────────────────────────
 // El iframe #preview-frame carga la vista previa real (misma plantilla, mismo
 // contenido, mismo color de marca) desde /preview/:orderId -- ver más abajo,
@@ -1570,6 +1668,7 @@ function ocultarSeccion(tituloH2) {
 if (editToken) {
   ocultarSeccion('Datos del negocio');
   ocultarSeccion('Datos fiscales');
+  ocultarSeccion('Tu dominio'); // el dominio se compra una sola vez, en el alta original -- no tiene sentido volver a pedirlo al editar el contenido
   ocultarSeccion('Logo y favicon');
   ocultarSeccion('Color de marca');
   ocultarSeccion('Tipografía');
@@ -1751,6 +1850,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   const colorSecundarioVal = colorSecundarioHexEl.value.trim();
   if (HEX_RE.test(colorSecundarioVal)) payload.datosBase.color_secundario = colorSecundarioVal;
   if (fuenteSeleccionada && fuenteSeleccionada !== 'clasica') payload.datosBase.fuente_id = fuenteSeleccionada;
+  if (dominioElegido) payload.datosBase.dominio_elegido = dominioElegido;
 
   if (via === 'ia') {
     // "Datos del negocio" (nombre, tipo, ciudad) se piden una sola vez al

@@ -21,6 +21,8 @@ const { crearSesionCheckout, verificarFirmaWebhook } = require('./services/strip
 const { publicarCliente } = require('./services/publish');
 const { sendMagicLinkEmail, sendLogoIaSolicitadoEmail } = require('./services/email');
 const supabase = require('./services/supabase');
+const openprovider = require('./services/openprovider');
+const renderDominios = require('./services/renderDominios');
 const db = require('./db/db');
 
 const PORT = process.env.PORT || 3000;
@@ -347,6 +349,28 @@ router.post('/api/alta', async (req, res) => {
   });
 });
 
+// ───────────────────────── 1b) DISPONIBILIDAD DE DOMINIO ─────────────────
+// GET /api/dominio/disponibilidad?nombre=X&tlds=es,com -- lo llama el alta
+// (public/alta.html, sección "Tu dominio") antes de pagar, para que el
+// cliente vea al momento si el nombre está libre. La compra real no pasa
+// aquí -- pasa sola tras el pago (ver webhook, "Compra de dominio").
+router.get('/api/dominio/disponibilidad', async (req, res) => {
+  if (!openprovider.estaConfigurado()) {
+    return sendJson(res, 200, { configurado: false, resultados: [] });
+  }
+  const query = new URL(req.url, 'http://localhost').searchParams;
+  const nombre = (query.get('nombre') || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const tldsParam = (query.get('tlds') || '').split(',').map(t => t.trim()).filter(Boolean);
+  if (!nombre) return sendJson(res, 400, { error: 'Falta el nombre de dominio a comprobar.' });
+  const tlds = tldsParam.length ? tldsParam : openprovider.TLDS_PERMITIDOS;
+  try {
+    const resultados = await openprovider.comprobarDisponibilidad(nombre, tlds);
+    sendJson(res, 200, { configurado: true, resultados });
+  } catch (e) {
+    sendJson(res, 502, { error: 'No se pudo comprobar la disponibilidad: ' + e.message });
+  }
+});
+
 // ───────────────────────── 2) VISTA PREVIA ─────────────────────────
 // GET /preview/:orderId -- paso 5 del flujo: el cliente ve su web generada
 // antes de pagar.
@@ -459,6 +483,53 @@ router.post('/api/checkout', async (req, res) => {
 // ───────────────────────── 4) WEBHOOK DE STRIPE ─────────────────────────
 // POST /api/webhook/stripe -- al confirmarse el pago, publica automáticamente
 // (paso 7) y, si es la primera compra del cliente, genera su enlace mágico.
+// ── Compra de dominio tras el pago ────────────────────────────────────────
+// Se llama desde el webhook de Stripe, justo después de publicar la web.
+// `client.dominio_elegido` (si existe) llega desde el alta, tal cual lo puso
+// el cliente en public/alta.html, sección "Tu dominio" -- ver
+// db.createClient(), que ya esparce todo `datosBase` sin cambios aquí.
+// No hace nada (ni avisa de error) si el cliente no eligió dominio, o si
+// faltan las variables de entorno de Openprovider/Render -- así esta pieza
+// puede desplegarse ya mismo sin romper nada mientras no esté configurada.
+// Cualquier fallo se registra en el cliente (`dominio_estado`) y en logs,
+// pero NUNCA relanza el error hacia el webhook: la web ya está publicada y
+// pagada, un fallo comprando el dominio no debe hacer que Stripe reintente
+// el webhook entero ni impedir que el cliente vea su web.
+async function comprarDominioParaCliente(client) {
+  const elegido = client.dominio_elegido;
+  if (!elegido || !elegido.nombre || !elegido.tld) return;
+  if (!openprovider.estaConfigurado() || !renderDominios.estaConfigurado()) {
+    console.log('[dominio] compra automática desactivada (faltan variables de entorno) -- cliente', client.id);
+    return;
+  }
+  const { nombre, tld } = elegido;
+  try {
+    const disponibilidad = await openprovider.comprobarDisponibilidad(nombre, [tld]);
+    const resultado = disponibilidad[0];
+    if (!resultado || !resultado.disponible) {
+      throw new Error('el dominio ya no está disponible en el momento de la compra' + (resultado && resultado.razon ? ' (' + resultado.razon + ')' : ''));
+    }
+    const ownerHandle = await openprovider.crearOReutilizarCliente(client);
+    await openprovider.registrarDominio({ nombre, tld, ownerHandle });
+    const nombreZona = nombre + '.' + tld;
+    await openprovider.anadirRegistrosDns(nombreZona, renderDominios.registrosDnsNecesarios());
+    await renderDominios.anadirDominioPersonalizado(nombreZona);
+    await db.updateClient(client.id, {
+      dominio_propio: nombreZona,
+      // El DNS tarda en propagar y Render emite el SSL solo cuando resuelve
+      // -- no se puede confirmar "listo" en el momento. Queda pendiente de
+      // verificación manual/periódica (ver README, punto de extensión).
+      dominio_estado: 'pendiente_dns',
+    });
+    console.log('[dominio] comprado y conectado:', nombreZona, '-- cliente', client.id);
+  } catch (e) {
+    console.error('[dominio] fallo comprando/conectando dominio -- cliente', client.id, ':', e.message);
+    try {
+      await db.updateClient(client.id, { dominio_estado: 'error: ' + String(e.message).slice(0, 200) });
+    } catch (e2) { /* no crítico -- ya se ha dejado constancia en el log de arriba */ }
+  }
+}
+
 router.post('/api/webhook/stripe', async (req, res) => {
   const rawBody = await readBody(req);
   let event;
@@ -480,6 +551,10 @@ router.post('/api/webhook/stripe', async (req, res) => {
       contenidoPrincipal: order.contenido_principal,
       contenidoAdicional: order.pagina_adicional ? order.contenido_adicional || null : null,
     });
+
+    // Compra y conexión automática del dominio elegido en el alta (si lo
+    // hay, y si está configurado -- ver comprarDominioParaCliente() arriba).
+    await comprarDominioParaCliente(client);
 
     // Enlace mágico permanente para añadir la página adicional más adelante
     // si no se compró en el alta (Flujo, sección 3 -- decisión: sin panel
@@ -740,9 +815,55 @@ router.get('/', async (req, res) => {
   sendHtml(res, 200, html);
 });
 
+// ───────────────────────── DOMINIOS PROPIOS DE CLIENTE ─────────────────────
+// Cuando un cliente compra su dominio (ver comprarDominioParaCliente() más
+// arriba), ese dominio se conecta a ESTE MISMO servicio de Render -- así que
+// todas las peticiones a "miempresa.es" llegan aquí igual que las de
+// autoventa.valentiams.com, distinguidas solo por la cabecera Host. Esta
+// comprobación va antes del enrutado normal por ruta: si el Host no es uno
+// de los propios de Valentia, se busca un cliente con ese `dominio_propio`
+// y se le sirve su web (reutilizando sendSitePage(), igual que /sites/:slug)
+// en vez de servir el formulario de alta o dar 404.
+function esHostPropio(hostHeader) {
+  if (!hostHeader || hostHeader === 'localhost' || hostHeader === '127.0.0.1') return true;
+  if (hostHeader.endsWith('.onrender.com')) return true;
+  try {
+    if (hostHeader === new URL(PUBLIC_BASE_URL).hostname.toLowerCase()) return true;
+  } catch (e) { /* PUBLIC_BASE_URL mal formado -- no debería pasar, se ignora */ }
+  return false;
+}
+
+// A partir de la ruta pedida (p. ej. "/", "/aviso-legal", "/areas") deriva
+// el nombre de archivo que ya entiende sendSitePage()/slotDesdeArchivo() --
+// mismo "slot" que usa /sites/:slug/:file, así no hace falta duplicar esa
+// lógica ni volver a publicar nada en un formato distinto.
+function archivoDesdeRuta(pathname) {
+  let file = pathname.replace(/^\/+/, '');
+  if (!file) return 'index.html';
+  if (!/\.html?$/i.test(file)) file += '.html';
+  return file;
+}
+
+async function serviceCustomDomainSiAplica(req, res, hostHeader) {
+  if (esHostPropio(hostHeader)) return false;
+  const client = await db.getClientByDominio(hostHeader);
+  if (!client) return false; // Host desconocido de verdad (nadie tiene ese dominio conectado) -- sigue el flujo normal, que dará 404
+  const url = new URL(req.url, 'http://localhost');
+  await sendSitePage(res, client.slug, archivoDesdeRuta(url.pathname));
+  return true;
+}
+
 // ───────────────────────── SERVIDOR ─────────────────────────
 
 const server = http.createServer(async (req, res) => {
+  const hostHeader = String(req.headers.host || '').split(':')[0].toLowerCase();
+  try {
+    if (await serviceCustomDomainSiAplica(req, res, hostHeader)) return;
+  } catch (e) {
+    console.error(e);
+    return sendJson(res, 500, { error: e.message || 'Error interno.' });
+  }
+
   const url = new URL(req.url, 'http://localhost');
   const match = router.match(req.method, url.pathname);
   if (!match) {

@@ -409,6 +409,25 @@ async function main() {
   console.log('    price de logo IA (15€) incluido en la sesión de Stripe:', precioLogoIaEnviado ? 'SI' : 'NO');
   if (!precioLogoIaEnviado) throw new Error('El checkout no incluyó el price de logo con IA');
 
+  // 11b) DOMINIO PROPIO -- este entorno de prueba no define
+  // OPENPROVIDER_USER/OPENPROVIDER_PASSWORD a propósito (ver openprovider.js,
+  // estaConfigurado()), así que /api/dominio/disponibilidad debe degradar
+  // con elegancia a {configurado:false} en vez de fallar -- así el alta.html
+  // real puede seguir sin bloquear el flujo cuando el servicio todavía no
+  // está listo en un entorno dado.
+  const dominioDispResp = await request('GET', '/api/dominio/disponibilidad?nombre=miempresa&tlds=es,com');
+  const dominioDispOk = dominioDispResp.statusCode === 200 && dominioDispResp.body.configurado === false;
+  console.log('11b) GET /api/dominio/disponibilidad (sin configurar) ->', dominioDispResp.statusCode, dominioDispOk ? 'configurado:false OK' : dominioDispResp.body);
+  if (!dominioDispOk) throw new Error('/api/dominio/disponibilidad debería responder configurado:false sin variables de Openprovider');
+
+  // 11c) ENRUTADO POR DOMINIO PROPIO -- una petición con un Host que nadie
+  // tiene conectado todavía debe caer al enrutado normal por ruta (404 "Ruta
+  // no encontrada"), no romperse (ver server.js, serviceCustomDomainSiAplica).
+  const hostDesconocidoResp = await request('GET', '/', null, { Host: 'dominio-que-no-existe.es' });
+  const hostDesconocidoOk = hostDesconocidoResp.statusCode === 200 && typeof hostDesconocidoResp.raw === 'string' && hostDesconocidoResp.raw.includes('Crea tu web');
+  console.log('11c) GET / con Host de dominio propio desconocido -> sigue sirviendo el formulario normal:', hostDesconocidoOk ? 'SI' : 'NO (' + hostDesconocidoResp.statusCode + ')');
+  if (!hostDesconocidoOk) throw new Error('Un Host desconocido no debería romper el enrutado normal');
+
   // 12) Flujo COMPLETO (alta "propio" -> checkout -> webhook -> publicación)
   // para el resto de sectores. Los pasos 1-11 ya prueban a fondo
   // servicios-profesionales y salud-bienestar (incluida la vía IA, logo,

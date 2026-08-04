@@ -142,6 +142,51 @@ después de su primer pago (`src/server.js`, webhook de Stripe → `src/services
    aviso es para diseñarlo y subirlo manualmente. Sin `ADMIN_EMAIL`, el
    aviso solo queda en los logs de Render.
 
+## Dominio propio (Openprovider + Render)
+
+El cliente puede comprar un dominio propio (p. ej. `tunegocio.es`) en el
+alta (`public/alta.html`, sección "Tu dominio"). Tras el pago, el webhook de
+Stripe lo compra y lo conecta automáticamente (`src/server.js`,
+`comprarDominioParaCliente()`), usando dos servicios:
+
+- `src/services/openprovider.js` — comprueba disponibilidad, da de alta al
+  cliente como titular real del dominio (con sus propios datos fiscales, ya
+  recogidos en el alta) y lo registra.
+- `src/services/renderDominios.js` — añade el dominio como "custom domain"
+  de este mismo servicio de Render (así que la web del cliente se sirve en
+  su propio dominio, no solo en `/sites/:slug` — ver `esHostPropio()` /
+  `serviceCustomDomainSiAplica()` en `src/server.js`).
+
+Si `OPENPROVIDER_USER`/`OPENPROVIDER_PASSWORD` o `RENDER_API_KEY`/
+`RENDER_SERVICE_ID` faltan, esta parte queda desactivada sin más: el alta,
+el pago y la publicación en `/sites/:slug` siguen funcionando exactamente
+igual, solo que sin dominio propio.
+
+1. **Para probar sin gastar nada**: date de alta en el Sandbox de
+   Openprovider (`cp.sandbox.openprovider.nl/signup`, cuenta gratuita y
+   separada de la real, sin necesidad de Membership Plan ni saldo) y pon
+   esas credenciales en `OPENPROVIDER_USER`/`OPENPROVIDER_PASSWORD`, con
+   `OPENPROVIDER_API_HOST=api.sandbox.openprovider.nl`.
+2. **Para vender de verdad**: da de alta la cuenta de producción
+   (`cp.openprovider.eu`), activa un Membership Plan (a partir de 49,99€/año,
+   100 dominios) y carga saldo — u opcionalmente activa "Recurring Payments"
+   (Account → Financial) para que el saldo se recargue solo. Cambia
+   `OPENPROVIDER_API_HOST=api.openprovider.eu`.
+3. En Render, genera una API key (Account Settings → API Keys) para
+   `RENDER_API_KEY`, y copia el id del servicio (empieza por `srv-`, está en
+   la URL del dashboard) para `RENDER_SERVICE_ID`.
+4. TLDs vendibles: solo `.es .com .net .org .eu` (`TLDS_PERMITIDOS` en
+   `openprovider.js` — mantener en sync con la lista de `alta.html`). Se
+   limita a extensiones baratas y predecibles para que la renovación quepa
+   sin sorpresas dentro de la cuota mensual de 19€ — la renovación se deja
+   en `autorenew: 'off'`, la decide Valentia a mano/por script propio.
+5. **Coste a tener en cuenta**: cada dominio de cliente es un "custom
+   domain" adicional en el mismo servicio de Render — los planes incluyen un
+   número limitado (Hobby: 2, Pro: 15, Scale: 25) y luego Render cobra
+   $0,25/mes por dominio de más. Con unos pocos clientes no importa; a partir
+   de cierto volumen hay que revisar el plan de Render o repartir clientes
+   en varios servicios.
+
 ## Elegir hosting — importante
 
 **El hosting compartido de Hostinger donde viven hoy las plantillas
@@ -157,12 +202,13 @@ deja constancia de que hace falta tomarla, no se elige por vosotras.
 Todo esto está señalado con comentarios `PUNTO DE EXTENSIÓN` o `TODO` en el
 código, en el sitio exacto donde hay que engancharlo:
 
-- **Publicación del dominio/subdominio real, SSL, GA4, Search Console,
-  sitemap.xml, robots.txt** (`src/services/publish.js`). Ahora mismo el
-  servicio genera el HTML final y lo guarda en Supabase, servido desde
-  `/sites/:slug` en este mismo backend — no lo sube a un hosting aparte ni
-  activa un dominio propio del cliente, porque eso depende del proveedor
-  que se decida en la reunión técnica.
+- **Dominio propio del cliente**: resuelto, ver "Dominio propio (Openprovider
+  + Render)" más arriba.
+- **SSL, GA4, Search Console, sitemap.xml, robots.txt por cliente**: SSL se
+  emite solo en cuanto Render verifica el DNS del dominio propio (parte de
+  lo de arriba); GA4/Search Console/sitemap/robots por cliente individual
+  siguen sin resolver — no hace falta para el MVP, cada web publicada ya
+  lleva su propio `<title>`/meta tags básicos.
 - **Envío del enlace mágico por email**: resuelto, ver "Email (Resend)" más
   arriba. Solo falta que verifiques tu propio dominio en Resend cuando
   quieras enviar a clientes reales (mientras tanto, `RESEND_API_KEY` sin
