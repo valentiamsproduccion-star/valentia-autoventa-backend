@@ -356,7 +356,22 @@ router.post('/api/alta', async (req, res) => {
 // aquí -- pasa sola tras el pago (ver webhook, "Compra de dominio").
 router.get('/api/dominio/disponibilidad', async (req, res) => {
   if (!openprovider.estaConfigurado()) {
-    return sendJson(res, 200, { configurado: false, resultados: [] });
+    // DIAGNÓSTICO TEMPORAL (quitar en cuanto se resuelva por qué
+    // estaConfigurado() da false pese a que Render muestra las variables
+    // guardadas) -- nunca expone los valores reales, solo si están
+    // presentes/ausentes y su longitud, para poder depurar por HTTP sin
+    // Shell (no disponible en el plan Free de Render).
+    return sendJson(res, 200, {
+      configurado: false,
+      resultados: [],
+      diagnostico: {
+        OPENPROVIDER_USER_presente: !!process.env.OPENPROVIDER_USER,
+        OPENPROVIDER_USER_longitud: (process.env.OPENPROVIDER_USER || '').length,
+        OPENPROVIDER_PASSWORD_presente: !!process.env.OPENPROVIDER_PASSWORD,
+        OPENPROVIDER_PASSWORD_longitud: (process.env.OPENPROVIDER_PASSWORD || '').length,
+        OPENPROVIDER_API_HOST: process.env.OPENPROVIDER_API_HOST || '(usa el valor por defecto: api.openprovider.eu)',
+      },
+    });
   }
   const query = new URL(req.url, 'http://localhost').searchParams;
   const nombre = (query.get('nombre') || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
