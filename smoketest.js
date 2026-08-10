@@ -474,6 +474,40 @@ async function main() {
     console.log(`    ✔ ${sector}: alta(propio) -> checkout -> webhook -> publicado en /sites/${clientSector.slug} (${siteR.raw.length} chars, sin tags pendientes)`);
   }
 
+  // 13) PLANTILLA POR DISEÑO (plantilla_id) -- el primer diseño convertido a
+  // producción de verdad (ver src/templates/plantillas/README.md y la Tarea
+  // "Convertir piloto: 5 diseños de Taller"). Comprueba que, cuando el
+  // cliente elige un diseño concreto de la galería, la web publicada usa
+  // ESE diseño (marcador único: la paleta roja #D62828) y no el genérico del
+  // sector -- de principio a fin, con pago y publicación real, igual que
+  // cualquier otro alta.
+  const nombrePlantilla = 'Smoke Taller Plantilla SL';
+  const altaPlantilla = await request('POST', '/api/alta', {
+    sector: 'automocion',
+    datosBase: { nombre_negocio: nombrePlantilla, ciudad: 'Bilbao', telefono: '600555666', email: 'info@tallerplantilla.test', razon_social: nombrePlantilla + ' S.L.', forma_juridica: 'SL', nif_cif: 'B99999998', domicilio_fiscal: 'Gran Vía 1, 48001 Bilbao' },
+    viaTexto: 'propio',
+    contenido: contenidoValidoParaSector('automocion'),
+    paginaAdicional: false,
+    plantillaId: 'taller-01-urgencia-mecanica-24h',
+  });
+  if (altaPlantilla.statusCode !== 200) throw new Error('[plantilla_id] fallo en /api/alta: ' + JSON.stringify(altaPlantilla.body));
+
+  const checkoutPlantilla = await request('POST', '/api/checkout', { orderId: altaPlantilla.body.orderId });
+  if (checkoutPlantilla.statusCode !== 200) throw new Error('[plantilla_id] fallo en /api/checkout');
+
+  const orderPlantilla = await db.getOrder(altaPlantilla.body.orderId);
+  const eventPayloadPlantilla = JSON.stringify({ type: 'checkout.session.completed', data: { object: { id: orderPlantilla.stripe_session_id } } });
+  const tPlantilla = Math.floor(Date.now() / 1000);
+  const sigPlantilla = crypto.createHmac('sha256', process.env.STRIPE_WEBHOOK_SECRET).update(tPlantilla + '.' + eventPayloadPlantilla, 'utf8').digest('hex');
+  const webhookPlantilla = await request('POST', '/api/webhook/stripe', eventPayloadPlantilla, { 'Stripe-Signature': 't=' + tPlantilla + ',v1=' + sigPlantilla });
+  if (webhookPlantilla.statusCode !== 200 || !webhookPlantilla.body.received) throw new Error('[plantilla_id] fallo en el webhook');
+
+  const clientPlantilla = await db.getClient(orderPlantilla.client_id);
+  const sitePlantillaR = await request('GET', '/sites/' + clientPlantilla.slug);
+  const usaDisenoElegido = sitePlantillaR.statusCode === 200 && sitePlantillaR.raw.includes('#D62828') && !sitePlantillaR.raw.match(/\{\{[^}]*\}\}/);
+  console.log('13) plantilla_id (Taller, diseño 1) -> web publicada usa el diseño elegido, no el genérico:', usaDisenoElegido ? 'SI' : 'NO');
+  if (!usaDisenoElegido) throw new Error('La web publicada no refleja el diseño elegido en la galería (plantilla_id)');
+
   console.log('\n✔ TODO EL FLUJO END-TO-END FUNCIONA CORRECTAMENTE (9/9 sectores cubiertos)');
   server.close();
   https.request = realRequest;
