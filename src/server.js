@@ -370,6 +370,8 @@ router.get('/api/dominio/disponibilidad', async (req, res) => {
         OPENPROVIDER_PASSWORD_presente: !!process.env.OPENPROVIDER_PASSWORD,
         OPENPROVIDER_PASSWORD_longitud: (process.env.OPENPROVIDER_PASSWORD || '').length,
         OPENPROVIDER_API_HOST: process.env.OPENPROVIDER_API_HOST || '(usa el valor por defecto: api.openprovider.eu)',
+        TEST_DEBUG_presente: !!process.env.TEST_DEBUG,
+        TEST_DEBUG_longitud: (process.env.TEST_DEBUG || '').length,
       },
     });
   }
