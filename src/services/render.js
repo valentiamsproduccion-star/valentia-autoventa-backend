@@ -32,6 +32,25 @@ function soloDigitos(str) {
   return String(str || '').replace(/[^\d]/g, '');
 }
 
+// El botón flotante de WhatsApp (y los demás enlaces "Escribir por
+// WhatsApp") usan wa.me/{{telefono_wa}}, que necesita el número completo con
+// prefijo de país y SIN el "+" (ver wa.me docs). El campo "Teléfono /
+// WhatsApp" del Formulario de Alta no pide prefijo de país (ver alta.html,
+// placeholder "600 111 222") porque el negocio objetivo es siempre España --
+// así que si el cliente escribe un número nacional de 9 dígitos (con o sin
+// espacios/guiones) le anteponemos el 34 automáticamente. Si el número ya
+// trae el prefijo (11+ dígitos, típicamente empezando por 34) o el cliente
+// puso "0034...", lo dejamos tal cual / normalizamos el 00 a nada. Sin esto
+// el enlace de WhatsApp apuntaba a un número de 9 dígitos sin prefijo, que
+// wa.me no resuelve (o resuelve mal) -- el botón "no funcionaba".
+function telefonoWhatsapp(str) {
+  let d = soloDigitos(str);
+  if (!d) return '';
+  if (d.startsWith('00')) d = d.slice(2); // "0034600111222" -> "34600111222"
+  if (d.length === 9) d = '34' + d; // nacional español sin prefijo -> anteponer 34
+  return d;
+}
+
 // ── Color de marca personalizado (ver Formulario de Alta, sección "Color de
 // marca") ─────────────────────────────────────────────────────────────────
 // Cada plantilla .mustache define su paleta con variables CSS en :root
@@ -90,6 +109,19 @@ function colorSecundario(hex) {
   return { color_secundario: HEX_RE.test(limpio) ? limpio : '' };
 }
 
+// Color terciario (tercer color de marca, ver Formulario de Alta, sección
+// "Color de marca") -- mismo patrón que el secundario: no es una variable
+// CSS que las plantillas ya usen, se aplica con una regla de override a un
+// elemento decorativo que SÍ existe, con el mismo nombre de clase, en la
+// mayoría de las ~225 plantillas por-diseño: el número/marcador de paso en
+// los bloques "cómo trabajamos" (`.step .n`). En las plantillas que no
+// tengan esa clase (algunos diseños más antiguos o sin esa sección) la regla
+// simplemente no encuentra nada que pintar -- no rompe nada.
+function colorTerciario(hex) {
+  const limpio = String(hex || '').trim();
+  return { color_terciario: HEX_RE.test(limpio) ? limpio : '' };
+}
+
 // ── Tipografía personalizada (ver Formulario de Alta, sección "Tipografía")
 // ─────────────────────────────────────────────────────────────────────────
 // Todas las plantillas usan las mismas dos variables CSS para tipografía
@@ -143,8 +175,23 @@ function withColorOverride(html, ctx) {
       ';--accent-dim:' + ctx.color_primario_dim + '}</style>';
   }
   if (ctx.color_secundario) {
-    extra += '<style>.eyebrow::before{background:' + ctx.color_secundario +
-      ' !important}.faq summary::after{color:' + ctx.color_secundario + ' !important}</style>';
+    // Aplica a tres hooks conocidos, combinados para cubrir el máximo de
+    // diseños posible sin tocar plantilla por plantilla (ver comentario de
+    // colorSecundario() arriba para el porqué de cada selector):
+    // - `.eyebrow-c` (etiqueta corta encima de los títulos de sección):
+    //   presente en 221/225 plantillas.
+    // - `.eyebrow::before` (guion decorativo, solo en un puñado de diseños
+    //   antiguos): se mantiene por compatibilidad, no hace daño si no existe.
+    // - `.faq summary::after` / `.faq-item summary::after` (icono "+" de
+    //   las preguntas frecuentes): entre los dos cubren 160/225 plantillas.
+    extra += '<style>.eyebrow-c{color:' + ctx.color_secundario + ' !important}' +
+      '.eyebrow::before{background:' + ctx.color_secundario + ' !important}' +
+      '.faq summary::after,.faq-item summary::after{color:' + ctx.color_secundario + ' !important}</style>';
+  }
+  if (ctx.color_terciario) {
+    // `.step .n` (número/marcador de paso en "cómo trabajamos"): presente en
+    // 160/225 plantillas -- ver colorTerciario() arriba.
+    extra += '<style>.step .n{color:' + ctx.color_terciario + ' !important}</style>';
   }
   const fuente = fuentePersonalizada(ctx.fuente_id);
   if (fuente) {
@@ -175,7 +222,7 @@ function baseContext(datosBase, opts) {
     ciudad: datosBase.ciudad || '',
     ciudad_url: encodeURIComponent(datosBase.ciudad || ''),
     telefono: datosBase.telefono || '',
-    telefono_wa: soloDigitos(datosBase.telefono),
+    telefono_wa: telefonoWhatsapp(datosBase.telefono),
     email: datosBase.email || '',
     anio: String(new Date().getFullYear()),
     preview: !!opts.preview,
@@ -207,6 +254,7 @@ function baseContext(datosBase, opts) {
     // plantillas (que ya traen su propio :root con el color del diseño).
     ...colorPersonalizado(datosBase.color_primario),
     ...colorSecundario(datosBase.color_secundario),
+    ...colorTerciario(datosBase.color_terciario),
     // Tipografía elegida (ver Formulario de Alta, sección "Tipografía") --
     // igual que el color, se usa vía withColorOverride() más abajo.
     fuente_id: datosBase.fuente_id || '',

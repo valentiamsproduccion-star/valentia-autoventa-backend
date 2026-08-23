@@ -386,6 +386,7 @@ router.get('/preview/:orderId', async (req, res, params) => {
     foto_hero_url: client.foto_hero_url, foto_secundaria_url: client.foto_secundaria_url, galeria_urls: client.galeria_urls,
     color_primario: client.color_primario,
     color_secundario: client.color_secundario,
+    color_terciario: client.color_terciario,
     fuente_id: client.fuente_id,
   };
   const html = renderPagina(order.sector, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });
@@ -410,6 +411,7 @@ router.get('/preview/:orderId/legal/:pagina', async (req, res, params) => {
     logo_url: client.logo_url, favicon_url: client.favicon_url,
     color_primario: client.color_primario,
     color_secundario: client.color_secundario,
+    color_terciario: client.color_terciario,
     fuente_id: client.fuente_id,
   };
   const html = renderPaginaLegal(params.pagina, datosBase, { preview: true });
@@ -432,6 +434,7 @@ router.get('/preview/:orderId/pagina/:pagina', async (req, res, params) => {
     logo_url: client.logo_url, favicon_url: client.favicon_url,
     color_primario: client.color_primario,
     color_secundario: client.color_secundario,
+    color_terciario: client.color_terciario,
     fuente_id: client.fuente_id,
   };
   const html = renderPaginaSector(order.sector, params.pagina, datosBase, order.contenido_principal, { preview: true, plantillaId: client.plantilla_id });

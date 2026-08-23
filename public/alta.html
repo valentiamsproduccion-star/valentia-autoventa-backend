@@ -69,10 +69,14 @@
   .color-preview-card .cp-chip{background:var(--cp-accent-dim,rgba(37,99,235,.10));color:var(--cp-accent-mid,#1D4ED8);font-size:11px;font-weight:700;padding:6px 12px;border-radius:100px}
   .color-preview-card .cp-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
   .color-preview-card .cp-eyebrow-dash{width:20px;height:2px;background:var(--cp-accent2,var(--cp-accent,#2563EB));flex:none}
-  .color-preview-card .cp-eyebrow-text{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94A3B8}
+  .color-preview-card .cp-eyebrow-text{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cp-accent2,#94A3B8)}
   .color-preview-card .cp-faq{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #E5E7EB;font-size:12px;color:#334155}
   .color-preview-card .cp-faq-plus{font-size:16px;font-weight:700;line-height:1;color:var(--cp-accent2,var(--cp-accent,#2563EB))}
+  .color-preview-card .cp-step{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #E5E7EB}
+  .color-preview-card .cp-step-n{font-size:15px;font-weight:800;color:var(--cp-accent3,var(--cp-accent,#2563EB))}
+  .color-preview-card .cp-step-label{font-size:12px;color:#334155}
   #color_secundario_picker{width:44px;height:40px;padding:2px;flex:none;border-radius:6px;cursor:pointer}
+  #color_terciario_picker{width:44px;height:40px;padding:2px;flex:none;border-radius:6px;cursor:pointer}
   .fuente-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:8px}
   .fuente-card{border:1.5px solid #E5E7EB;border-radius:10px;padding:14px;cursor:pointer;background:#fff}
   .fuente-card:hover{border-color:#CBD5E1}
@@ -89,6 +93,14 @@
 
 <h1>Crea tu web</h1>
 <p class="hint">Formulario de alta — ver el diseño completo campo a campo en "Formulario de Alta — Sectores MVP".</p>
+
+<div id="borrador-banner" style="display:none;margin-top:16px;padding:14px 16px;border-radius:8px;background:#EFF6FF;border:1px solid #BFDBFE;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <span id="borrador-banner-texto">Hemos recuperado un borrador que no llegaste a enviar.</span>
+  <div style="display:flex;gap:8px">
+    <button type="button" class="add small" id="btn-borrador-restaurar">Restaurar</button>
+    <button type="button" class="add small" id="btn-borrador-descartar">Descartar</button>
+  </div>
+</div>
 
 <label>Sector</label>
 <select id="sector">
@@ -110,7 +122,9 @@
 </div>
 <div class="row">
   <div><label>Ciudad</label><input id="ciudad" placeholder="Valencia"></div>
-  <div><label>Teléfono / WhatsApp</label><input id="telefono" placeholder="600 111 222"></div>
+  <div><label>Teléfono / WhatsApp</label><input id="telefono" placeholder="600 111 222">
+    <p class="hint">Un número español sin prefijo (ej. 600 111 222). El botón de WhatsApp de tu web se genera automáticamente con el +34 delante.</p>
+  </div>
 </div>
 <label>Email de contacto</label>
 <input id="email" type="email" placeholder="hola@tunegocio.com">
@@ -212,7 +226,15 @@
       <input type="text" id="color_secundario_hex" placeholder="#2563EB" maxlength="7">
     </div>
     <button type="button" class="add small" id="btn-reset-color-secundario">Quitar color secundario</button>
-    <p class="hint">Se usa en detalles pequeños (un guion antes de algunos títulos y el "+" de las preguntas frecuentes), para que tu web no se vea idéntica a otras con el mismo diseño.</p>
+    <p class="hint">Se usa en detalles pequeños (la etiqueta corta encima de los títulos de sección y el "+" de las preguntas frecuentes), para que tu web no se vea idéntica a otras con el mismo diseño.</p>
+
+    <label style="margin-top:18px">Color terciario <span class="opt">(opcional)</span></label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="color" id="color_terciario_picker" value="#2563EB">
+      <input type="text" id="color_terciario_hex" placeholder="#2563EB" maxlength="7">
+    </div>
+    <button type="button" class="add small" id="btn-reset-color-terciario">Quitar color terciario</button>
+    <p class="hint">Se usa en el número de los pasos de "cómo trabajamos" (cuando la plantilla elegida tiene esa sección). Un tercer toque de color, opcional.</p>
   </div>
   <div>
     <label style="margin:0 0 6px">Vista previa en directo</label>
@@ -224,6 +246,7 @@
         <div class="cp-sub"></div>
         <div class="cp-actions"><span class="cp-btn">Reservar ahora</span><span class="cp-chip">Destacado</span></div>
         <div class="cp-faq"><span>¿Tenéis aparcamiento?</span><span class="cp-faq-plus">+</span></div>
+        <div class="cp-step"><span class="cp-step-n">01</span><span class="cp-step-label">Cómo trabajamos</span></div>
       </div>
     </div>
   </div>
@@ -840,6 +863,7 @@ function addCardA(list, subFields, photo) {
     fi.type = 'file'; fi.accept = 'image/*'; fi.dataset.fotoinput = '1';
     card.appendChild(fl);
     card.appendChild(fi);
+    attachFotoPreview(fi);
   }
   list.appendChild(card);
 }
@@ -1126,6 +1150,7 @@ function renderFotosSector(div) {
       inp.type = 'file'; inp.accept = 'image/*';
       inp.dataset.fotoIdx = String(i);
       wrap.appendChild(inp);
+      attachFotoPreview(inp);
     }
     if (FOTO_DIMENSIONES[foto.key]) {
       const dimHint = document.createElement('div');
@@ -1260,6 +1285,11 @@ const colorPreviewEl = document.getElementById('color-preview');
 // withColorOverride()), no hace falta calcular variantes.
 const colorSecundarioPickerEl = document.getElementById('color_secundario_picker');
 const colorSecundarioHexEl = document.getElementById('color_secundario_hex');
+// Color terciario: mismo patrón que el secundario (ver render.js,
+// colorTerciario()/withColorOverride()) -- un tercer detalle decorativo
+// (el número de los pasos de "cómo trabajamos"), también opcional.
+const colorTerciarioPickerEl = document.getElementById('color_terciario_picker');
+const colorTerciarioHexEl = document.getElementById('color_terciario_hex');
 
 function sectorColorDefault() {
   return SECTOR_COLORS[sectorSel.value] || SECTOR_COLORS['servicios-profesionales'];
@@ -1286,6 +1316,14 @@ function pintarColorPreview() {
     // usan var(--accent) tal cual).
     colorPreviewEl.style.removeProperty('--cp-accent2');
   }
+
+  const valTer = colorTerciarioHexEl.value.trim();
+  if (HEX_RE.test(valTer)) {
+    colorTerciarioPickerEl.value = valTer;
+    colorPreviewEl.style.setProperty('--cp-accent3', valTer);
+  } else {
+    colorPreviewEl.style.removeProperty('--cp-accent3');
+  }
 }
 
 colorPickerEl.addEventListener('input', () => {
@@ -1304,6 +1342,15 @@ colorSecundarioPickerEl.addEventListener('input', () => {
 colorSecundarioHexEl.addEventListener('input', pintarColorPreview);
 document.getElementById('btn-reset-color-secundario').addEventListener('click', () => {
   colorSecundarioHexEl.value = '';
+  pintarColorPreview();
+});
+colorTerciarioPickerEl.addEventListener('input', () => {
+  colorTerciarioHexEl.value = colorTerciarioPickerEl.value;
+  pintarColorPreview();
+});
+colorTerciarioHexEl.addEventListener('input', pintarColorPreview);
+document.getElementById('btn-reset-color-terciario').addEventListener('click', () => {
+  colorTerciarioHexEl.value = '';
   pintarColorPreview();
 });
 sectorSel.addEventListener('change', pintarColorPreview);
@@ -1598,6 +1645,41 @@ function fileToBase64(file) {
   });
 }
 
+// ───────────────────────── Vista previa en vivo de fotos subidas ─────────────────────────
+// Antes de esto, tras elegir un archivo el cliente solo veía el nombre de
+// archivo que pinta el propio input (a menudo truncado, sin forma de saber
+// si era la foto correcta antes de enviar el formulario). Ahora, en cuanto
+// se selecciona un archivo, generamos una miniatura al instante con
+// URL.createObjectURL (sin subir nada todavía -- la subida real sigue
+// pasando solo al pulsar "Generar vista previa", ver fileToBase64() arriba).
+// Es intencionadamente independiente de fileToBase64(): esto es solo para
+// que el cliente vea lo que ha elegido, no para lo que se envía al servidor.
+function attachFotoPreview(input) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:8px';
+  input.insertAdjacentElement('afterend', wrap);
+  input.addEventListener('change', () => {
+    wrap.innerHTML = '';
+    Array.from(input.files || []).forEach(file => {
+      if (!file.type || !file.type.startsWith('image/')) return; // p. ej. un .ico o .svg puede no dar thumbnail fiable en todos los navegadores, se omite sin error
+      const url = URL.createObjectURL(file);
+      const item = document.createElement('div');
+      item.style.cssText = 'text-align:center';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = file.name;
+      img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid #E5E7EB;display:block';
+      img.addEventListener('load', () => URL.revokeObjectURL(url)); // ya está decodificada en el <img>, no hace falta mantener el blob vivo
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:10px;color:#9CA3AF;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px';
+      label.textContent = file.name;
+      item.appendChild(img);
+      item.appendChild(label);
+      wrap.appendChild(item);
+    });
+  });
+}
+
 async function collectLogoFiles() {
   const files = Array.from(document.getElementById('logo_files').files || []);
   return Promise.all(files.map(fileToBase64));
@@ -1631,6 +1713,8 @@ let plantillaIdSeleccionada = '';
 renderTipoOptions();
 renderTodo();
 aplicarLogoToggle();
+attachFotoPreview(document.getElementById('logo_files'));
+attachFotoPreview(document.getElementById('favicon_file'));
 
 (function aplicarTipoDesdeURL() {
   const qp = new URLSearchParams(window.location.search);
@@ -1733,6 +1817,205 @@ if (editToken) {
       document.getElementById('btn-generar').disabled = false;
     }
   })();
+}
+
+// ───────────────────────── Conservar datos si falla el envío ─────────────────────────
+// El botón "Generar vista previa" puede tardar bastante (Render "dormido" en
+// el plan gratuito, ver comentario junto a btn-generar más abajo) o dar un
+// error de validación -- antes de esto, si el cliente pensaba que se había
+// quedado colgado y recargaba la página, perdía todo lo escrito (nombre,
+// datos fiscales, todos los campos de contenido...). Guardamos un borrador en
+// localStorage cada vez que cambia algo en el formulario (con un pequeño
+// retraso para no escribir en cada tecla) y lo ofrecemos recuperar al volver
+// a cargar la página. No incluye archivos (logo/fotos): no son serializables
+// de forma razonable en localStorage (límite de tamaño ~5-10MB), así que esas
+// hay que volver a seleccionarlas -- limitación conocida, mejor que perder
+// todo el texto. Se borra en cuanto se genera una vista previa con éxito. No
+// se activa en modo edición (enlace mágico post-compra): ese flujo ya carga
+// datos reales desde el servidor y es un caso distinto.
+if (!editToken) {
+  const DRAFT_KEY = 'valentia_alta_borrador_v1';
+  let restaurandoBorrador = false;
+
+  function snapshotBorrador() {
+    return {
+      v: 1,
+      guardadoEn: Date.now(),
+      sector: sectorSel.value,
+      tipoNegocio: tipoSel.value,
+      nombreNegocio: document.getElementById('nombre_negocio').value,
+      ciudad: document.getElementById('ciudad').value,
+      telefono: document.getElementById('telefono').value,
+      email: document.getElementById('email').value,
+      razonSocial: document.getElementById('razon_social').value,
+      formaJuridica: document.getElementById('forma_juridica').value,
+      nifCif: document.getElementById('nif_cif').value,
+      domicilioFiscal: document.getElementById('domicilio_fiscal').value,
+      via: document.querySelector('input[name=via]:checked').value,
+      paginaAdicional: document.getElementById('pagina_adicional').checked,
+      rgpd: document.getElementById('rgpd').checked,
+      colorPrimario: colorHexEl.value,
+      colorSecundario: colorSecundarioHexEl.value,
+      colorTerciario: colorTerciarioHexEl.value,
+      fuenteId: fuenteSeleccionada,
+      datosBrutos: collectDatosBrutos(camposIADiv),
+      datosBrutosAdicional: collectDatosBrutos(camposIAAdicionalDiv),
+      contenido: collectTablaA(camposTablaADiv),
+      contenidoAdicional: collectTablaA(camposTablaAAdicionalDiv),
+    };
+  }
+
+  function guardarBorrador() {
+    if (restaurandoBorrador) return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(snapshotBorrador())); }
+    catch (e) { /* localStorage lleno o desactivado (modo privado, etc.) -- no es crítico */ }
+  }
+
+  let borradorTimeout = null;
+  function guardarBorradorDebounced() {
+    clearTimeout(borradorTimeout);
+    borradorTimeout = setTimeout(guardarBorrador, 800);
+  }
+
+  function borrarBorrador() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  }
+
+  function leerBorrador() {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  // Relleno inverso de renderCamposIA()/collectDatosBrutos() -- mismo patrón
+  // que fillTablaA() para la tabla A, pero para los campos "en bruto" de la
+  // vía "IA desde cero".
+  function fillDatosBrutos(div, datos) {
+    if (!datos) return;
+    const cfg = SECTORES[sectorSel.value];
+    div.querySelectorAll(':scope > [data-key]').forEach(el => {
+      const key = el.dataset.key, type = el.dataset.type;
+      const val = datos[key];
+      if (val == null) return;
+      if (type === 'text') {
+        el.value = val;
+      } else if (type === 'lines') {
+        el.value = Array.isArray(val) ? val.join('\n') : String(val);
+      } else if (type === 'repeater') {
+        const field = (cfg.tablaB || []).find(f => f.key === key);
+        if (!field) return;
+        const list = el.querySelector(':scope > div');
+        list.innerHTML = '';
+        const items = Array.isArray(val) ? val : [];
+        items.forEach(item => {
+          addCardB(list, field.sub);
+          const card = list.lastElementChild;
+          card.querySelectorAll('[data-sub]').forEach(inp => { inp.value = item[inp.dataset.sub] || ''; });
+        });
+        if (!items.length) addCardB(list, field.sub);
+      } else if (type === 'menu') {
+        const cats = el.querySelector(':scope > div');
+        cats.innerHTML = '';
+        const items = Array.isArray(val) ? val : [];
+        items.forEach(catData => {
+          addCategoriaB(cats);
+          const catCard = cats.lastElementChild;
+          catCard.querySelector('[data-role=categoria]').value = catData.categoria || '';
+          const platosWrap = catCard.querySelector(':scope > div');
+          platosWrap.innerHTML = '';
+          (catData.platos || []).forEach(plato => {
+            addPlatoB(platosWrap);
+            const row = platosWrap.lastElementChild;
+            row.querySelector('[data-role=nombre]').value = plato.nombre || '';
+            row.querySelector('[data-role=descripcion]').value = plato.descripcion || '';
+            row.querySelector('[data-role=precio]').value = plato.precio || '';
+          });
+          if (!(catData.platos || []).length) addPlatoB(platosWrap);
+        });
+        if (!items.length) addCategoriaB(cats);
+      }
+    });
+  }
+
+  function restaurarBorrador(d) {
+    restaurandoBorrador = true;
+    try {
+      if (d.sector && SECTORES[d.sector]) sectorSel.value = d.sector;
+      renderTipoOptions();
+      if (d.tipoNegocio) {
+        const match = Array.from(tipoSel.options).find(o => o.value === d.tipoNegocio);
+        if (match) tipoSel.value = match.value;
+      }
+      renderTodo();
+
+      document.getElementById('nombre_negocio').value = d.nombreNegocio || '';
+      document.getElementById('ciudad').value = d.ciudad || '';
+      document.getElementById('telefono').value = d.telefono || '';
+      document.getElementById('email').value = d.email || '';
+      document.getElementById('razon_social').value = d.razonSocial || '';
+      if (d.formaJuridica) document.getElementById('forma_juridica').value = d.formaJuridica;
+      document.getElementById('nif_cif').value = d.nifCif || '';
+      document.getElementById('domicilio_fiscal').value = d.domicilioFiscal || '';
+
+      document.getElementById('pagina_adicional').checked = !!d.paginaAdicional;
+      document.getElementById('pagina_adicional').dispatchEvent(new Event('change'));
+      document.getElementById('rgpd').checked = !!d.rgpd;
+
+      if (d.via) {
+        const radio = document.querySelector('input[name=via][value="' + d.via + '"]');
+        if (radio) { radio.checked = true; aplicarVia(); }
+      }
+
+      colorHexEl.value = d.colorPrimario || '';
+      colorSecundarioHexEl.value = d.colorSecundario || '';
+      colorTerciarioHexEl.value = d.colorTerciario || '';
+      pintarColorPreview();
+      if (d.fuenteId) {
+        const card = fuenteGridEl.querySelector('[data-fuente-id="' + d.fuenteId + '"]');
+        if (card) card.click();
+      }
+
+      fillDatosBrutos(camposIADiv, d.datosBrutos);
+      fillDatosBrutos(camposIAAdicionalDiv, d.datosBrutosAdicional);
+      fillTablaA(camposTablaADiv, SECTORES[sectorSel.value], d.contenido);
+      fillTablaA(camposTablaAAdicionalDiv, SECTORES[sectorSel.value], d.contenidoAdicional);
+    } finally {
+      restaurandoBorrador = false;
+    }
+  }
+
+  // Guarda el borrador ante cualquier cambio en el formulario (delegado en
+  // document.body para cubrir también los campos que se crean dinámicamente
+  // -- repeaters, categorías de carta, etc. -- sin tener que engancharlos uno
+  // a uno). Los inputs de archivo también disparan 'change', pero
+  // snapshotBorrador() no los lee, así que no pasa nada.
+  document.body.addEventListener('input', guardarBorradorDebounced);
+  document.body.addEventListener('change', guardarBorradorDebounced);
+
+  const borradorGuardado = leerBorrador();
+  // Solo se ofrece restaurar si el borrador tiene al menos el nombre del
+  // negocio relleno -- un borrador vacío (p. ej. de una visita que no llegó a
+  // escribir nada) no merece la pop-up.
+  if (borradorGuardado && borradorGuardado.nombreNegocio) {
+    const banner = document.getElementById('borrador-banner');
+    const fecha = new Date(borradorGuardado.guardadoEn).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    document.getElementById('borrador-banner-texto').textContent =
+      'Hemos recuperado un borrador de "' + borradorGuardado.nombreNegocio + '" guardado el ' + fecha + '.';
+    banner.style.display = 'flex';
+    document.getElementById('btn-borrador-restaurar').addEventListener('click', () => {
+      restaurarBorrador(borradorGuardado);
+      banner.style.display = 'none';
+    });
+    document.getElementById('btn-borrador-descartar').addEventListener('click', () => {
+      borrarBorrador();
+      banner.style.display = 'none';
+    });
+  }
+
+  // Se expone para poder borrarlo desde el manejador de "Generar vista
+  // previa" en cuanto la vista previa se genera con éxito (ver más abajo).
+  window.__borrarBorradorAlta = borrarBorrador;
 }
 
 let ultimoOrderId = null;
@@ -1849,6 +2132,8 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
   if (HEX_RE.test(colorPrimarioVal)) payload.datosBase.color_primario = colorPrimarioVal;
   const colorSecundarioVal = colorSecundarioHexEl.value.trim();
   if (HEX_RE.test(colorSecundarioVal)) payload.datosBase.color_secundario = colorSecundarioVal;
+  const colorTerciarioVal = colorTerciarioHexEl.value.trim();
+  if (HEX_RE.test(colorTerciarioVal)) payload.datosBase.color_terciario = colorTerciarioVal;
   if (fuenteSeleccionada && fuenteSeleccionada !== 'clasica') payload.datosBase.fuente_id = fuenteSeleccionada;
   if (dominioElegido) payload.datosBase.dominio_elegido = dominioElegido;
 
@@ -1936,6 +2221,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     ultimoOrderId = data.orderId;
     document.getElementById('resultado').style.display = 'block';
     document.getElementById('preview-frame').src = data.previewUrl;
+    if (window.__borrarBorradorAlta) window.__borrarBorradorAlta(); // vista previa generada con éxito -- el borrador ya no hace falta
   } catch (e) {
     errorDiv.style.display = 'block';
     errorDiv.textContent = e.message;

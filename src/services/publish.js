@@ -44,6 +44,7 @@ async function publicarCliente(client, orderContext) {
     // y la web usa el color del diseño elegido, como siempre.
     color_primario: client.color_primario,
     color_secundario: client.color_secundario,
+    color_terciario: client.color_terciario,
     // Tipografía elegida (ver Formulario de Alta, sección "Tipografía") --
     // mismo patrón que el color: si no eligió ninguna, se usa la del diseño.
     fuente_id: client.fuente_id,
