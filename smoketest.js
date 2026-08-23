@@ -125,21 +125,31 @@ https.request = function (options, callback) {
       let statusCode = 200;
 
       if (options.hostname === 'api.anthropic.com') {
+        // El prompt de formacion-academias es el único que trae el ejemplo de
+        // esquema JSON con clave "profes" (ver src/prompts/index.js) -- lo
+        // usamos como marcador para simular una respuesta con ese campo y así
+        // poder probar el mapeo profesorado(bruto)->profes(final) en 9e).
+        const esFormacion = bodyStr.includes('\\"profes\\":');
+        const contenidoFake = {
+          eyebrow_hero: 'Sector de prueba',
+          hero_title: 'Título generado por IA',
+          hero_subtitle: 'Subtítulo generado por IA para la prueba de humo.',
+          trust_badges: ['Badge 1', 'Badge 2', 'Badge 3'],
+          h2_areas: 'Áreas', lead_areas: 'Lead de áreas.',
+          areas: [{ titulo: 'Área 1', descripcion: 'Descripción 1' }],
+          h2_casos: 'Casos', lead_casos: 'Lead casos.',
+          casos: [],
+          h2_consulta: 'Consulta', lead_consulta: 'Lead consulta.',
+          consulta_points: [{ titulo: 'Paso 1', descripcion: 'Desc 1' }, { titulo: 'Paso 2', descripcion: 'Desc 2' }, { titulo: 'Paso 3', descripcion: 'Desc 3' }],
+          testimonios: [],
+        };
+        if (esFormacion) {
+          contenidoFake.profes = [{ nombre: 'Profe 1', rol: 'Rol', credencial: 'Credencial' }];
+        } else {
+          contenidoFake.equipo = [{ nombre: 'Persona 1', rol: 'Rol', credencial: 'Credencial' }];
+        }
         responseBody = JSON.stringify({
-          content: [{ type: 'text', text: JSON.stringify({
-            eyebrow_hero: 'Sector de prueba',
-            hero_title: 'Título generado por IA',
-            hero_subtitle: 'Subtítulo generado por IA para la prueba de humo.',
-            trust_badges: ['Badge 1', 'Badge 2', 'Badge 3'],
-            h2_areas: 'Áreas', lead_areas: 'Lead de áreas.',
-            areas: [{ titulo: 'Área 1', descripcion: 'Descripción 1' }],
-            equipo: [{ nombre: 'Persona 1', rol: 'Rol', credencial: 'Credencial' }],
-            h2_casos: 'Casos', lead_casos: 'Lead casos.',
-            casos: [],
-            h2_consulta: 'Consulta', lead_consulta: 'Lead consulta.',
-            consulta_points: [{ titulo: 'Paso 1', descripcion: 'Desc 1' }, { titulo: 'Paso 2', descripcion: 'Desc 2' }, { titulo: 'Paso 3', descripcion: 'Desc 3' }],
-            testimonios: [],
-          }) }],
+          content: [{ type: 'text', text: JSON.stringify(contenidoFake) }],
         });
       } else if (options.hostname === 'api.stripe.com') {
         fakeStripeSessionCounter++;
@@ -444,6 +454,28 @@ async function main() {
   const bloqueadoTrasPago = aparienciaTrasPagoResp.statusCode === 409;
   console.log('    tras marcar el pedido como pagado, la apariencia en directo queda bloqueada (409):', bloqueadoTrasPago ? 'SI' : 'NO (' + aparienciaTrasPagoResp.statusCode + ')');
   if (!bloqueadoTrasPago) throw new Error('La apariencia en directo debería bloquearse tras el pago');
+
+  // 9e) FOTO POR TARJETA EN LA VÍA "IA DESDE CERO" (Tabla B) -- el cliente
+  // sube la foto del profesorado junto a los datos en bruto (datosBrutosFotos
+  // en el body de /api/alta) y debe acabar como profes[0].foto_url en el
+  // contenido ya generado, a pesar de que el campo en bruto se llama
+  // "profesorado" y el de la IA "profes" (ver CLAVE_BRUTA_A_FINAL en
+  // server.js -- este es justo el caso de sector que motivó el mapeo).
+  const altaFormacionResp = await request('POST', '/api/alta', {
+    sector: 'formacion-academias',
+    datosBase: { nombre_negocio: 'Academia Smoke', ciudad: 'Sevilla', telefono: '600333444', email: 'info@academia-smoke.test', razon_social: 'Academia Smoke S.L.', forma_juridica: 'SL', nif_cif: 'B33456789', domicilio_fiscal: 'Calle Sierpes 5, 41001 Sevilla' },
+    viaTexto: 'ia',
+    datosBrutos: { nombre_negocio: 'Academia Smoke', tipo_negocio: 'Academia de inglés', ciudad: 'Sevilla', cursos: [{ nombre: 'Inglés B2' }], profesorado: [{ nombre: 'Profe 1', rol: 'Profesor', credencial: 'Titulación X' }], dato_confianza: '+15 años' },
+    datosBrutosFotos: { profesorado: [{ filename: 'profe1.png', mime: 'image/png', base64: FAKE_PNG_BASE64 }] },
+    paginaAdicional: false,
+  });
+  console.log('9e) POST /api/alta (IA desde cero, formacion-academias) con foto de profesorado ->', altaFormacionResp.statusCode, altaFormacionResp.body.orderId ? 'orderId OK' : altaFormacionResp.body);
+  if (altaFormacionResp.statusCode !== 200) throw new Error('Fallo en /api/alta con datosBrutosFotos (formacion-academias)');
+  const ordenFormacion = await db.getOrder(altaFormacionResp.body.orderId);
+  const profesExiste = Array.isArray(ordenFormacion.contenido_principal.profes) && ordenFormacion.contenido_principal.profes.length > 0;
+  const fotoProfeGuardada = profesExiste && !!ordenFormacion.contenido_principal.profes[0].foto_url;
+  console.log('    profesorado(bruto) -> profes(final) mapeado y foto subida como profes[0].foto_url:', fotoProfeGuardada ? 'SI' : 'NO (' + JSON.stringify(ordenFormacion.contenido_principal.profes) + ')');
+  if (!fotoProfeGuardada) throw new Error('La foto de profesorado en la vía "IA desde cero" no se subió/mapeó correctamente');
 
   // 10) ALTA sin logo, pidiendo que la IA lo diseñe (+15€) -- verifica que
   // el pedido queda marcado y que el checkout manda el price de 15€ como

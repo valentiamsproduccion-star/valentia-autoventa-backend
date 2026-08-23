@@ -70,6 +70,40 @@ const CAMPOS_CON_FOTO_POR_TARJETA = {
   'ocio-cultura': ['actividades'],
 };
 
+// La vía "IA desde cero" (tablaB en public/alta.html) recoge la foto de cada
+// tarjeta APARTE de los datos que se le mandan a la IA (ver alta.html,
+// collectDatosBrutosFotos) -- la clave con la que el cliente la recoge en el
+// formulario casi siempre coincide con la clave que la IA usa en su
+// respuesta (mismo nombre en tablaB y tablaA/CAMPOS_CON_FOTO_POR_TARJETA),
+// EXCEPTO en formación y academias: el formulario la llama "profesorado"
+// pero la IA la devuelve como "profes" (ver src/prompts/index.js). Este
+// mapa cubre esa única excepción; si algún sector futuro tuviera el mismo
+// caso, se añade aquí.
+const CLAVE_BRUTA_A_FINAL = {
+  'formacion-academias': { profesorado: 'profes' },
+};
+
+// Reengancha, en el contenido YA generado por la IA, la foto que el cliente
+// adjuntó en el formulario de datos en bruto -- por POSICIÓN (misma tarjeta,
+// mismo índice), ya que la IA no inventa personas/tarjetas (ver prompts,
+// regla "no inventes personas") y debería devolver el mismo número de
+// elementos en el mismo orden que se le mandó. Dedica item.foto = {...} tal
+// como espera subirFotosPorTarjeta() más abajo (mismo formato que deja
+// hydrateFotosTablaA en el cliente para la vía "propio").
+function adjuntarFotosBrutasAlContenido(sector, contenidoFinal, datosBrutosFotos) {
+  if (!datosBrutosFotos || !contenidoFinal) return;
+  const mapa = CLAVE_BRUTA_A_FINAL[sector] || {};
+  for (const claveBruta of Object.keys(datosBrutosFotos)) {
+    const claveFinal = mapa[claveBruta] || claveBruta;
+    const items = contenidoFinal[claveFinal];
+    const fotos = datosBrutosFotos[claveBruta];
+    if (!Array.isArray(items) || !Array.isArray(fotos)) continue;
+    for (let i = 0; i < items.length && i < fotos.length; i++) {
+      if (fotos[i] && fotos[i].base64) items[i].foto = fotos[i];
+    }
+  }
+}
+
 const router = new Router();
 
 function requireSector(sector) {
@@ -232,6 +266,7 @@ router.post('/api/alta', async (req, res) => {
     sector, datosBase, viaTexto, contenido, datosBrutos, textoCliente, paginaAdicional,
     viaTextoAdicional, contenidoAdicional, datosBrutosAdicional, textoClienteAdicional,
     logos, favicon, logoIaSolicitado, fotos, plantillaId,
+    datosBrutosFotos, datosBrutosFotosAdicional,
   } = body;
   requireSector(sector);
   // Datos fiscales (razón social/forma jurídica/NIF/domicilio) obligatorios:
@@ -263,6 +298,7 @@ router.post('/api/alta', async (req, res) => {
       return sendJson(res, 400, { error: 'Faltan datos del negocio para que la IA redacte el texto (nombre, tipo o ciudad).' });
     }
     contenidoFinal = await generarContenido(sector, datosBrutos);
+    adjuntarFotosBrutasAlContenido(sector, contenidoFinal, datosBrutosFotos);
   } else if (viaTexto === 'mejora') {
     if (!textoCliente) return sendJson(res, 400, { error: 'Falta el texto del cliente a mejorar.' });
     contenidoFinal = await mejorarContenido(sector, textoCliente);
@@ -286,6 +322,7 @@ router.post('/api/alta', async (req, res) => {
         return sendJson(res, 400, { error: 'Faltan datos del negocio para la página adicional (nombre, tipo o ciudad).' });
       }
       contenidoAdicionalFinal = await generarContenido(sector, datosBrutosAdicional);
+      adjuntarFotosBrutasAlContenido(sector, contenidoAdicionalFinal, datosBrutosFotosAdicional);
     } else if (viaAd === 'mejora') {
       if (!textoClienteAdicional) return sendJson(res, 400, { error: 'Falta el texto de la página adicional a mejorar.' });
       contenidoAdicionalFinal = await mejorarContenido(sector, textoClienteAdicional);
@@ -334,6 +371,12 @@ router.post('/api/alta', async (req, res) => {
   }
   try {
     await subirFotosPorTarjeta(client.id, sector, contenidoFinal);
+    // Misma subida para la página adicional -- antes solo se hacía para el
+    // contenido principal, así que las fotos por-tarjeta de la página
+    // adicional se quedaban en base64 sin subir ni mostrarse nunca.
+    if (contenidoAdicionalFinal) {
+      await subirFotosPorTarjeta(client.id, sector, contenidoAdicionalFinal);
+    }
   } catch (e) {
     return sendJson(res, 500, { error: 'No se pudieron subir las fotos del contenido: ' + e.message });
   }

@@ -429,7 +429,7 @@ const SECTORES = {
     tipoOptions: ['Abogacía','Asesoría fiscal','Inmobiliaria','Arquitectura e interiorismo','Consultoría','Coaching'],
     tablaB: [
       {key:'especialidades', label:'3 a 5 áreas o especialidades (una por línea)', type:'lines'},
-      {key:'equipo', label:'Equipo', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Credencial real'}]},
+      {key:'equipo', label:'Equipo', type:'repeater', photo:true, sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Credencial real'}]},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
     ],
     tablaA: [
@@ -463,7 +463,7 @@ const SECTORES = {
     tipoOptions: ['Clínica','Centro de belleza','Gimnasio'],
     tablaB: [
       {key:'tratamientos', label:'Hasta 6 tratamientos o servicios (uno por línea)', type:'lines'},
-      {key:'equipo', label:'Profesionales', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Colegiado / titulación real'}]},
+      {key:'equipo', label:'Profesionales', type:'repeater', photo:true, sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Colegiado / titulación real'}]},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
     ],
     tablaA: [
@@ -526,7 +526,7 @@ const SECTORES = {
     tipoLabel: 'Tipo de alojamiento',
     tipoOptions: ['Hotel rural','Casa rural','Apartamento turístico','Camping','Hostal','Hotel'],
     tablaB: [
-      {key:'alojamientos', label:'Estancias / unidades', type:'repeater', sub:[{key:'nombre',label:'Nombre o tipo'},{key:'capacidad',label:'Capacidad (p. ej. 2 personas)'},{key:'precio',label:'Precio orientativo (desde)'}]},
+      {key:'alojamientos', label:'Estancias / unidades', type:'repeater', photo:true, sub:[{key:'nombre',label:'Nombre o tipo'},{key:'capacidad',label:'Capacidad (p. ej. 2 personas)'},{key:'precio',label:'Precio orientativo (desde)'}]},
       {key:'comodidades', label:'Comodidades y servicios (uno por línea)', type:'lines'},
       {key:'entorno', label:'Puntos de interés del entorno (uno por línea)', type:'lines'},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
@@ -565,7 +565,7 @@ const SECTORES = {
     tipoLabel: 'Tipo de comercio',
     tipoOptions: ['Moda','Decoración','Alimentación','Artesanía','Librería','Floristería','Otro'],
     tablaB: [
-      {key:'productos', label:'Productos destacados', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'precio',label:'Precio (opcional)'}]},
+      {key:'productos', label:'Productos destacados', type:'repeater', photo:true, sub:[{key:'nombre',label:'Nombre'},{key:'precio',label:'Precio (opcional)'}]},
       {key:'sobre_tienda', label:'Un par de datos sobre la tienda', type:'text'},
       {key:'razones', label:'Razones para comprar allí (una por línea)', type:'lines'},
       {key:'horarios', label:'Horario de apertura', type:'text'},
@@ -605,7 +605,7 @@ const SECTORES = {
     tipoOptions: ['Reformas integrales','Fontanería','Electricidad','Carpintería','Pintura','Jardinería','Albañilería'],
     tablaB: [
       {key:'servicios', label:'Servicios o gremios (uno por línea)', type:'lines'},
-      {key:'proyectos', label:'Proyectos representativos (opcional)', type:'repeater', sub:[{key:'titulo',label:'Título'},{key:'descripcion',label:'Descripción'}]},
+      {key:'proyectos', label:'Proyectos representativos (opcional)', type:'repeater', photo:true, sub:[{key:'titulo',label:'Título'},{key:'descripcion',label:'Descripción'}]},
       {key:'dato_confianza', label:'Un dato de confianza (años, garantía, certificación)', type:'text'},
     ],
     tablaA: [
@@ -642,7 +642,7 @@ const SECTORES = {
     tablaB: [
       {key:'cursos', label:'Cursos o programas', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'duracion',label:'Duración'},{key:'modalidad',label:'Modalidad (presencial/online)'}]},
       {key:'metodologia', label:'Un par de datos sobre la metodología', type:'text'},
-      {key:'profesorado', label:'Profesorado (opcional)', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Titulación real'}]},
+      {key:'profesorado', label:'Profesorado (opcional)', type:'repeater', photo:true, sub:[{key:'nombre',label:'Nombre'},{key:'rol',label:'Rol'},{key:'credencial',label:'Titulación real'}]},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
     ],
     tablaA: [
@@ -677,7 +677,7 @@ const SECTORES = {
     tipoLabel: 'Tipo de negocio',
     tipoOptions: ['Museo / centro cultural','Sala de eventos','Escape room','Otro'],
     tablaB: [
-      {key:'actividades', label:'Actividades o experiencias', type:'repeater', sub:[{key:'nombre',label:'Nombre'},{key:'detalle',label:'Detalle (duración, jugadores, aforo...)'},{key:'descripcion',label:'Descripción'}]},
+      {key:'actividades', label:'Actividades o experiencias', type:'repeater', photo:true, sub:[{key:'nombre',label:'Nombre'},{key:'detalle',label:'Detalle (duración, jugadores, aforo...)'},{key:'descripcion',label:'Descripción'}]},
       {key:'tarifas', label:'Tarifas / entradas', type:'repeater', sub:[{key:'concepto',label:'Concepto'},{key:'precio',label:'Precio'}]},
       {key:'horarios', label:'Horario de apertura', type:'text'},
       {key:'dato_confianza', label:'Un dato de confianza a destacar', type:'text'},
@@ -806,13 +806,13 @@ function repeaterFieldB(field) {
   wrap.appendChild(list);
   const addBtn = document.createElement('button');
   addBtn.type = 'button'; addBtn.className = 'add'; addBtn.textContent = '+ Añadir';
-  addBtn.onclick = () => addCardB(list, field.sub);
+  addBtn.onclick = () => addCardB(list, field.sub, field.photo);
   wrap.appendChild(addBtn);
-  addCardB(list, field.sub);
+  addCardB(list, field.sub, field.photo);
   return wrap;
 }
 
-function addCardB(list, subFields) {
+function addCardB(list, subFields, photo) {
   const card = document.createElement('div');
   card.className = 'card';
   const del = document.createElement('button');
@@ -827,6 +827,21 @@ function addCardB(list, subFields) {
     card.appendChild(l);
     card.appendChild(inp);
   });
+  if (photo) {
+    // A diferencia del resto de campos de esta tarjeta, la foto NUNCA se
+    // manda a la IA (solo el nombre/rol/etc.) -- se recoge aparte (ver
+    // collectDatosBrutosFotos) y se reengancha en el servidor a la tarjeta
+    // correspondiente del contenido ya generado (ver server.js,
+    // adjuntarFotosBrutasAlContenido).
+    const fl = document.createElement('label');
+    fl.textContent = 'Foto (opcional)';
+    fl.style.marginTop = '6px';
+    const fi = document.createElement('input');
+    fi.type = 'file'; fi.accept = 'image/*'; fi.dataset.fotoinput = '1';
+    card.appendChild(fl);
+    card.appendChild(fi);
+    attachFotoPreview(fi);
+  }
   list.appendChild(card);
 }
 
@@ -923,6 +938,32 @@ function collectDatosBrutos(div) {
       }));
     }
   });
+  return out;
+}
+
+// Recoge, aparte de collectDatosBrutos, las fotos de las tarjetas marcadas
+// `photo:true` en tablaB (equipo/profesorado/productos/etc. -- ver SECTORES
+// más arriba). Estas fotos NUNCA viajan dentro de datosBrutos (no tiene
+// sentido mandarle una imagen en base64 a la IA que solo redacta texto) --
+// se mandan aparte, alineadas por posición con las tarjetas, y el servidor
+// las reengancha a la tarjeta correspondiente del contenido ya generado
+// (ver server.js, adjuntarFotosBrutasAlContenido).
+async function collectDatosBrutosFotos(div) {
+  const out = {};
+  const cfg = SECTORES[sectorSel.value];
+  for (const field of (cfg.tablaB || [])) {
+    if (field.type !== 'repeater' || !field.photo) continue;
+    const wrap = div.querySelector(':scope > [data-key="' + field.key + '"]');
+    if (!wrap) continue;
+    const cards = Array.from(wrap.querySelectorAll(':scope > div > .card'));
+    const fotos = [];
+    for (const c of cards) {
+      const inp = c.querySelector('[data-fotoinput]');
+      const file = inp && (inp.files || [])[0];
+      fotos.push(file ? await fileToBase64(file) : null);
+    }
+    if (fotos.some(f => f)) out[field.key] = fotos;
+  }
   return out;
 }
 
@@ -2407,7 +2448,13 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
       ciudad: ciudadVal,
     };
     payload.datosBrutos = Object.assign({}, datosNegocioBase, collectDatosBrutos(camposIADiv));
-    if (paginaAdicional) payload.datosBrutosAdicional = Object.assign({}, datosNegocioBase, collectDatosBrutos(camposIAAdicionalDiv));
+    const datosBrutosFotos = await collectDatosBrutosFotos(camposIADiv);
+    if (Object.keys(datosBrutosFotos).length) payload.datosBrutosFotos = datosBrutosFotos;
+    if (paginaAdicional) {
+      payload.datosBrutosAdicional = Object.assign({}, datosNegocioBase, collectDatosBrutos(camposIAAdicionalDiv));
+      const datosBrutosFotosAdicional = await collectDatosBrutosFotos(camposIAAdicionalDiv);
+      if (Object.keys(datosBrutosFotosAdicional).length) payload.datosBrutosFotosAdicional = datosBrutosFotosAdicional;
+    }
   } else {
     if (via === 'propio' && !validarTablaAEnCliente(camposTablaADiv)) {
       errorDiv.style.display = 'block';
