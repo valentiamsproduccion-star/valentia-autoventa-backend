@@ -973,6 +973,24 @@ function addCardA(list, subFields, photo) {
     card.appendChild(fl);
     card.appendChild(fi);
     attachFotoPreview(fi);
+    // Foto de una tarjeta de repetidor (equipo/profes/casos/etc.) -- se
+    // refleja en la vista previa en directo en cuanto se elige, igual que
+    // el resto de fotos (ver server.js, POST /api/alta/:orderId/apariencia,
+    // campo contenido_fotos). Solo aplica al contenido PRINCIPAL (no a la
+    // página adicional, que tiene su propio contenido aparte).
+    fi.addEventListener('change', () => solicitarAparienciaEnDirecto(async () => {
+      const wrap = card.closest('[data-key]');
+      if (!wrap || wrap.closest('#campos-tablaA-adicional')) return {};
+      const key = wrap.dataset.key;
+      const cards = Array.from(wrap.querySelectorAll(':scope > div > .card'));
+      const fotos = [];
+      for (const c of cards) {
+        const inp = c.querySelector('[data-fotoinput]');
+        const file = inp && (inp.files || [])[0];
+        fotos.push(file ? await fileToBase64(file) : null);
+      }
+      return { contenido_fotos: { [key]: fotos } };
+    }));
   }
   list.appendChild(card);
 }
@@ -1573,7 +1591,10 @@ const dominioComprarDiv = document.getElementById('dominio-comprar');
 function actualizarViaDominio() {
   const val = document.querySelector('input[name=via_dominio]:checked').value;
   dominioComprarDiv.style.display = val === 'comprar' ? 'block' : 'none';
-  if (val !== 'comprar') dominioElegido = null;
+  if (val !== 'comprar') {
+    dominioElegido = null;
+    if (typeof solicitarAparienciaEnDirecto === 'function') solicitarAparienciaEnDirecto(() => ({ dominio_elegido: null }));
+  }
 }
 document.querySelectorAll('input[name=via_dominio]').forEach(r => r.addEventListener('change', actualizarViaDominio));
 actualizarViaDominio();
@@ -1613,7 +1634,14 @@ document.getElementById('btn-check-dominio').addEventListener('click', async () 
       radio.name = 'dominio_elegido_radio';
       radio.style.width = 'auto';
       radio.disabled = !r.disponible;
-      radio.addEventListener('change', () => { dominioElegido = { nombre, tld: r.tld }; });
+      radio.addEventListener('change', () => {
+        dominioElegido = { nombre, tld: r.tld };
+        // Se guarda al instante en el pedido en curso (si ya existe uno) --
+        // así, aunque el cliente no vuelva a pulsar "Generar vista previa"
+        // antes de "Continuar al pago", el checkout ya sabe que quiere
+        // dominio propio y cobra el suplemento correspondiente.
+        if (typeof solicitarAparienciaEnDirecto === 'function') solicitarAparienciaEnDirecto(() => ({ dominio_elegido: dominioElegido }));
+      });
       const span = document.createElement('span');
       span.textContent = r.dominio + (r.disponible ? ' — disponible' : r.premium ? ' — dominio premium (no disponible por ahora)' : ' — no disponible');
       row.appendChild(radio);

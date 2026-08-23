@@ -382,13 +382,21 @@ router.post('/api/alta/:orderId/apariencia', async (req, res, params) => {
   // Límite igual que /api/alta: los archivos de logo/favicon/fotos viajan en
   // base64 dentro del mismo JSON.
   const body = await readJsonBody(req, { maxBytes: 15 * 1024 * 1024 });
-  const { color_primario, color_secundario, color_terciario, fuente_id, logos, favicon, fotos } = body;
+  const { color_primario, color_secundario, color_terciario, fuente_id, dominio_elegido, logos, favicon, fotos, contenido_fotos } = body;
 
   const patch = {};
   if (color_primario !== undefined) patch.color_primario = color_primario;
   if (color_secundario !== undefined) patch.color_secundario = color_secundario;
   if (color_terciario !== undefined) patch.color_terciario = color_terciario;
   if (fuente_id !== undefined) patch.fuente_id = fuente_id;
+  // Dominio elegido en la sección "Tu dominio" (ver public/alta.html) --
+  // se guarda aquí en cuanto se elige/deselecciona, para que el checkout
+  // (POST /api/checkout, que lee client.dominio_elegido) siempre vea el
+  // valor más reciente aunque el cliente no vuelva a pulsar "Generar vista
+  // previa" antes de "Continuar al pago".
+  if (dominio_elegido !== undefined) {
+    patch.dominio_elegido = (dominio_elegido && dominio_elegido.nombre && dominio_elegido.tld) ? dominio_elegido : null;
+  }
 
   if ((Array.isArray(logos) && logos.length) || (favicon && favicon.base64)) {
     let logoInfo;
@@ -412,6 +420,42 @@ router.post('/api/alta/:orderId/apariencia', async (req, res, params) => {
     if (fotosInfo.foto_hero_url) patch.foto_hero_url = fotosInfo.foto_hero_url;
     if (fotosInfo.foto_secundaria_url) patch.foto_secundaria_url = fotosInfo.foto_secundaria_url;
     if (fotosInfo.galeria_urls.length) patch.galeria_urls = fotosInfo.galeria_urls;
+  }
+
+  // Fotos por tarjeta (equipo/profes/casos/etc., ver CAMPOS_CON_FOTO_POR_TARJETA
+  // más arriba) -- a diferencia de todo lo demás en esta ruta, esto SÍ toca
+  // `contenido_principal` (ahí es donde vive cada tarjeta), pero solo el
+  // campo foto_url de la tarjeta que cambió, nunca el texto -- así que
+  // sigue sin haber ninguna llamada a la IA. `contenido_fotos` llega como
+  // { [campoRepetidor]: [fotoOnull, fotoOnull, ...] } alineado por posición
+  // con las tarjetas ya existentes (ver public/alta.html, addCardA()).
+  if (contenido_fotos && typeof contenido_fotos === 'object' && Object.keys(contenido_fotos).length) {
+    const keys = CAMPOS_CON_FOTO_POR_TARJETA[order.sector] || [];
+    const contenido = order.contenido_principal || {};
+    let contenidoCambiado = false;
+    try {
+      for (const key of keys) {
+        const nuevasFotos = contenido_fotos[key];
+        if (!Array.isArray(nuevasFotos)) continue;
+        const items = contenido[key];
+        if (!Array.isArray(items)) continue;
+        for (let i = 0; i < nuevasFotos.length && i < items.length; i++) {
+          const foto = nuevasFotos[i];
+          if (!foto || !foto.base64) continue;
+          const buffer = Buffer.from(foto.base64, 'base64');
+          const ext = extensionDeArchivo(foto.filename, foto.mime);
+          items[i].foto_url = await supabase.uploadStorageFile(
+            SUPABASE_FOTOS_BUCKET, client.id + '/' + key + '-' + (i + 1) + '.' + ext, buffer, foto.mime
+          );
+          contenidoCambiado = true;
+        }
+      }
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudieron subir las fotos de las tarjetas: ' + e.message });
+    }
+    if (contenidoCambiado) {
+      await db.updateOrder(order.id, { contenido_principal: contenido });
+    }
   }
 
   if (Object.keys(patch).length) {

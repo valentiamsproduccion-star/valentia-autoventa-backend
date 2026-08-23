@@ -408,6 +408,34 @@ async function main() {
   console.log('    la vista previa recargada ya usa el color nuevo:', previewReflejaColor ? 'SI' : 'NO');
   if (!previewReflejaColor) throw new Error('La vista previa no reflejó el cambio de color en directo');
 
+  // 9c) DOMINIO ELEGIDO EN DIRECTO -- se guarda en el cliente aunque no se
+  // vuelva a pulsar "Generar vista previa" antes de "Continuar al pago" (ver
+  // public/alta.html, radio del dominio, y el bug real que motivó esto).
+  const aparienciaDominioResp = await request('POST', '/api/alta/' + altaConLogoResp.body.orderId + '/apariencia', {
+    dominio_elegido: { nombre: 'clinica-smoke', tld: 'es' },
+  });
+  if (aparienciaDominioResp.statusCode !== 200) throw new Error('Fallo al guardar dominio_elegido en directo');
+  const clienteTrasDominio = await db.getClient(altaConLogoResp.body.clientId);
+  const dominioGuardado = clienteTrasDominio.dominio_elegido && clienteTrasDominio.dominio_elegido.nombre === 'clinica-smoke' && clienteTrasDominio.dominio_elegido.tld === 'es';
+  console.log('9c) dominio_elegido guardado en directo sin volver a generar la vista previa:', dominioGuardado ? 'SI' : 'NO (' + JSON.stringify(clienteTrasDominio.dominio_elegido) + ')');
+  if (!dominioGuardado) throw new Error('dominio_elegido no se guardó vía apariencia en directo');
+
+  // 9d) FOTO DE TARJETA EN DIRECTO -- actualiza solo item.foto_url dentro de
+  // contenido_principal.equipo[0], sin tocar el resto del texto generado.
+  const ordenAntesDeFoto = await db.getOrder(altaConLogoResp.body.orderId);
+  const teniaEquipo = Array.isArray(ordenAntesDeFoto.contenido_principal && ordenAntesDeFoto.contenido_principal.equipo) && ordenAntesDeFoto.contenido_principal.equipo.length > 0;
+  if (!teniaEquipo) throw new Error('El pedido de prueba no tiene contenido_principal.equipo -- no se puede probar contenido_fotos');
+  const nombreOriginalEquipo = ordenAntesDeFoto.contenido_principal.equipo[0].nombre;
+  const aparienciaFotoResp = await request('POST', '/api/alta/' + altaConLogoResp.body.orderId + '/apariencia', {
+    contenido_fotos: { equipo: [{ filename: 'equipo1.png', mime: 'image/png', base64: FAKE_PNG_BASE64 }] },
+  });
+  if (aparienciaFotoResp.statusCode !== 200) throw new Error('Fallo al guardar la foto de tarjeta en directo');
+  const ordenTrasFoto = await db.getOrder(altaConLogoResp.body.orderId);
+  const fotoGuardada = !!(ordenTrasFoto.contenido_principal.equipo[0].foto_url);
+  const textoIntacto = ordenTrasFoto.contenido_principal.equipo[0].nombre === nombreOriginalEquipo;
+  console.log('9d) foto de tarjeta (equipo[0]) actualizada en directo:', fotoGuardada ? 'SI' : 'NO', '-- texto de la tarjeta intacto:', textoIntacto ? 'SI' : 'NO');
+  if (!fotoGuardada || !textoIntacto) throw new Error('La foto de tarjeta en directo no funcionó como se esperaba');
+
   // Guardarraíl: una vez el pedido deja de ser 'draft' (pago iniciado o
   // completado), ya no debe admitir cambios de apariencia en directo -- así
   // un orderId adivinado no puede tocar la web de un cliente ya vendida.
