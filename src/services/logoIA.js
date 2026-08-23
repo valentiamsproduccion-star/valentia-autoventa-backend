@@ -53,8 +53,79 @@ const ESTILOS = [
   },
 ];
 
+// Convierte las respuestas del bloque "Personaliza tu logo" (ver
+// public/alta.html, collectLogoBrief()) en frases sueltas para añadir al
+// prompt. Todos los campos son opcionales -- un brief vacío o undefined no
+// añade nada, así que el comportamiento sin respuestas es idéntico al de
+// antes.
+function frasesDelBrief(brief) {
+  if (!brief) return [];
+  const frases = [];
+
+  if (brief.texto_o_simbolo === 'con_texto') {
+    frases.push(
+      'Incluye el nombre del negocio integrado en el propio diseño del logo, con una tipografía que combine bien con el icono.'
+    );
+  } else if (brief.texto_o_simbolo === 'solo_simbolo') {
+    frases.push(
+      'Diseña SOLO un símbolo o icono, sin ningún texto ni letras en la imagen -- el nombre del negocio se añadirá aparte, fuera del logo.'
+    );
+  }
+
+  if (Array.isArray(brief.personalidad) && brief.personalidad.length) {
+    frases.push('La marca debe transmitir: ' + brief.personalidad.join(', ') + '.');
+  }
+
+  if (brief.paleta_colores) {
+    frases.push('Paleta de colores preferida por el cliente: ' + brief.paleta_colores + '.');
+  }
+  if (brief.colores_evitar) {
+    frases.push('Evita estos colores: ' + brief.colores_evitar + '.');
+  }
+
+  if (brief.abstracto_o_figurativo === 'abstracto') {
+    frases.push('Usa un símbolo abstracto o geométrico, no un objeto literal.');
+  } else if (brief.abstracto_o_figurativo === 'figurativo') {
+    frases.push('Usa un elemento figurativo reconocible que represente la actividad del negocio.');
+  }
+
+  if (brief.elemento) {
+    frases.push('Si encaja bien con el diseño, incorpora este elemento: ' + brief.elemento + '.');
+  }
+
+  if (brief.referencias) {
+    frases.push(
+      'Referencia de estilo que le gusta al cliente (inspírate en la sensación general, NO copies ningún logo real ni marca existente): ' +
+        brief.referencias +
+        '.'
+    );
+  }
+
+  if (brief.evitar) {
+    frases.push('Evita esto: ' + brief.evitar + '.');
+  }
+
+  if (brief.cliente_ideal) {
+    frases.push('El cliente ideal de este negocio es: ' + brief.cliente_ideal + '.');
+  }
+
+  if (brief.tono === 'serio') {
+    frases.push('Tono serio y formal.');
+  } else if (brief.tono === 'cercano') {
+    frases.push('Tono cercano y desenfadado.');
+  }
+
+  if (brief.uso_fisico) {
+    frases.push(
+      'El logo también se usará impreso en rótulos, vehículos o uniformes, así que debe funcionar bien reducido a un solo color (blanco o negro), sin depender del color para leerse.'
+    );
+  }
+
+  return frases;
+}
+
 function construirPromptBase(datosBase) {
-  const { nombre_negocio, sector, tipo_negocio, ciudad } = datosBase || {};
+  const { nombre_negocio, sector, tipo_negocio, ciudad, brief } = datosBase || {};
   let prompt =
     'Diseña un logotipo profesional para un negocio real llamado "' + (nombre_negocio || '') + '"';
   if (tipo_negocio) prompt += ', del tipo "' + tipo_negocio + '"';
@@ -65,6 +136,10 @@ function construirPromptBase(datosBase) {
     'Fondo blanco sólido y liso (para poder recortarlo después), sin marcas de agua, ' +
     'sin texto de relleno ni lorem ipsum, sin bordes ni marcos decorativos alrededor del lienzo, ' +
     'sin firmas ni watermarks de IA.';
+
+  const frasesBrief = frasesDelBrief(brief);
+  if (frasesBrief.length) prompt += ' ' + frasesBrief.join(' ');
+
   return prompt;
 }
 

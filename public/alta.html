@@ -27,6 +27,9 @@
   button.add{margin-top:10px;background:#fff;border:1px solid #D1D5DB;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:13.5px}
   .spinner{width:16px;height:16px;border:2px solid #D1D5DB;border-top-color:#20242E;border-radius:50%;flex:none;animation:girar .7s linear infinite}
   @keyframes girar{to{transform:rotate(360deg)}}
+  #logo-ia-preguntas{border:1px solid #D1D5DB;border-radius:8px;padding:12px 14px;margin-top:12px;background:#FAFAFA}
+  #logo-ia-preguntas summary{cursor:pointer;font-weight:500;font-size:13.5px}
+  #logo-ia-preguntas[open] summary{margin-bottom:4px}
   button.add:disabled{opacity:.4;cursor:default}
   button.add.small{font-size:12px;padding:6px 10px;margin-top:6px}
   button.primary{background:#20242E;color:#fff;border:none;border-radius:6px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:24px}
@@ -193,7 +196,81 @@
   <p class="hint">La IA genera tu logo ANTES de pagar, con 3 propuestas para elegir. Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
 
   <div id="logo-ia-generador" style="display:none">
-    <button type="button" class="add" id="btn-generar-logo">Generar opciones de logo</button>
+    <details id="logo-ia-preguntas">
+      <summary>Personaliza tu logo <span class="opt">(opcional, cuanto más nos cuentes mejor acertará la IA)</span></summary>
+
+      <label style="margin-top:14px">¿Quieres el nombre del negocio incluido en el propio logo?</label>
+      <div class="via">
+        <label><input type="radio" name="logo_texto_o_simbolo" value=""> Que decida la IA</label>
+        <label><input type="radio" name="logo_texto_o_simbolo" value="con_texto"> Sí, con el nombre integrado</label>
+        <label><input type="radio" name="logo_texto_o_simbolo" value="solo_simbolo"> No, solo un símbolo/icono</label>
+      </div>
+
+      <label style="margin-top:14px">¿Qué quieres que transmita tu marca? <span class="opt">(elige hasta 3)</span></label>
+      <div class="via">
+        <label><input type="checkbox" name="logo_personalidad" value="confianza y seriedad"> Confianza y seriedad</label>
+        <label><input type="checkbox" name="logo_personalidad" value="cercania y calidez"> Cercanía y calidez</label>
+        <label><input type="checkbox" name="logo_personalidad" value="modernidad y tecnologia"> Modernidad y tecnología</label>
+        <label><input type="checkbox" name="logo_personalidad" value="lujo y exclusividad"> Lujo y exclusividad</label>
+        <label><input type="checkbox" name="logo_personalidad" value="diversion y energia"> Diversión y energía</label>
+        <label><input type="checkbox" name="logo_personalidad" value="tradicion y artesania"> Tradición y artesanía</label>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <div>
+          <label>¿Ya tienes una paleta de colores en mente?</label>
+          <input id="logo_paleta_colores" placeholder="Ej. azul marino y dorado, o tonos tierra">
+        </div>
+        <div>
+          <label>¿Hay algún color que NO quieras que aparezca?</label>
+          <input id="logo_colores_evitar" placeholder="Ej. rojo, nada de negro">
+        </div>
+      </div>
+
+      <label style="margin-top:14px">¿Prefieres un símbolo abstracto o algo que represente literalmente tu actividad?</label>
+      <div class="via">
+        <label><input type="radio" name="logo_abstracto_o_figurativo" value=""> Que decida la IA</label>
+        <label><input type="radio" name="logo_abstracto_o_figurativo" value="abstracto"> Abstracto / geométrico</label>
+        <label><input type="radio" name="logo_abstracto_o_figurativo" value="figurativo"> Figurativo (representa mi actividad)</label>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <div>
+          <label>¿Algún elemento que te gustaría ver reflejado?</label>
+          <input id="logo_elemento" placeholder="Ej. un pino, una taza de café, una llave inglesa">
+        </div>
+        <div>
+          <label>¿Referencias de estilo que te gusten?</label>
+          <input id="logo_referencias" placeholder="Ej. algo minimalista tipo marca escandinava">
+        </div>
+      </div>
+
+      <label style="margin-top:14px">¿Hay algo que quieras evitar?</label>
+      <input id="logo_evitar" placeholder="Ej. nada de tipografía cursiva, que no parezca low-cost">
+
+      <div class="row" style="margin-top:14px">
+        <div>
+          <label>¿Cómo describirías a tu cliente ideal?</label>
+          <input id="logo_cliente_ideal" placeholder="Ej. familias jóvenes, empresas locales, gente de 40-60 años...">
+        </div>
+        <div>
+          <label>Tono del logo</label>
+          <div class="via" style="margin-top:8px">
+            <label><input type="radio" name="logo_tono" value=""> Que decida la IA</label>
+            <label><input type="radio" name="logo_tono" value="serio"> Serio y formal</label>
+            <label><input type="radio" name="logo_tono" value="cercano"> Cercano y desenfadado</label>
+          </div>
+        </div>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-weight:500">
+        <input type="checkbox" id="logo_uso_fisico" style="width:auto">
+        Se usará también en algo físico (rótulo, vehículo, uniformes...)
+      </label>
+      <p class="hint">Si lo marcas, procuramos que el logo funcione bien incluso reducido a un solo color.</p>
+    </details>
+
+    <button type="button" class="add" id="btn-generar-logo" style="margin-top:14px">Generar opciones de logo</button>
     <div id="logo-ia-generando" style="display:none;align-items:center;gap:10px;margin-top:10px;padding:10px 14px;border-radius:8px;background:#F3F4F6">
       <span class="spinner" aria-hidden="true"></span>
       <span style="font-size:13px;color:#374151">Generando tu logo con IA… espera aquí, tardará hasta 30 segundos. No cierres ni recargues la página.</span>
@@ -1533,6 +1610,32 @@ function mostrarErrorLogoIa(msg) {
   logoIaErrorEl.textContent = msg || '';
 }
 
+// Recoge las respuestas del bloque "Personaliza tu logo" (todas opcionales,
+// ver public/alta.html sección "Logo y favicon"). Se envían tal cual al
+// backend (POST /api/logo/opciones) para que logoIA.js las incorpore al
+// prompt de generación -- ver services/logoIA.js, construirPromptBase().
+function collectLogoBrief() {
+  const radioVal = (name) => {
+    const el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  };
+  const textVal = (id) => document.getElementById(id).value.trim();
+  const personalidad = Array.from(document.querySelectorAll('input[name="logo_personalidad"]:checked')).map(el => el.value);
+  return {
+    texto_o_simbolo: radioVal('logo_texto_o_simbolo'),
+    personalidad,
+    paleta_colores: textVal('logo_paleta_colores'),
+    colores_evitar: textVal('logo_colores_evitar'),
+    abstracto_o_figurativo: radioVal('logo_abstracto_o_figurativo'),
+    elemento: textVal('logo_elemento'),
+    referencias: textVal('logo_referencias'),
+    evitar: textVal('logo_evitar'),
+    cliente_ideal: textVal('logo_cliente_ideal'),
+    tono: radioVal('logo_tono'),
+    uso_fisico: document.getElementById('logo_uso_fisico').checked,
+  };
+}
+
 async function generarOpcionesLogo() {
   mostrarErrorLogoIa('');
   logoIaOpcionesEl.style.display = 'none';
@@ -1566,6 +1669,7 @@ async function generarOpcionesLogo() {
         sector: sectorSel.value,
         tipo_negocio: tipoNegocioVal,
         ciudad: ciudadVal,
+        brief: collectLogoBrief(),
       }),
     });
     const data = await resp.json();

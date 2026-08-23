@@ -195,11 +195,15 @@ async function subirFotosPorTarjeta(clientId, sector, contenido) {
 // mano (ver más abajo, `logos`/`favicon`).
 router.post('/api/logo/opciones', async (req, res) => {
   const body = await readJsonBody(req, { maxBytes: 1 * 1024 * 1024 });
-  const { nombre_negocio, sector, tipo_negocio, ciudad } = body;
+  const { nombre_negocio, sector, tipo_negocio, ciudad, brief } = body;
   if (!nombre_negocio) {
     return sendJson(res, 400, { error: 'Falta el nombre del negocio para generar el logo.' });
   }
-  const opciones = await generarTresOpciones({ nombre_negocio, sector, tipo_negocio, ciudad });
+  // `brief` = respuestas opcionales del bloque "Personaliza tu logo" (ver
+  // public/alta.html) -- se reenvía tal cual, logoIA.js decide qué hacer con
+  // cada campo. Si el cliente no respondió nada, brief es undefined/{} y el
+  // comportamiento es idéntico al de antes.
+  const opciones = await generarTresOpciones({ nombre_negocio, sector, tipo_negocio, ciudad, brief });
   sendJson(res, 200, { opciones });
 });
 
