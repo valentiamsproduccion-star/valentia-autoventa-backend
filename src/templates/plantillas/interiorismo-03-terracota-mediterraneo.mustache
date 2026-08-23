@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F4EBDE">
+<title>{{nombre_negocio}} — Interiorismo</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · SERVICIOS PROFESIONALES · Interiorismo
+   Diseño 3: Terracota mediterráneo
+   ═══════════════════════════════════════ */
+:root{
+  --accent:#C1633B; --accent-mid:#A24E2C; --accent-dim:#F3DECD;
+  --ink:#3B2A20; --ink-soft:#8A7360; --cream:#FBF5EC; --white-pure:#F4EBDE; --line:#E4D5C2;
+  --serif:'Cormorant Garamond',serif; --sans:'Jost',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);background:var(--white-pure);color:var(--ink);line-height:1.7}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1}
+em{font-style:italic;color:var(--accent)}
+.wrap{max-width:1140px;margin:0 auto;padding:0 26px}
+header{padding:26px 0}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:var(--serif);font-style:italic;font-weight:600;font-size:27px;color:var(--accent-mid);display:flex;align-items:center;gap:9px}
+.logo img{height:32px;width:auto;display:block}
+nav ul{list-style:none;display:flex;gap:34px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+nav ul a{color:inherit;text-decoration:none}
+nav ul a:hover{color:var(--accent-mid)}
+.btn{display:inline-block;padding:14px 30px;font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:100px;cursor:pointer;border:none;text-align:center}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-mid)}
+.btn-line{border:1px solid var(--accent);color:var(--accent-mid);background:transparent}
+@media(max-width:760px){nav ul{display:none}}
+
+.hero{text-align:center;padding:70px 0 90px}
+.hero .eyebrow{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent-mid);margin-bottom:22px;display:inline-block}
+.hero h1{font-size:74px;max-width:14ch;margin:0 auto 20px;font-weight:500}
+@media(max-width:760px){.hero h1{font-size:44px}}
+.hero p{color:var(--ink-soft);font-size:17px;max-width:52ch;margin:0 auto 26px}
+.trust{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:center;color:var(--ink-soft);font-weight:500;font-size:13px;margin-bottom:18px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-frame{margin-top:56px;height:360px;border-radius:280px 280px 12px 12px;background:linear-gradient(160deg,#D8A67E,#B06B45);position:relative;overflow:hidden}
+.hero-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+section.blk{padding:96px 0}
+@media(max-width:760px){section.blk{padding:60px 0}}
+.head{text-align:center;max-width:640px;margin:0 auto 52px}
+.eyebrow-c{font-family:var(--sans);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-mid);display:block;margin-bottom:12px}
+.head h2{font-size:46px;font-weight:500}
+@media(max-width:760px){.head h2{font-size:32px}}
+.head p{color:var(--ink-soft);font-size:16px;margin-top:12px}
+
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:760px){.gallery{grid-template-columns:1fr}}
+.g{border-radius:200px 200px 10px 10px;overflow:hidden;height:340px;position:relative;color:#fff;display:flex;align-items:flex-end;justify-content:center;padding:26px;font-family:var(--serif);font-size:22px;font-style:italic}
+.g::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(59,42,32,.5))}
+.g span{position:relative;z-index:1}
+.g img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.g:nth-child(3n+1){background:linear-gradient(160deg,#D8A67E,#A9603C)}
+.g:nth-child(3n+2){background:linear-gradient(160deg,#C98F6B,#8E5232)}
+.g:nth-child(3n+3){background:linear-gradient(160deg,#E0B48C,#B4744A)}
+
+.serv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+@media(max-width:760px){.serv-grid{grid-template-columns:1fr}}
+.serv{border:1px solid var(--line);border-radius:14px;padding:32px;background:var(--white-pure)}
+.serv h3{font-size:26px;font-weight:600;margin-bottom:6px}
+.serv p{color:var(--ink-soft);font-size:14.5px}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;text-align:center}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+.step .n{width:52px;height:52px;margin:0 auto 14px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:24px;font-weight:600}
+.step h3{font-size:22px;margin-bottom:4px}
+.step p{color:var(--ink-soft);font-size:13.5px}
+
+.team{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+@media(max-width:760px){.team{grid-template-columns:1fr 1fr}}
+.member{text-align:center;background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:24px 14px}
+.member .ph{width:58px;height:58px;border-radius:50%;margin:0 auto 12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;font-family:var(--serif)}
+.member .name{font-weight:600;font-size:14.5px}
+.member .rol{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
+.member .cred{color:var(--ink-soft);font-size:11px;margin-top:5px;opacity:.75}
+
+.consulta-form-wrap{margin-top:44px;display:flex;justify-content:center}
+.form-card{background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:2rem;max-width:520px;width:100%}
+.form-card label{font-weight:600;color:var(--ink);font-size:13px;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:14.5px;font-family:var(--sans);outline:none;background:var(--white-pure);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.5}
+
+.testi{background:var(--accent-mid);color:#FBEEE3}
+.testi .head h2,.testi .head .eyebrow-c{color:#FBEEE3}
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+@media(max-width:760px){.quotes{grid-template-columns:1fr}}
+.quote{background:rgba(255,255,255,.08);border-radius:14px;padding:28px}
+.quote p{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.4;margin-bottom:16px}
+.quote .who{font-size:12.5px;color:rgba(255,255,255,.75)}
+.quote .who b{color:#fff;font-weight:600}
+
+.faq-item{border-bottom:1px solid var(--line);padding:22px 0;max-width:820px;margin:0 auto}
+.faq-item summary{font-size:24px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:22px;color:var(--accent-mid);flex:none;font-family:var(--sans)}
+.faq-item[open] summary::after{content:'−'}
+.faq-item p{color:var(--ink-soft);font-size:14.5px;margin-top:8px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1rem}
+.citem{display:flex;gap:14px;align-items:flex-start}
+.citem .ic{width:32px;height:32px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:13px;border-radius:50%}
+.citem h4{font-size:14px;font-weight:600}
+.citem p{font-size:13.5px;color:var(--ink-soft)}
+.map-embed{border:1px solid var(--line);border-radius:14px;aspect-ratio:4/3;overflow:hidden}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+.cta{text-align:center;padding:110px 24px}
+.cta h2{font-size:52px;font-weight:500;margin-bottom:14px}
+@media(max-width:760px){.cta h2{font-size:34px}}
+.cta p{color:var(--ink-soft);margin-bottom:30px;font-size:16px}
+
+footer{padding:36px 0;text-align:center;color:var(--ink-soft);font-size:13px;border-top:1px solid var(--line)}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;text-align:left}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:var(--accent-mid)}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11.5px;color:#A6947E;line-height:1.6}
+
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px;color:var(--ink);border:1px solid var(--line);border-radius:100px}
+.cta-bar .btn-primary{color:#fff;border-color:var(--accent);background:var(--accent)}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--accent-mid);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;opacity:.85;z-index:61;font-family:var(--sans);border-radius:100px}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}{{nombre_negocio}}{{/logo_url}}</div>
+    <nav><ul>
+      {{#hay_casos}}<li><a href="#proyectos">Proyectos</a></li>{{/hay_casos}}
+      <li><a href="areas.html">Servicios</a></li>
+      <li><a href="#consulta">Proceso</a></li>
+      {{#hay_faqs}}<li><a href="#faq">FAQ</a></li>{{/hay_faqs}}
+    </ul></nav>
+    <a class="btn btn-line" href="#consulta">Cuéntanos</a>
+  </div>
+</header>
+
+<div class="wrap">
+<section class="hero" style="padding-top:30px">
+  <div class="eyebrow">{{eyebrow_hero}}</div>
+  <h1>{{hero_title}}</h1>
+  <p>{{hero_subtitle}}</p>
+  <div class="trust">{{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}</div>
+  <div class="hero-cta">
+    {{#hay_casos}}<a class="btn btn-primary" href="#proyectos">Ver proyectos</a>{{/hay_casos}}
+    <a class="btn btn-line" href="#consulta">Cómo trabajamos</a>
+  </div>
+  <div class="hero-frame">{{#foto_hero_url}}<img src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}</div>
+</section>
+</div>
+
+{{#hay_casos}}
+<section class="blk" id="proyectos"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Proyectos</span><h2>{{h2_casos}}</h2><p>{{lead_casos}}</p></div>
+  <div class="gallery">{{#casos}}<div class="g">{{#foto_url}}<img src="{{foto_url}}" alt="{{titulo}}">{{/foto_url}}<span>{{titulo}}</span></div>{{/casos}}</div>
+</div></section>
+{{/hay_casos}}
+
+<section class="blk" id="servicios"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Servicios</span><h2>{{h2_areas}}</h2><p>{{lead_areas}}</p></div>
+  <div class="serv-grid">{{#areas}}<div class="serv"><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/areas}}</div>
+</div></section>
+
+<section class="blk" id="equipo"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Estudio</span><h2>Quién firma el proyecto</h2></div>
+  <div class="team">{{#equipo}}<div class="member">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">{{inicial_negocio}}</div>{{/foto_url}}<div class="name">{{nombre}}</div><div class="rol">{{rol}}</div><p class="cred">{{credencial}}</p></div>{{/equipo}}</div>
+</div></section>
+
+<section class="blk" id="consulta"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Proceso</span><h2>{{h2_consulta}}</h2><p>{{lead_consulta}}</p></div>
+  <div class="steps">{{#consulta_points}}<div class="step"><div class="n">{{n}}</div><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/consulta_points}}</div>
+  <div class="consulta-form-wrap">
+    <div class="form-card">
+      <div class="field"><label>Tipo de proyecto</label><select name="area">{{#areas}}<option>{{titulo}}</option>{{/areas}}<option>Aún no lo sé</option></select></div>
+      <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+      <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+      <div class="field"><label>Cuéntanos tu espacio</label><textarea placeholder="Escribe aquí..."></textarea></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;display:block;text-align:center">Pedir primera visita</a>
+      <p class="form-note">Al enviar este formulario aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+    </div>
+  </div>
+</div></section>
+
+{{#hay_testimonios}}
+<section class="blk testi"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Opiniones</span><h2>Clientes que ya viven su casa</h2></div>
+  <div class="quotes">{{#testimonios}}<div class="quote"><p>&quot;{{cita}}&quot;</p><div class="who"><b>{{nombre}}</b><br>{{contexto}}</div></div>{{/testimonios}}</div>
+</div></section>
+{{/hay_testimonios}}
+
+{{#hay_faqs}}
+<section class="blk" id="faq"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Preguntas frecuentes</span><h2>Antes de empezar</h2></div>
+  {{#faqs}}<details class="faq-item"><summary>{{pregunta}}</summary><p>{{respuesta}}</p></details>{{/faqs}}
+</div></section>
+{{/hay_faqs}}
+
+<section class="blk" id="contacto"><div class="wrap">
+  <div class="head"><span class="eyebrow-c">Contacto</span><h2>¿Damos vida a tu casa?</h2></div>
+  <div class="contact-grid">
+    <div class="contact-list">
+      <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+      <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+      <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-line" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+  </div>
+</div></section>
+
+<section class="cta" id="cta">
+  <h2>¿Damos vida a tu casa?</h2>
+  <p>Cuéntanos tu proyecto y te decimos cómo lo abordaríamos, sin compromiso.</p>
+  <a class="btn btn-primary" href="https://wa.me/{{telefono_wa}}">Pedir primera visita</a>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Interiorismo</div>
+      <div class="foot-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Política de privacidad</a><a href="cookies.html">Cookies</a></div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar"><a href="tel:{{telefono}}" class="btn">Llamar</a><a href="#consulta" class="btn btn-primary">Consulta</a></div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>

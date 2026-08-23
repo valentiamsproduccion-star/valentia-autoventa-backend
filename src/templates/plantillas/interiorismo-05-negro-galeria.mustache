@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0E0E0F">
+<title>{{nombre_negocio}} — Interiorismo</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · SERVICIOS PROFESIONALES · Interiorismo
+   Diseño 5: Negro galería boutique
+   ═══════════════════════════════════════ */
+:root{
+  --accent:#C9A66B; --accent-mid:#A8854F; --accent-dim:#3A3226;
+  --ink:#F1EFEA; --ink-soft:#93908A; --cream:#161617; --white-pure:#0E0E0F; --line:#2A2A2C;
+  --serif:'Sora',sans-serif; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);background:var(--white-pure);color:var(--ink);line-height:1.7}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.14;letter-spacing:-.01em}
+.wrap{max-width:1220px;margin:0 auto;padding:0 30px}
+header{padding:28px 0;position:absolute;top:0;left:0;right:0;z-index:5}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:var(--serif);font-weight:700;font-size:18px;letter-spacing:.12em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:9px}
+.logo img{height:28px;width:auto;display:block}
+nav ul{list-style:none;display:flex;gap:34px;font-size:13px;color:rgba(255,255,255,.75);letter-spacing:.04em}
+nav ul a{color:inherit;text-decoration:none}
+nav ul a:hover{color:#fff}
+.btn{display:inline-block;padding:14px 30px;font-family:var(--serif);font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;text-align:center}
+.btn-primary{background:var(--accent);color:#111}
+.btn-primary:hover{background:var(--accent-mid)}
+.btn-line{border:1px solid rgba(255,255,255,.3);color:#fff;background:transparent}
+@media(max-width:760px){nav ul{display:none}}
+
+.hero{position:relative;min-height:720px;display:flex;align-items:flex-end;background:linear-gradient(180deg,rgba(14,14,15,.3),rgba(14,14,15,.85)),linear-gradient(120deg,#3A3A3C,#131315);overflow:hidden}
+.hero-photo-bg{position:absolute;inset:0;object-fit:cover;width:100%;height:100%;z-index:-1}
+.hero-in{padding-bottom:80px}
+.hero .eyebrow{color:var(--accent);font-family:var(--serif);font-size:12px;letter-spacing:.24em;text-transform:uppercase;margin-bottom:22px;display:inline-block}
+.hero h1{font-size:64px;max-width:13em;margin-bottom:22px;text-transform:uppercase;letter-spacing:-.02em}
+@media(max-width:760px){.hero h1{font-size:36px}}
+.hero p{color:rgba(255,255,255,.75);font-size:17px;max-width:44ch;margin-bottom:26px}
+.trust{display:flex;flex-wrap:wrap;gap:10px 24px;color:rgba(255,255,255,.55);font-weight:600;font-size:12px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:20px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+
+section.blk{padding:110px 0}
+@media(max-width:760px){section.blk{padding:66px 0}}
+.head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:50px;flex-wrap:wrap;gap:16px}
+.head.centered{display:block;text-align:center;max-width:600px;margin:0 auto 50px}
+.eyebrow-c{color:var(--accent);font-family:var(--serif);font-size:12px;letter-spacing:.22em;text-transform:uppercase;display:block;margin-bottom:12px}
+.head h2{font-size:40px;text-transform:uppercase}
+@media(max-width:760px){.head h2{font-size:28px}}
+.head .note{color:var(--ink-soft);font-size:14px;max-width:32ch}
+.head p{color:var(--ink-soft);font-size:14px;margin-top:10px}
+
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.gallery{grid-template-columns:1fr}}
+.g{position:relative;overflow:hidden;color:#fff;display:flex;align-items:flex-end;padding:26px;min-height:380px}
+.g::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.6))}
+.g .cap{position:relative;z-index:1}
+.g .cap h3{font-size:22px;text-transform:uppercase;margin-bottom:2px}
+.g .cap span{color:rgba(255,255,255,.7);font-size:13px}
+.g img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.g.big{grid-column:span 2;min-height:460px}
+@media(max-width:760px){.g.big{grid-column:span 1}}
+.g:nth-child(4n+1){background:linear-gradient(135deg,#4A4A4D,#161618)}
+.g:nth-child(4n+2){background:linear-gradient(135deg,#3E3B38,#17140F)}
+.g:nth-child(4n+3){background:linear-gradient(135deg,#42474A,#15181A)}
+.g:nth-child(4n+4){background:linear-gradient(135deg,#4C463E,#171310)}
+
+.serv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+@media(max-width:860px){.serv-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.serv-grid{grid-template-columns:1fr}}
+.serv{background:var(--cream);padding:32px 26px}
+.serv .k{color:var(--accent);font-family:var(--serif);font-size:13px;margin-bottom:14px}
+.serv h3{font-size:19px;margin-bottom:8px}
+.serv p{color:var(--ink-soft);font-size:13.5px}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line)}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+.step{padding:30px 26px 30px 0;border-right:1px solid var(--line)}
+.step:last-child{border-right:none}
+@media(max-width:860px){.step{border-right:none;border-bottom:1px solid var(--line)}}
+.step .n{font-family:var(--serif);color:var(--accent);font-size:14px;letter-spacing:.1em;display:block;margin-bottom:12px}
+.step h3{font-size:18px;margin-bottom:6px}
+.step p{color:var(--ink-soft);font-size:13.5px}
+
+.team{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+@media(max-width:760px){.team{grid-template-columns:1fr 1fr}}
+.member{text-align:center;background:var(--cream);padding:26px 14px}
+.member .ph{width:58px;height:58px;border-radius:50%;margin:0 auto 12px;background:var(--accent);color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;font-family:var(--serif)}
+.member .name{font-weight:600;font-size:14px}
+.member .rol{color:var(--ink-soft);font-size:12px;margin-top:2px}
+.member .cred{color:var(--ink-soft);font-size:11px;margin-top:5px;opacity:.75}
+
+.consulta-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.6rem;align-items:start;margin-top:2rem}
+@media(max-width:860px){.consulta-grid{grid-template-columns:1fr}}
+.form-card{background:var(--cream);border:1px solid var(--line);padding:2rem}
+.form-card label{font-weight:600;color:#fff;font-size:13px;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);font-size:14.5px;font-family:var(--sans);outline:none;background:var(--white-pure);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.5}
+
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:760px){.quotes{grid-template-columns:1fr}}
+.quote{background:var(--cream);border:1px solid var(--line);padding:30px}
+.quote .stars{color:var(--accent);letter-spacing:3px;font-size:13px;margin-bottom:14px}
+.quote p{font-size:16px;line-height:1.55;margin-bottom:18px}
+.quote .who{color:var(--ink-soft);font-size:13px}
+.quote .who b{color:#fff;font-weight:600}
+
+.faq-item{border-bottom:1px solid var(--line);padding:24px 0;max-width:880px}
+.faq-item summary{font-family:var(--serif);font-size:18px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:20px;color:var(--accent);flex:none;font-family:var(--sans)}
+.faq-item[open] summary::after{content:'−'}
+.faq-item p{color:var(--ink-soft);font-size:14.5px;margin-top:8px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1rem}
+.citem{display:flex;gap:14px;align-items:flex-start}
+.citem .ic{width:32px;height:32px;background:var(--accent);color:#111;display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:13px}
+.citem h4{font-size:14px;font-weight:600;color:#fff}
+.citem p{font-size:13.5px;color:var(--ink-soft)}
+.map-embed{border:1px solid var(--line);aspect-ratio:4/3;filter:grayscale(.3) invert(.92) contrast(.9)}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+.cta{text-align:center;padding:120px 24px;border-top:1px solid var(--line)}
+.cta h2{font-size:46px;text-transform:uppercase;margin-bottom:16px}
+@media(max-width:760px){.cta h2{font-size:30px}}
+.cta p{color:var(--ink-soft);margin-bottom:30px}
+
+footer{padding:38px 0;text-align:center;color:var(--ink-soft);font-family:var(--serif);font-size:12px;letter-spacing:.06em;border-top:1px solid var(--line)}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;text-align:left}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:#fff}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11px;color:#6E6C67;line-height:1.6;letter-spacing:0;font-family:var(--sans)}
+
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(20,20,22,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px;color:#fff;border:1px solid var(--line)}
+.cta-bar .btn-primary{color:#111;border-color:var(--accent);background:var(--accent)}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--accent);color:#111;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;opacity:.9;z-index:61;font-family:var(--sans)}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}{{nombre_negocio}}{{/logo_url}}</div>
+    <nav><ul>
+      {{#hay_casos}}<li><a href="#proyectos">Proyectos</a></li>{{/hay_casos}}
+      <li><a href="areas.html">Servicios</a></li>
+      <li><a href="#consulta">Proceso</a></li>
+      {{#hay_faqs}}<li><a href="#faq">FAQ</a></li>{{/hay_faqs}}
+    </ul></nav>
+    <a class="btn btn-line" href="#consulta">Empezar un proyecto</a>
+  </div>
+</header>
+
+<section class="hero">
+  {{#foto_hero_url}}<img class="hero-photo-bg" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}
+  <div class="wrap hero-in">
+    <span class="eyebrow">{{eyebrow_hero}}</span>
+    <h1>{{hero_title}}</h1>
+    <p>{{hero_subtitle}}</p>
+    <div class="trust">{{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}</div>
+    <div class="hero-cta">
+      {{#hay_casos}}<a class="btn btn-primary" href="#proyectos">Ver proyectos</a>{{/hay_casos}}
+      <a class="btn btn-line" href="#consulta">Cómo trabajamos</a>
+    </div>
+  </div>
+</section>
+
+{{#hay_casos}}
+<section class="blk" id="proyectos"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Proyectos</span><h2>{{h2_casos}}</h2></div><p class="note">{{lead_casos}}</p></div>
+  <div class="gallery">{{#casos}}<div class="g">{{#foto_url}}<img src="{{foto_url}}" alt="{{titulo}}">{{/foto_url}}<div class="cap"><h3>{{titulo}}</h3><span>{{descripcion}}</span></div></div>{{/casos}}</div>
+</div></section>
+{{/hay_casos}}
+
+<section class="blk" id="servicios" style="background:var(--cream)"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Servicios</span><h2>{{h2_areas}}</h2></div><p class="note">{{lead_areas}}</p></div>
+  <div class="serv-grid">{{#areas}}<div class="serv"><div class="k">{{n}}</div><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/areas}}</div>
+</div></section>
+
+<section class="blk" id="equipo"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Estudio</span><h2>Quién firma el proyecto</h2></div></div>
+  <div class="team">{{#equipo}}<div class="member">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">{{inicial_negocio}}</div>{{/foto_url}}<div class="name">{{nombre}}</div><div class="rol">{{rol}}</div><p class="cred">{{credencial}}</p></div>{{/equipo}}</div>
+</div></section>
+
+<section class="blk" id="consulta" style="background:var(--cream)"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Proceso</span><h2>{{h2_consulta}}</h2></div><p class="note">{{lead_consulta}}</p></div>
+  <div class="consulta-grid">
+    <div class="steps" style="grid-template-columns:1fr;border-top:none">{{#consulta_points}}<div class="step" style="border-right:none;padding-left:0"><span class="n">{{n}}</span><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/consulta_points}}</div>
+    <div class="form-card">
+      <div class="field"><label>Tipo de proyecto</label><select name="area">{{#areas}}<option>{{titulo}}</option>{{/areas}}<option>Aún no lo sé</option></select></div>
+      <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+      <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+      <div class="field"><label>Cuéntanos tu espacio</label><textarea placeholder="Escribe aquí..."></textarea></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;display:block;text-align:center">Solicitar reunión</a>
+      <p class="form-note">Al enviar este formulario aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+    </div>
+  </div>
+</div></section>
+
+{{#hay_testimonios}}
+<section class="blk"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Opiniones</span><h2>Lo que dicen</h2></div></div>
+  <div class="quotes">{{#testimonios}}<div class="quote"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who"><b>{{nombre}}</b> · {{contexto}}</div></div>{{/testimonios}}</div>
+</div></section>
+{{/hay_testimonios}}
+
+{{#hay_faqs}}
+<section class="blk" id="faq" style="background:var(--cream)"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Preguntas frecuentes</span><h2>Antes de empezar</h2></div></div>
+  {{#faqs}}<details class="faq-item"><summary>{{pregunta}}</summary><p>{{respuesta}}</p></details>{{/faqs}}
+</div></section>
+{{/hay_faqs}}
+
+<section class="blk" id="contacto"><div class="wrap">
+  <div class="head"><div><span class="eyebrow-c">Contacto</span><h2>Creemos algo memorable</h2></div></div>
+  <div class="contact-grid">
+    <div class="contact-list">
+      <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+      <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+      <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-line" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+  </div>
+</div></section>
+
+<section class="cta" id="cta">
+  <h2>Creemos algo memorable</h2>
+  <p>Cuéntanos tu proyecto y te proponemos una visión, sin compromiso.</p>
+  <a class="btn btn-primary" href="https://wa.me/{{telefono_wa}}">Solicitar reunión</a>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Interiorismo</div>
+      <div class="foot-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Política de privacidad</a><a href="cookies.html">Cookies</a></div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar"><a href="tel:{{telefono}}" class="btn">Llamar</a><a href="#consulta" class="btn btn-primary">Consulta</a></div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>
