@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B0B0C">
+<title>{{nombre_negocio}} — Servicios legales</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · SERVICIOS PROFESIONALES · Abogacía
+   Diseño 3: Negro y oro premium
+   ═══════════════════════════════════════ */
+:root{
+  --accent:#C9A24B; --accent-mid:#A9822F; --accent-dim:#2A2417;
+  --ink:#141414; --ink-soft:#6B6B6B; --cream:#FFFFFF; --white-pure:#F7F6F3; --line:#E5E3DE;
+  --dark:#0B0B0C;
+  --serif:'Playfair Display',serif; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);color:var(--ink);line-height:1.65;background:var(--cream)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:700}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+header{padding:24px 0;background:var(--dark)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:var(--serif);font-weight:700;font-size:20px;color:#fff;display:flex;align-items:center;gap:9px}
+.logo img{height:32px;width:auto;display:block}
+.logo .mark{width:9px;height:9px;background:var(--accent);flex:none}
+nav ul{list-style:none;display:flex;gap:28px;font-size:13.5px;color:rgba(255,255,255,.65);font-weight:500}
+nav ul a{color:inherit;text-decoration:none}
+nav ul a:hover{color:var(--accent)}
+.btn{display:inline-block;padding:13px 24px;font-size:13.5px;font-weight:600;text-decoration:none;border:1px solid var(--accent);cursor:pointer;text-align:center;letter-spacing:.02em}
+.btn-primary{background:var(--accent);color:var(--dark)}
+.btn-primary:hover{background:var(--accent-mid);border-color:var(--accent-mid)}
+.btn-ghost{color:#fff;border-color:rgba(255,255,255,.28);background:transparent}
+.btn-ghost:hover{border-color:var(--accent)}
+@media(max-width:760px){nav ul{display:none}}
+
+.hero{background:var(--dark);padding:78px 0 90px}
+.hero-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+@media(max-width:860px){.hero-inner{grid-template-columns:1fr}}
+.eyebrow-pill{display:inline-block;color:var(--accent);font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:22px}
+.hero h1{font-size:41px;line-height:1.18;color:#fff;margin-bottom:20px}
+.hero p{color:rgba(255,255,255,.6);font-size:16px;max-width:460px;margin-bottom:30px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-photo{background:rgba(255,255,255,.05);border:1px solid rgba(201,162,75,.25);aspect-ratio:4/3;object-fit:cover;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-family:var(--serif);font-size:14px;text-align:center;padding:20px}
+.trust{display:flex;flex-wrap:wrap;gap:12px 26px;margin-top:26px;color:rgba(255,255,255,.55);font-weight:500;font-size:12.5px;letter-spacing:.02em;text-transform:uppercase}
+
+section.blk{padding:82px 0}
+.blk-dark{background:var(--dark);color:#fff}
+.section-head{text-align:center;max-width:600px;margin:0 auto 46px}
+.eyebrow-c{display:block;color:var(--accent);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px}
+.section-head h2{font-size:32px;margin-bottom:12px}
+.section-head p{color:var(--ink-soft);font-size:15.5px}
+.blk-dark .section-head p{color:rgba(255,255,255,.55)}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+@media(max-width:860px){.grid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid-3{grid-template-columns:1fr}}
+.card{background:#fff;padding:32px 28px}
+.icon-badge{color:var(--accent);font-family:var(--serif);font-size:28px;font-weight:700;margin-bottom:16px}
+.card h3{font-size:18px;margin-bottom:10px}
+.card p{color:var(--ink-soft);font-size:14.5px}
+
+.team{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.08)}
+@media(max-width:760px){.team{grid-template-columns:1fr 1fr}}
+.member{text-align:center;background:var(--dark);padding:28px 16px}
+.member .ph{aspect-ratio:1/1;border-radius:50%;width:68px;height:68px;margin:0 auto 14px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;font-family:var(--serif)}
+.member .name{font-family:var(--serif);font-weight:700;font-size:16px;color:#fff}
+.member .rol{color:var(--accent);font-size:12px;margin-top:4px;font-weight:600}
+.member .cred{color:rgba(255,255,255,.5);font-size:11.5px;margin-top:8px}
+
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:760px){.cases{grid-template-columns:1fr}}
+.case{border:1px solid var(--line)}
+.case .ph{aspect-ratio:16/10;background:var(--white-pure);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-family:var(--serif);font-size:13px}
+.case .info{padding:22px}
+.case h3{font-size:17px}
+.case p{color:var(--ink-soft);font-size:13.5px;margin-top:8px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08)}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{background:var(--dark);padding:32px 28px}
+.step .num{display:block;font-family:var(--serif);font-size:32px;font-weight:700;color:var(--accent);margin-bottom:14px}
+.step h3{font-size:17px;color:#fff;margin-bottom:8px}
+.step p{color:rgba(255,255,255,.55);font-size:14px}
+
+.consulta{background:var(--white-pure);border:1px solid var(--line);padding:3.2rem}
+@media(max-width:640px){.consulta{padding:2rem 1.4rem}}
+.consulta-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;margin-top:2.2rem}
+@media(max-width:860px){.consulta-grid{grid-template-columns:1fr}}
+.consulta-points{display:flex;flex-direction:column;gap:1.3rem}
+.cpoint{display:flex;gap:15px}
+.cpoint .ic{width:34px;height:34px;background:var(--dark);color:var(--accent);flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--serif)}
+.cpoint h4{font-size:15.5px;font-weight:600}
+.cpoint p{font-size:13.5px;color:var(--ink-soft);margin-top:3px}
+.form-card{background:#fff;border:1px solid var(--line);padding:1.9rem}
+.form-card label{font-weight:600;color:var(--ink);font-size:13px;display:block;margin-bottom:7px}
+.field{margin-bottom:15px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);font-size:14.5px;font-family:var(--sans);outline:none;background:var(--white-pure);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:var(--ink-soft);margin-top:12px;line-height:1.55}
+
+.testis{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+@media(max-width:760px){.testis{grid-template-columns:1fr}}
+.testi{background:#fff;border:1px solid var(--line);padding:1.6rem}
+.testi p{font-size:14.5px;color:var(--ink);font-style:italic}
+.testi .who{margin-top:14px;font-weight:700;font-size:12.5px}
+.testi .who span{display:block;font-weight:500;color:var(--ink-soft);font-size:11.5px;margin-top:2px}
+
+.faq-item{background:#fff;border:1px solid var(--line);padding:20px 26px;margin-bottom:12px}
+.faq-item summary{font-weight:600;font-size:15.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:20px;color:var(--accent);flex:none}
+.faq-item[open] summary::after{content:'−'}
+.faq-item p{color:var(--ink-soft);font-size:14px;margin-top:12px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1.1rem}
+.citem{display:flex;gap:14px;align-items:flex-start}
+.citem .ic{width:32px;height:32px;background:var(--dark);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:13px}
+.citem h4{font-size:14px;font-weight:600}
+.citem p{font-size:13.5px;color:var(--ink-soft)}
+.map-embed{border:1px solid var(--line);aspect-ratio:4/3}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+.cta-final{background:var(--dark);text-align:center;padding:64px 40px;border-top:1px solid rgba(201,162,75,.3);border-bottom:1px solid rgba(201,162,75,.3)}
+.cta-final h2{color:#fff;font-size:32px;margin-bottom:14px}
+.cta-final p{color:rgba(255,255,255,.6);margin-bottom:28px}
+
+footer{padding:34px 0;color:var(--ink-soft);font-size:13px}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:var(--accent-mid)}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11.5px;color:#A6A29A;line-height:1.6}
+
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px;color:var(--ink);border:1px solid var(--line)}
+.cta-bar .btn-primary{color:var(--dark);border-color:var(--accent);background:var(--accent)}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--dark);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border:1px solid var(--accent);opacity:.9;z-index:61;font-family:var(--sans)}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark"></span>{{nombre_negocio}}{{/logo_url}}</div>
+    <nav><ul>
+      <li><a href="areas.html">Áreas</a></li>
+      <li><a href="equipo.html">Equipo</a></li>
+      {{#hay_casos}}<li><a href="#casos">Casos</a></li>{{/hay_casos}}
+      <li><a href="contacto.html">Contacto</a></li>
+    </ul></nav>
+    <a class="btn btn-primary" href="#consulta">Pedir consulta</a>
+  </div>
+</header>
+
+<section class="hero"><div class="wrap hero-inner">
+  <div>
+    <span class="eyebrow-pill">{{eyebrow_hero}}</span>
+    <h1>{{hero_title}}</h1>
+    <p>{{hero_subtitle}}</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#consulta">Primera consulta gratis</a>
+      <a class="btn btn-ghost" href="tel:{{telefono}}">Llamar ahora</a>
+    </div>
+    <div class="trust">{{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}</div>
+  </div>
+  {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del despacho</div>{{/foto_hero_url}}
+</div></section>
+
+<section class="blk" id="areas"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Áreas de práctica</span><h2>{{h2_areas}}</h2><p>{{lead_areas}}</p></div>
+  <div class="grid-3">{{#areas}}<div class="card"><div class="icon-badge">{{n}}</div><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/areas}}</div>
+</div></section>
+
+<section class="blk blk-dark" id="equipo"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Equipo</span><h2>Quién lleva tu caso</h2><p>Profesionales colegiados, con especialización acreditada en cada área.</p></div>
+  <div class="team">{{#equipo}}<div class="member">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">{{inicial_negocio}}</div>{{/foto_url}}<div class="name">{{nombre}}</div><div class="rol">{{rol}}</div><p class="cred">{{credencial}}</p></div>{{/equipo}}</div>
+</div></section>
+
+{{#hay_casos}}
+<section class="blk" id="casos"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Casos</span><h2>{{h2_casos}}</h2><p>{{lead_casos}}</p></div>
+  <div class="cases">{{#casos}}<div class="case">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto / imagen</div>{{/foto_url}}<div class="info"><h3>{{titulo}}</h3><p>{{descripcion}}</p></div></div>{{/casos}}</div>
+</div></section>
+{{/hay_casos}}
+
+<section class="blk blk-dark" id="consulta"><div class="wrap">
+  <div class="consulta">
+    <div class="section-head"><span class="eyebrow-c">Primera consulta</span><h2>{{h2_consulta}}</h2><p>{{lead_consulta}}</p></div>
+    <div class="consulta-grid">
+      <div class="consulta-points">{{#consulta_points}}<div class="cpoint"><div class="ic">{{n}}</div><div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div></div>{{/consulta_points}}</div>
+      <div class="form-card">
+        <div class="field"><label>Área legal</label><select name="area">{{#areas}}<option>{{titulo}}</option>{{/areas}}<option>No lo sé, quiero que me orienten</option></select></div>
+        <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+        <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+        <div class="field"><label>Cuéntanos brevemente tu caso</label><textarea placeholder="Escribe aquí..."></textarea></div>
+        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;display:block">Enviar consulta</a>
+        <p class="form-note">Al enviar este formulario aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+{{#hay_testimonios}}
+<section class="blk"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Opiniones</span><h2>Lo que dicen nuestros clientes</h2></div>
+  <div class="testis">{{#testimonios}}<div class="testi"><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}<span>{{contexto}}</span></div></div>{{/testimonios}}</div>
+</div></section>
+{{/hay_testimonios}}
+
+{{#hay_faqs}}
+<section class="blk" id="faq"><div class="wrap" style="max-width:760px">
+  <div class="section-head"><span class="eyebrow-c">Preguntas frecuentes</span><h2>Antes de que preguntes</h2></div>
+  {{#faqs}}<details class="faq-item"><summary>{{pregunta}}</summary><p>{{respuesta}}</p></details>{{/faqs}}
+</div></section>
+{{/hay_faqs}}
+
+<section class="blk" id="contacto"><div class="wrap">
+  <div class="section-head" style="text-align:left;max-width:none;margin-bottom:0"><span class="eyebrow-c">Contacto</span><h2>Visítanos o escríbenos</h2></div>
+  <div class="contact-grid" style="margin-top:2.6rem">
+    <div class="contact-list">
+      <div class="citem"><div class="ic">§</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+      <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+      <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-ghost" style="margin-top:8px;width:fit-content;color:var(--ink);border-color:var(--line)">Escribir por WhatsApp</a>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+  </div>
+</div></section>
+
+<section class="cta-final">
+  <div class="wrap">
+    <h2>¿Hablamos de tu caso?</h2>
+    <p>Cuéntanos tu situación y te decimos, sin compromiso, cómo podemos ayudarte.</p>
+    <a class="btn btn-primary" href="https://wa.me/{{telefono_wa}}">Pedir primera consulta</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Servicios legales</div>
+      <div class="foot-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Política de privacidad</a><a href="cookies.html">Cookies</a></div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar"><a href="tel:{{telefono}}" class="btn">Llamar</a><a href="#consulta" class="btn btn-primary">Consulta</a></div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>
