@@ -385,6 +385,37 @@ async function main() {
   console.log('   vista previa usa <img> de logo en vez del avatar de iniciales:', previewUsaLogo ? 'SI' : 'NO');
   if (!previewUsaLogo) throw new Error('La vista previa no está usando el logo subido');
 
+  // 9b) VISTA PREVIA EN DIRECTO -- POST /api/alta/:orderId/apariencia debe
+  // actualizar el color/fuente del cliente SIN tocar el contenido, y la
+  // vista previa debe reflejarlo al momento (ver public/alta.html, sección
+  // "Vista previa en directo").
+  const aparienciaResp = await request('POST', '/api/alta/' + altaConLogoResp.body.orderId + '/apariencia', {
+    color_primario: '#123456', color_secundario: '', color_terciario: '', fuente_id: 'moderna',
+  });
+  console.log('9b) POST /api/alta/:orderId/apariencia ->', aparienciaResp.statusCode, aparienciaResp.body);
+  if (aparienciaResp.statusCode !== 200) throw new Error('Fallo al actualizar la apariencia en directo');
+  const clienteTrasApariencia = await db.getClient(altaConLogoResp.body.clientId);
+  const aparienciaOk = clienteTrasApariencia.color_primario === '#123456' && clienteTrasApariencia.fuente_id === 'moderna';
+  console.log('    color_primario/fuente_id actualizados en el cliente:', aparienciaOk ? 'SI' : 'NO (' + JSON.stringify({ color_primario: clienteTrasApariencia.color_primario, fuente_id: clienteTrasApariencia.fuente_id }) + ')');
+  if (!aparienciaOk) throw new Error('La apariencia en directo no actualizó el cliente');
+  const contenidoSinTocar = clienteTrasApariencia.logo_url === clienteConLogo.logo_url;
+  console.log('    el resto de campos del cliente (ej. logo_url) no se tocan:', contenidoSinTocar ? 'SI' : 'NO');
+  if (!contenidoSinTocar) throw new Error('La apariencia en directo tocó campos que no debía');
+
+  const previewTrasApariencia = await request('GET', '/preview/' + altaConLogoResp.body.orderId);
+  const previewReflejaColor = typeof previewTrasApariencia.raw === 'string' && previewTrasApariencia.raw.includes('#123456');
+  console.log('    la vista previa recargada ya usa el color nuevo:', previewReflejaColor ? 'SI' : 'NO');
+  if (!previewReflejaColor) throw new Error('La vista previa no reflejó el cambio de color en directo');
+
+  // Guardarraíl: una vez el pedido deja de ser 'draft' (pago iniciado o
+  // completado), ya no debe admitir cambios de apariencia en directo -- así
+  // un orderId adivinado no puede tocar la web de un cliente ya vendida.
+  await db.updateOrder(altaConLogoResp.body.orderId, { status: 'paid' });
+  const aparienciaTrasPagoResp = await request('POST', '/api/alta/' + altaConLogoResp.body.orderId + '/apariencia', { color_primario: '#000000' });
+  const bloqueadoTrasPago = aparienciaTrasPagoResp.statusCode === 409;
+  console.log('    tras marcar el pedido como pagado, la apariencia en directo queda bloqueada (409):', bloqueadoTrasPago ? 'SI' : 'NO (' + aparienciaTrasPagoResp.statusCode + ')');
+  if (!bloqueadoTrasPago) throw new Error('La apariencia en directo debería bloquearse tras el pago');
+
   // 10) ALTA sin logo, pidiendo que la IA lo diseñe (+15€) -- verifica que
   // el pedido queda marcado y que el checkout manda el price de 15€ como
   // line item extra (igual que la cuota inicial).

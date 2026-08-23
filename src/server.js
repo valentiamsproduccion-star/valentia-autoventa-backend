@@ -353,6 +353,68 @@ router.post('/api/alta', async (req, res) => {
   });
 });
 
+// ───────────────────────── 1a) VISTA PREVIA EN DIRECTO (apariencia) ───────
+// POST /api/alta/:orderId/apariencia -- una vez generada la primera vista
+// previa (POST /api/alta de arriba), el cliente puede seguir tocando color
+// de marca / fuente / logo / fotos del negocio y ver el resultado al
+// instante en el mismo iframe (ver public/alta.html, sección "Vista previa
+// en directo"). A propósito NO toca `contenido`/`contenido_principal` ni
+// vuelve a llamar a la IA -- solo actualiza los campos del CLIENTE que ya
+// pinta directamente la plantilla (mismos campos que datosBase en
+// /preview/:orderId), así que es instantáneo y sin coste.
+// Solo funciona mientras el pedido sigue en 'draft' (aún no se ha iniciado
+// el pago) -- evita que alguien use un orderId adivinado para tocar la
+// apariencia de una web ya vendida.
+router.post('/api/alta/:orderId/apariencia', async (req, res, params) => {
+  const order = await db.getOrder(params.orderId);
+  if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
+  if (order.status !== 'draft') {
+    return sendJson(res, 409, { error: 'Este pedido ya no admite cambios en directo.' });
+  }
+  const client = await db.getClient(order.client_id);
+  if (!client) return sendJson(res, 404, { error: 'Cliente no encontrado.' });
+
+  // Límite igual que /api/alta: los archivos de logo/favicon/fotos viajan en
+  // base64 dentro del mismo JSON.
+  const body = await readJsonBody(req, { maxBytes: 15 * 1024 * 1024 });
+  const { color_primario, color_secundario, color_terciario, fuente_id, logos, favicon, fotos } = body;
+
+  const patch = {};
+  if (color_primario !== undefined) patch.color_primario = color_primario;
+  if (color_secundario !== undefined) patch.color_secundario = color_secundario;
+  if (color_terciario !== undefined) patch.color_terciario = color_terciario;
+  if (fuente_id !== undefined) patch.fuente_id = fuente_id;
+
+  if ((Array.isArray(logos) && logos.length) || (favicon && favicon.base64)) {
+    let logoInfo;
+    try {
+      logoInfo = await subirLogoYFavicon(client.id, logos, favicon);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudo subir el logo/favicon: ' + e.message });
+    }
+    if (logoInfo.logo_url) patch.logo_url = logoInfo.logo_url;
+    if (logoInfo.logo_urls.length) patch.logo_urls = logoInfo.logo_urls;
+    if (logoInfo.favicon_url) patch.favicon_url = logoInfo.favicon_url;
+  }
+
+  if (fotos && typeof fotos === 'object' && Object.keys(fotos).length) {
+    let fotosInfo;
+    try {
+      fotosInfo = await subirFotosSector(client.id, fotos);
+    } catch (e) {
+      return sendJson(res, 500, { error: 'No se pudieron subir las fotos: ' + e.message });
+    }
+    if (fotosInfo.foto_hero_url) patch.foto_hero_url = fotosInfo.foto_hero_url;
+    if (fotosInfo.foto_secundaria_url) patch.foto_secundaria_url = fotosInfo.foto_secundaria_url;
+    if (fotosInfo.galeria_urls.length) patch.galeria_urls = fotosInfo.galeria_urls;
+  }
+
+  if (Object.keys(patch).length) {
+    await db.updateClient(client.id, patch);
+  }
+  sendJson(res, 200, { ok: true });
+});
+
 // ───────────────────────── 1b) DISPONIBILIDAD DE DOMINIO ─────────────────
 // GET /api/dominio/disponibilidad?nombre=X&tlds=es,com -- lo llama el alta
 // (public/alta.html, sección "Tu dominio") antes de pagar, para que el

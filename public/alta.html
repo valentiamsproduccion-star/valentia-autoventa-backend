@@ -6,7 +6,18 @@
 <title>Crea tu web — Valentia</title>
 <style>
   *{box-sizing:border-box}
-  body{font-family:-apple-system,'Instrument Sans',Arial,sans-serif;max-width:760px;margin:0 auto;padding:32px 20px 80px;color:#20242E;line-height:1.5}
+  body{font-family:-apple-system,'Instrument Sans',Arial,sans-serif;max-width:1440px;margin:0 auto;padding:32px 20px 80px;color:#20242E;line-height:1.5}
+  .form-col{max-width:760px}
+  .preview-col{margin-top:28px}
+  #preview-placeholder{padding:22px 20px;border:1px dashed #D1D5DB;border-radius:8px;color:#6B7280;text-align:center}
+  /* Por debajo de 1180px el formulario y la vista previa van en una sola
+     columna (mismo comportamiento de siempre) -- a partir de ahí, dos
+     columnas con la vista previa fija a la derecha mientras se rellena el
+     formulario (ver JS, sección "Vista previa en directo"). */
+  @media (min-width:1180px){
+    .alta-layout{display:grid;grid-template-columns:minmax(0,760px) minmax(360px,1fr);gap:36px;align-items:start}
+    .preview-col{margin-top:0;position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto}
+  }
   h1{font-size:26px;margin-bottom:4px}
   h2{font-size:18px;margin:32px 0 12px;padding-top:16px;border-top:1px solid #E5E7EB}
   h3.block-title{font-size:15px;margin:22px 0 4px}
@@ -98,6 +109,9 @@
 
 <h1>Crea tu web</h1>
 <p class="hint">Formulario de alta — ver el diseño completo campo a campo en "Formulario de Alta — Sectores MVP".</p>
+
+<div class="alta-layout">
+<div class="form-col">
 
 <div id="borrador-banner" style="display:none;margin-top:16px;padding:14px 16px;border-radius:8px;background:#EFF6FF;border:1px solid #BFDBFE;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
   <span id="borrador-banner-texto">Hemos recuperado un borrador que no llegaste a enviar.</span>
@@ -372,19 +386,31 @@
 
 <button class="primary" id="btn-generar">Generar vista previa</button>
 <div id="error"></div>
-<div id="resultado">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-    <strong>Vista previa generada.</strong>
-    <div style="display:flex;gap:8px">
-      <button type="button" class="add small" id="btn-preview-fullscreen">Ver a pantalla completa</button>
-      <button type="button" class="add small" id="btn-preview-newtab">Abrir en pestaña nueva</button>
+
+</div><!-- /.form-col -->
+
+<div class="preview-col">
+  <div id="preview-placeholder">
+    <strong>Vista previa en directo</strong>
+    <p class="hint" style="margin-top:6px">Rellena el formulario y pulsa "Generar vista previa". A partir de ahí, cada cambio de color, fuente, logo o fotos del negocio se refleja aquí al instante, sin esperas.</p>
+  </div>
+  <div id="resultado">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <strong>Vista previa generada.</strong>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="add small" id="btn-preview-fullscreen">Ver a pantalla completa</button>
+        <button type="button" class="add small" id="btn-preview-newtab">Abrir en pestaña nueva</button>
+      </div>
     </div>
+    <div id="preview-frame-wrap">
+      <iframe id="preview-frame"></iframe>
+    </div>
+    <p class="hint" id="preview-actualizando" style="display:none">Actualizando la vista previa…</p>
+    <button class="primary" id="btn-pagar">Continuar al pago</button>
   </div>
-  <div id="preview-frame-wrap">
-    <iframe id="preview-frame"></iframe>
-  </div>
-  <button class="primary" id="btn-pagar">Continuar al pago</button>
-</div>
+</div><!-- /.preview-col -->
+
+</div><!-- /.alta-layout -->
 
 <script>
 // ───────────────────────── Definición de campos por sector ─────────────────────────
@@ -1234,6 +1260,10 @@ function renderFotosSector(div) {
       inp.dataset.fotoIdx = String(i);
       wrap.appendChild(inp);
       attachFotoPreview(inp);
+      inp.addEventListener('change', () => solicitarAparienciaEnDirecto(async () => {
+        const fotos = await collectFotosSector(div);
+        return Object.keys(fotos).length ? { fotos } : {};
+      }));
     }
     if (FOTO_DIMENSIONES[foto.key]) {
       const dimHint = document.createElement('div');
@@ -1407,6 +1437,8 @@ function pintarColorPreview() {
   } else {
     colorPreviewEl.style.removeProperty('--cp-accent3');
   }
+
+  if (typeof solicitarAparienciaEnDirecto === 'function') solicitarAparienciaEnDirecto();
 }
 
 colorPickerEl.addEventListener('input', () => {
@@ -1462,9 +1494,66 @@ FUENTES.forEach(f => {
   card.addEventListener('click', () => {
     fuenteSeleccionada = f.id;
     fuenteGridEl.querySelectorAll('.fuente-card').forEach(c => c.classList.toggle('selected', c.dataset.fuenteId === f.id));
+    solicitarAparienciaEnDirecto();
   });
   fuenteGridEl.appendChild(card);
 });
+
+// ───────────────────────── Vista previa en directo ─────────────────────────
+// Una vez generada la primera vista previa (ultimoOrderId asignado más abajo,
+// tras el POST /api/alta), los siguientes cambios de color/fuente/logo/fotos
+// del negocio se mandan aquí para que se reflejen al instante en el mismo
+// iframe -- SIN volver a generar el contenido ni llamar a la IA (ver
+// server.js, POST /api/alta/:orderId/apariencia). En modo edición
+// post-compra (editToken) no se usa -- ese flujo ya tiene su propio guardado
+// (ver más abajo, "Guardar cambios").
+let aparienciaEnDirectoTimeout = null;
+
+function recargarPreviewFrame() {
+  const frame = document.getElementById('preview-frame');
+  if (!frame || !frame.src) return;
+  frame.src = frame.src.split('?')[0] + '?t=' + Date.now(); // evita ver la versión en caché
+}
+
+async function enviarAparienciaEnDirecto(extra) {
+  if (!ultimoOrderId || editToken) return;
+  const actualizandoEl = document.getElementById('preview-actualizando');
+  const body = Object.assign({
+    color_primario: colorHexEl.value.trim(),
+    color_secundario: colorSecundarioHexEl.value.trim(),
+    color_terciario: colorTerciarioHexEl.value.trim(),
+    fuente_id: fuenteSeleccionada !== 'clasica' ? fuenteSeleccionada : '',
+  }, extra || {});
+  try {
+    if (actualizandoEl) actualizandoEl.style.display = 'block';
+    const resp = await fetch('/api/alta/' + ultimoOrderId + '/apariencia', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    if (resp.ok) recargarPreviewFrame();
+  } catch (e) {
+    // Silencioso a propósito: es una actualización "de fondo" mientras el
+    // cliente sigue tocando el formulario, no queremos interrumpirle con un
+    // error por esto -- el próximo cambio (o "Generar vista previa" de
+    // nuevo) lo reintenta solo.
+  } finally {
+    if (actualizandoEl) actualizandoEl.style.display = 'none';
+  }
+}
+
+// `extraFn` (opcional, puede ser async) se evalúa DESPUÉS del debounce, no
+// antes -- así, si el cliente encadena varios cambios seguidos en el mismo
+// campo de archivo, no releemos/convertimos la foto a base64 en cada uno,
+// solo en el último.
+function solicitarAparienciaEnDirecto(extraFn) {
+  clearTimeout(aparienciaEnDirectoTimeout);
+  aparienciaEnDirectoTimeout = setTimeout(async () => {
+    let extra = {};
+    if (extraFn) {
+      try { extra = (await extraFn()) || {}; } catch (e) { return; }
+    }
+    enviarAparienciaEnDirecto(extra);
+  }, 600);
+}
 
 // ───────────────────────── Tu dominio ─────────────────────────
 // Lista cerrada de TLDs vendibles -- debe coincidir con
@@ -1728,6 +1817,16 @@ async function elegirOpcionLogo(opcion, btnElegido) {
     });
     logoIaResultadoEl.style.display = '';
     logoIaOpcionesEl.style.display = 'none';
+
+    // El logo elegido con IA también se refleja al instante en la vista
+    // previa en directo (ver más arriba), igual que un logo subido a mano.
+    solicitarAparienciaEnDirecto(() => ({
+      logos: [
+        { filename: 'logo-cuadrado.png', mime: logoIaFormatos.cuadrada.mime, base64: logoIaFormatos.cuadrada.base64 },
+        { filename: 'logo-apaisado.png', mime: logoIaFormatos.apaisada.mime, base64: logoIaFormatos.apaisada.base64 },
+      ],
+      favicon: { filename: 'favicon.png', mime: logoIaFormatos.favicon.mime, base64: logoIaFormatos.favicon.base64 },
+    }));
   } catch (e) {
     mostrarErrorLogoIa(e.message);
     Array.from(logoIaOpcionesGrid.querySelectorAll('.logo-ia-thumb')).forEach(b => { b.disabled = false; });
@@ -1833,6 +1932,19 @@ renderTodo();
 aplicarLogoToggle();
 attachFotoPreview(document.getElementById('logo_files'));
 attachFotoPreview(document.getElementById('favicon_file'));
+
+// Logo/favicon subidos a mano: en cuanto se elige archivo, se refleja en la
+// vista previa en directo (ver más arriba, "Vista previa en directo").
+function extraLogoEnDirecto() {
+  return Promise.all([collectLogoFiles(), collectFavicon()]).then(([logos, favicon]) => {
+    const extra = {};
+    if (logos.length) extra.logos = logos;
+    if (favicon) extra.favicon = favicon;
+    return extra;
+  });
+}
+document.getElementById('logo_files').addEventListener('change', () => solicitarAparienciaEnDirecto(extraLogoEnDirecto));
+document.getElementById('favicon_file').addEventListener('change', () => solicitarAparienciaEnDirecto(extraLogoEnDirecto));
 
 (function aplicarTipoDesdeURL() {
   const qp = new URLSearchParams(window.location.search);
@@ -2181,6 +2293,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error + (data.detalles ? '\n- ' + data.detalles.join('\n- ') : ''));
 
+    document.getElementById('preview-placeholder').style.display = 'none';
     document.getElementById('resultado').style.display = 'block';
     document.querySelector('#resultado strong').textContent = 'Cambios guardados. Así se ve tu web ahora:';
     document.getElementById('btn-pagar').style.display = 'none';
@@ -2337,6 +2450,7 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error + (data.detalles ? '\n- ' + data.detalles.join('\n- ') : ''));
     ultimoOrderId = data.orderId;
+    document.getElementById('preview-placeholder').style.display = 'none';
     document.getElementById('resultado').style.display = 'block';
     document.getElementById('preview-frame').src = data.previewUrl;
     if (window.__borrarBorradorAlta) window.__borrarBorradorAlta(); // vista previa generada con éxito -- el borrador ya no hace falta
