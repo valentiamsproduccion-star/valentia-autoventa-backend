@@ -11,6 +11,7 @@ process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_fake';
 process.env.STRIPE_PRICE_INICIAL = 'price_inicial_fake';
 process.env.STRIPE_PRICE_MENSUAL = 'price_mensual_fake';
 process.env.STRIPE_PRICE_SUPLEMENTO_PAGINA = 'price_suplemento_fake';
+process.env.STRIPE_PRICE_DOMINIO_PROPIO = 'price_dominio_fake';
 process.env.STRIPE_PRICE_LOGO_IA = 'price_logo_ia_fake';
 process.env.ANTHROPIC_API_KEY = 'sk-ant-fake';
 process.env.SUPABASE_URL = 'https://fake-smoketest.supabase.co';
@@ -439,6 +440,35 @@ async function main() {
   const precioLogoIaEnviado = typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_LOGO_IA));
   console.log('    price de logo IA (15€) incluido en la sesión de Stripe:', precioLogoIaEnviado ? 'SI' : 'NO');
   if (!precioLogoIaEnviado) throw new Error('El checkout no incluyó el price de logo con IA');
+
+  // 11a) ALTA con dominio propio elegido -- verifica que el checkout añade
+  // el suplemento de +2€/mes (STRIPE_PRICE_DOMINIO_PROPIO) como line item
+  // extra, y que SIN dominio elegido ese price no aparece (ver server.js,
+  // POST /api/checkout).
+  const altaConDominioResp = await request('POST', '/api/alta', {
+    sector: 'servicios-profesionales',
+    datosBase: {
+      nombre_negocio: 'Estudio Smoke', ciudad: 'Bilbao', telefono: '600444555', email: 'info@estudio-smoke.test',
+      razon_social: 'Estudio Smoke S.L.', forma_juridica: 'SL', nif_cif: 'B42345678', domicilio_fiscal: 'Gran Vía 1, 48001 Bilbao',
+      dominio_elegido: { nombre: 'estudio-smoke', tld: 'es' },
+    },
+    viaTexto: 'ia',
+    datosBrutos: { nombre_negocio: 'Estudio Smoke', tipo_negocio: 'Consultoría', ciudad: 'Bilbao', especialidades: ['Fiscal'], equipo: [{ nombre: 'Ana', rol: 'Socia', credencial: 'Colegiada 4' }], dato_confianza: '+3 años' },
+    paginaAdicional: false,
+  });
+  if (altaConDominioResp.statusCode !== 200) throw new Error('Fallo en /api/alta con dominio_elegido');
+  const checkoutConDominioResp = await request('POST', '/api/checkout', { orderId: altaConDominioResp.body.orderId });
+  console.log('11a) POST /api/checkout (con dominio elegido) ->', checkoutConDominioResp.statusCode, checkoutConDominioResp.body.checkoutUrl ? 'checkoutUrl OK' : checkoutConDominioResp.body);
+  if (checkoutConDominioResp.statusCode !== 200) throw new Error('Fallo en /api/checkout con dominio elegido');
+  const precioDominioEnviado = typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_DOMINIO_PROPIO));
+  console.log('    price de dominio propio (+2€/mes) incluido en la sesión de Stripe:', precioDominioEnviado ? 'SI' : 'NO');
+  if (!precioDominioEnviado) throw new Error('El checkout no incluyó el price de dominio propio');
+
+  const checkoutSinDominioResp = await request('POST', '/api/checkout', { orderId: altaLogoIaResp.body.orderId });
+  if (checkoutSinDominioResp.statusCode !== 200) throw new Error('Fallo en /api/checkout sin dominio elegido');
+  const precioDominioNoEnviado = !(typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_DOMINIO_PROPIO)));
+  console.log('    y NO se incluye para un pedido sin dominio elegido:', precioDominioNoEnviado ? 'SI' : 'NO');
+  if (!precioDominioNoEnviado) throw new Error('El checkout incluyó el price de dominio propio sin haberlo elegido');
 
   // 11b) DOMINIO PROPIO -- este entorno de prueba no define
   // OPENPROVIDER_USER/OPENPROVIDER_PASSWORD a propósito (ver openprovider.js,

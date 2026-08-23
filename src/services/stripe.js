@@ -95,7 +95,7 @@ function stripeRequest(urlPath, formObj) {
 // add_invoice_items para la cuota inicial. Los IDs de esos price se crean
 // una vez en el Dashboard de Stripe (o vía API en el setup) y se pasan por
 // variables de entorno -- no se crean productos al vuelo en cada compra.
-async function crearSesionCheckout({ priceMensualId, priceInicialId, priceSuplementoId, priceLogoIaId, successUrl, cancelUrl, clientReferenceId, metadata }) {
+async function crearSesionCheckout({ priceMensualId, priceInicialId, priceSuplementoId, priceDominioId, priceLogoIaId, successUrl, cancelUrl, clientReferenceId, metadata }) {
   const params = {
     mode: 'subscription',
     success_url: successUrl,
@@ -121,6 +121,13 @@ async function crearSesionCheckout({ priceMensualId, priceInicialId, priceSuplem
     // se añade como tercer line item recurrente en la misma sesión, en
     // vez de crear una segunda suscripción (Flujo, sección 3).
     params.line_items.push({ price: priceSuplementoId, quantity: 1 });
+  }
+  if (priceDominioId) {
+    // Suplemento por dominio propio (+2€/mes, cubre la renovación anual
+    // del registro -- ver services/openprovider.js) elegido ya en el alta
+    // (sección "Tu dominio"). Mismo patrón que priceSuplementoId: line item
+    // recurrente extra en la misma suscripción, no una suscripción aparte.
+    params.line_items.push({ price: priceDominioId, quantity: 1 });
   }
   if (priceLogoIaId) {
     // Logo diseñado por IA (pago único, ver formulario de alta -- casilla

@@ -39,6 +39,11 @@ const PRICE_INICIAL = process.env.STRIPE_PRICE_INICIAL;
 const PRICE_MENSUAL = process.env.STRIPE_PRICE_MENSUAL;
 const PRICE_SUPLEMENTO_PAGINA = process.env.STRIPE_PRICE_SUPLEMENTO_PAGINA; // 5€/mes, ver Flujo sección 3
 const PRICE_LOGO_IA = process.env.STRIPE_PRICE_LOGO_IA; // 15€, pago único -- ver formulario de alta, "Logo y favicon"
+// Dominio propio (+2€/mes, ver formulario de alta, "Tu dominio") -- cubre con
+// margen el coste real de registro/renovación anual (~8-15€/año según el
+// TLD, ver services/openprovider.js). Se cobra como cuota recurrente, no
+// como pago único, porque el coste real también se repite cada año.
+const PRICE_DOMINIO = process.env.STRIPE_PRICE_DOMINIO_PROPIO;
 
 // Bucket público de Supabase Storage donde se guardan los logos/favicons que
 // suben los clientes en el alta (ver src/services/supabase.js, uploadStorageFile).
@@ -514,6 +519,13 @@ router.post('/api/checkout', async (req, res) => {
   const { orderId } = await readJsonBody(req);
   const order = await db.getOrder(orderId);
   if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
+  const client = await db.getClient(order.client_id);
+  if (!client) return sendJson(res, 404, { error: 'Cliente no encontrado.' });
+  // `client.dominio_elegido` (si existe) llega desde el alta, sección "Tu
+  // dominio" -- ver más abajo, comprarDominioParaCliente(). Un dominio
+  // propio se cobra como suplemento recurrente (+2€/mes, cubre con margen
+  // la renovación anual real, ver services/openprovider.js).
+  const quiereDominio = !!(client.dominio_elegido && client.dominio_elegido.nombre && client.dominio_elegido.tld);
   if (!PRICE_INICIAL || !PRICE_MENSUAL) {
     return sendJson(res, 500, {
       error: 'Faltan STRIPE_PRICE_INICIAL / STRIPE_PRICE_MENSUAL en el .env. Créalos en el Dashboard de Stripe (modo test sirve para probar) y copia sus IDs.',
@@ -522,6 +534,11 @@ router.post('/api/checkout', async (req, res) => {
   if (order.pagina_adicional && !PRICE_SUPLEMENTO_PAGINA) {
     return sendJson(res, 500, {
       error: 'Este pedido incluye la página adicional pero falta STRIPE_PRICE_SUPLEMENTO_PAGINA en el .env.',
+    });
+  }
+  if (quiereDominio && !PRICE_DOMINIO) {
+    return sendJson(res, 500, {
+      error: 'Este pedido incluye dominio propio pero falta STRIPE_PRICE_DOMINIO_PROPIO en el .env.',
     });
   }
   if (order.logo_ia_solicitado && !PRICE_LOGO_IA) {
@@ -533,11 +550,13 @@ router.post('/api/checkout', async (req, res) => {
   // Si el cliente añadió la página adicional en el alta, el suplemento se
   // cobra como un tercer line item recurrente dentro de la misma sesión
   // (decisión de "Plantillas por Sector" sección 3: se compra ya activada).
-  // El logo con IA (+15€, pago único) se añade igual que la cuota inicial.
+  // Lo mismo para el dominio propio, si lo eligió. El logo con IA (+15€,
+  // pago único) se añade igual que la cuota inicial.
   const session = await crearSesionCheckout({
     priceMensualId: PRICE_MENSUAL,
     priceInicialId: PRICE_INICIAL,
     priceSuplementoId: order.pagina_adicional ? PRICE_SUPLEMENTO_PAGINA : null,
+    priceDominioId: quiereDominio ? PRICE_DOMINIO : null,
     priceLogoIaId: order.logo_ia_solicitado ? PRICE_LOGO_IA : null,
     successUrl: PUBLIC_BASE_URL + '/gracias?order=' + order.id,
     cancelUrl: PUBLIC_BASE_URL + '/preview/' + order.id,

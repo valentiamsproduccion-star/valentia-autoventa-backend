@@ -57,6 +57,9 @@ algo que se pueda automatizar por seguridad:
    - Un producto con un Price recurrente de 5€/mes (el suplemento de
      página adicional, ver "Plantillas por Sector" sección 3) →
      `STRIPE_PRICE_SUPLEMENTO_PAGINA`
+   - Un producto con un Price recurrente de 2€/mes (dominio propio, cuando
+     el cliente elige comprar uno en el alta, sección "Tu dominio") →
+     `STRIPE_PRICE_DOMINIO_PROPIO`
    - Un producto con un Price de pago único de 15€ (logo diseñado por IA,
      casilla del formulario de alta cuando el cliente no tiene logo propio)
      → `STRIPE_PRICE_LOGO_IA`
