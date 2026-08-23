@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#B3261E">
+<title>{{nombre_negocio}} — Asesoría fiscal, laboral y contable</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · SERVICIOS PROFESIONALES · Asesoría
+   Diseño 3: Clásico corporativo
+   ═══════════════════════════════════════ */
+:root{
+  --accent:#B3261E; --accent-mid:#8A1D17; --accent-dim:#F6E4E3;
+  --ink:#22262B; --ink-soft:#6B7178; --cream:#F7F7F5; --white-pure:#FFFFFF; --line:#E4E2DC;
+  --serif:'PT Serif',serif; --sans:'Source Sans 3',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);background:var(--cream);color:var(--ink);line-height:1.6}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:700;color:var(--ink)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+.utility{background:var(--ink);color:#D8D8D8;font-size:12.5px}
+.utility .wrap{display:flex;justify-content:flex-end;gap:24px;padding:8px 24px}
+header{background:#fff;border-bottom:3px solid var(--accent)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0;gap:16px}
+.logo{font-family:var(--serif);font-weight:700;font-size:23px;color:var(--ink);display:flex;align-items:center;gap:9px}
+.logo img{height:34px;width:auto;display:block}
+.logo span{color:var(--accent)}
+nav ul{list-style:none;display:flex;gap:26px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--ink)}
+nav ul a{color:inherit;text-decoration:none}
+nav ul a:hover{color:var(--accent)}
+.btn{display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;text-decoration:none;border-radius:3px;border:none;cursor:pointer;text-align:center}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-mid)}
+@media(max-width:760px){nav ul{display:none}}
+
+.hero{padding:0}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;min-height:440px}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr}}
+.hero-text{display:flex;flex-direction:column;justify-content:center;padding:60px 40px}
+.eyebrow{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.hero-text h1{font-size:40px;line-height:1.18;margin-bottom:18px}
+.hero-text p{color:var(--ink-soft);font-size:16px;margin-bottom:28px;max-width:440px}
+.hero-photo{background:linear-gradient(0deg,rgba(20,20,20,.15),rgba(20,20,20,.15)),repeating-linear-gradient(100deg,#8A8A8A 0 3px,#B0B0B0 3px 6px);filter:grayscale(1);object-fit:cover;min-height:220px}
+
+section.blk{padding:70px 0}
+.alt-bg{background:#F0EFEA}
+.section-head{text-align:center;max-width:600px;margin:0 auto 44px}
+.eyebrow-c{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;text-align:center;display:block}
+.section-head h2{font-size:30px;margin-bottom:12px}
+.section-head p{color:var(--ink-soft);font-size:15.5px}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:860px){.grid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid-3{grid-template-columns:1fr}}
+.card{background:var(--white-pure);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:4px;padding:30px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:19px;margin-bottom:10px}
+.card p{color:var(--ink-soft);font-size:14.5px}
+
+.team{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+@media(max-width:760px){.team{grid-template-columns:1fr 1fr}}
+.member{text-align:center;background:#fff;border:1px solid var(--line);border-radius:4px;padding:24px 16px}
+.member .ph{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;background:#DCD9D2;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:20px;color:var(--ink)}
+.member .name{font-weight:600;font-size:14.5px}
+.member .rol{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
+.member .cred{color:var(--ink-soft);font-size:11px;margin-top:5px;opacity:.75}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#fff;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{padding:32px 26px;border-right:1px solid var(--line);text-align:center}
+.step:last-child{border-right:none}
+@media(max-width:860px){.step{border-right:none;border-bottom:1px solid var(--line)}}
+.step .num{display:inline-flex;width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-weight:700;font-family:var(--serif);margin-bottom:14px}
+.step h3{font-size:16.5px;margin-bottom:8px}
+.step p{color:var(--ink-soft);font-size:14px}
+
+.consulta-form-wrap{margin-top:40px;display:flex;justify-content:center}
+.form-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:2rem;max-width:520px;width:100%}
+.form-card label{font-weight:600;color:var(--ink);font-size:13px;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:3px;font-size:14.5px;font-family:var(--sans);outline:none;background:var(--cream);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.5}
+
+.testis{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+@media(max-width:760px){.testis{grid-template-columns:1fr}}
+.testi{background:#fff;border:1px solid var(--line);border-radius:4px;padding:1.6rem}
+.testi p{font-size:14px;color:var(--ink);font-style:italic}
+.testi .who{margin-top:12px;font-weight:700;font-size:12.5px}
+.testi .who span{display:block;font-weight:500;color:var(--ink-soft);font-size:11.5px;margin-top:1px}
+
+.faq-item{background:#fff;border:1px solid var(--line);border-radius:4px;padding:22px 24px;margin-bottom:14px}
+.faq-item summary{font-weight:700;font-size:15.5px;margin-bottom:8px;color:var(--ink);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:20px;color:var(--accent);flex:none}
+.faq-item[open] summary::after{content:'−'}
+.faq-item p{color:var(--ink-soft);font-size:14.5px;margin-top:10px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1rem}
+.citem{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:4px;padding:16px}
+.citem .ic{width:32px;height:32px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:13px;border-radius:3px}
+.citem h4{font-size:14px;font-weight:600}
+.citem p{font-size:13.5px;color:var(--ink-soft)}
+.map-embed{border:1px solid var(--line);border-radius:4px;aspect-ratio:4/3}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+.cta-final{background:var(--ink);color:#fff;text-align:center;padding:64px 0}
+.cta-final h2{color:#fff;font-size:30px;margin-bottom:14px}
+.cta-final p{color:#C8C8C8;margin-bottom:26px}
+
+footer{background:#fff;border-top:1px solid var(--line);padding:26px 0;color:var(--ink-soft);font-size:13px}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:var(--accent)}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11.5px;color:#9A9A9A;line-height:1.6}
+
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px;color:var(--ink);border:1px solid var(--line)}
+.cta-bar .btn-primary{color:#fff;border-color:var(--accent);background:var(--accent)}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:3px;opacity:.9;z-index:61;font-family:var(--sans)}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<div class="utility"><div class="wrap">
+  <span>📞 {{telefono}}</span><span>✉ {{email}}</span>
+</div></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}{{nombre_negocio}}{{/logo_url}}</div>
+    <nav><ul>
+      <li><a href="areas.html">Áreas</a></li>
+      <li><a href="equipo.html">Equipo</a></li>
+      <li><a href="#consulta">Consulta</a></li>
+      {{#hay_faqs}}<li><a href="#faq">FAQ</a></li>{{/hay_faqs}}
+    </ul></nav>
+    <a class="btn btn-primary" href="#consulta">Contactar</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-text">
+      <div class="eyebrow">{{eyebrow_hero}}</div>
+      <h1>{{hero_title}}</h1>
+      <p>{{hero_subtitle}}</p>
+      <div><a class="btn btn-primary" href="#consulta">Primera consulta gratuita</a></div>
+    </div>
+    {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo"></div>{{/foto_hero_url}}
+  </div>
+</section>
+
+<section class="blk" id="areas"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Áreas de práctica</span><h2>{{h2_areas}}</h2><p>{{lead_areas}}</p></div>
+  <div class="grid-3">{{#areas}}<div class="card"><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/areas}}</div>
+</div></section>
+
+<section class="blk alt-bg" id="equipo"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Equipo</span><h2>Quién lleva su cuenta</h2></div>
+  <div class="team">{{#equipo}}<div class="member">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">{{inicial_negocio}}</div>{{/foto_url}}<div class="name">{{nombre}}</div><div class="rol">{{rol}}</div><p class="cred">{{credencial}}</p></div>{{/equipo}}</div>
+</div></section>
+
+<section class="blk" id="consulta"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Primera consulta</span><h2>{{h2_consulta}}</h2><p>{{lead_consulta}}</p></div>
+  <div class="steps">{{#consulta_points}}<div class="step"><div class="num">{{n}}</div><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/consulta_points}}</div>
+  <div class="consulta-form-wrap">
+    <div class="form-card">
+      <div class="field"><label>Área que le interesa</label><select name="area">{{#areas}}<option>{{titulo}}</option>{{/areas}}<option>No lo sé</option></select></div>
+      <div class="field"><label>Nombre</label><input type="text" placeholder="Su nombre"></div>
+      <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo le contactamos"></div>
+      <div class="field"><label>Cuéntenos brevemente su caso</label><textarea placeholder="Escriba aquí..."></textarea></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;display:block">Pedir primera consulta</a>
+      <p class="form-note">Al enviar este formulario acepta nuestra política de privacidad. Sus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+    </div>
+  </div>
+</div></section>
+
+{{#hay_testimonios}}
+<section class="blk alt-bg"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Opiniones</span><h2>Lo que dicen nuestros clientes</h2></div>
+  <div class="testis">{{#testimonios}}<div class="testi"><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}<span>{{contexto}}</span></div></div>{{/testimonios}}</div>
+</div></section>
+{{/hay_testimonios}}
+
+{{#hay_faqs}}
+<section class="blk" id="faq"><div class="wrap" style="max-width:760px">
+  <div class="section-head"><span class="eyebrow-c">Preguntas frecuentes</span><h2>Antes de que pregunte</h2></div>
+  {{#faqs}}<details class="faq-item"><summary>{{pregunta}}</summary><p>{{respuesta}}</p></details>{{/faqs}}
+</div></section>
+{{/hay_faqs}}
+
+<section class="blk alt-bg" id="contacto"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Contacto</span><h2>Visítenos o escríbanos</h2></div>
+  <div class="contact-grid">
+    <div class="contact-list">
+      <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+      <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+      <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn" style="margin-top:6px;width:fit-content;border:1px solid var(--line);color:var(--ink)">Escribir por WhatsApp</a>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+  </div>
+</div></section>
+
+<section class="cta-final">
+  <div class="wrap">
+    <h2>¿Hablamos de su caso?</h2>
+    <p>Cuéntenos su situación y le decimos, sin compromiso, cómo podemos ayudarle.</p>
+    <a class="btn btn-primary" href="https://wa.me/{{telefono_wa}}">Pedir primera consulta</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Asesoría fiscal, laboral y contable</div>
+      <div class="foot-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Política de privacidad</a><a href="cookies.html">Cookies</a></div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar"><a href="tel:{{telefono}}" class="btn">Llamar</a><a href="#consulta" class="btn btn-primary">Consulta</a></div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>
