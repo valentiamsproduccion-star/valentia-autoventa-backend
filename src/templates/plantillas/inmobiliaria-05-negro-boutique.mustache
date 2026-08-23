@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080A">
+<title>{{nombre_negocio}} — Inmobiliaria</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · SERVICIOS PROFESIONALES · Inmobiliaria
+   Diseño 5: Negro minimalista boutique
+   ═══════════════════════════════════════ */
+:root{
+  --accent:#3D6BFF; --accent-mid:#2E51CC; --accent-dim:#DDE5FF;
+  --ink:#111111; --ink-soft:#666666; --cream:#FFFFFF; --white-pure:#FAFAFA; --line:#E7E7E7;
+  --dark:#08080A; --dark-line:#232326; --muted:#9A9A9F;
+  --serif:'Archivo',sans-serif; --sans:'Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);background:var(--cream);color:var(--ink);line-height:1.6}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:700;letter-spacing:-.01em}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+header{padding:26px 0;background:var(--dark);border-bottom:1px solid var(--dark-line)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-weight:800;font-size:18px;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.logo img{height:30px;width:auto;display:block}
+nav ul{list-style:none;display:flex;gap:28px;font-size:14px;color:var(--muted);font-weight:600}
+nav ul a{color:inherit;text-decoration:none}
+nav ul a:hover{color:#fff}
+.btn{display:inline-block;padding:12px 22px;border-radius:100px;font-size:13.5px;font-weight:700;text-decoration:none;border:none;cursor:pointer;text-align:center}
+.btn-primary{background:#fff;color:var(--dark)}
+.btn-primary:hover{background:var(--white-pure)}
+.btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.25);background:transparent}
+@media(max-width:760px){nav ul{display:none}}
+
+.hero{background:var(--dark);padding:100px 0;text-align:center}
+.eyebrow{display:inline-block;color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:22px}
+.hero h1{font-size:50px;line-height:1.14;color:#fff;max-width:15em;margin:0 auto 22px}
+.hero p{color:var(--muted);font-size:16px;max-width:460px;margin:0 auto 32px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+.trust{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:center;color:var(--muted);font-weight:600;font-size:12px}
+
+section.blk{padding:80px 0}
+.alt-bg{background:var(--white-pure)}
+.section-head{text-align:center;max-width:600px;margin:0 auto 44px}
+.eyebrow-c{display:inline-block;color:var(--accent);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px}
+.section-head h2{font-size:32px;margin-bottom:10px}
+.section-head p{color:#666;font-size:15.5px}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:860px){.grid-3{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.card .ph{height:190px;background:linear-gradient(135deg,#1C1C1F,var(--dark));display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-family:var(--serif);font-size:13px}
+.card .ph img{width:100%;height:100%;object-fit:cover}
+.card-body{padding:22px}
+.card h3{font-size:18px;margin-bottom:6px}
+.card p{color:#666;font-size:13.5px}
+
+.team{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+@media(max-width:760px){.team{grid-template-columns:1fr 1fr}}
+.member{text-align:center;padding:24px 12px}
+.member .ph{width:58px;height:58px;border-radius:50%;margin:0 auto 12px;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.member .name{font-weight:700;font-size:14px}
+.member .rol{color:#666;font-size:12px;margin-top:2px}
+.member .cred{color:#888;font-size:11px;margin-top:5px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{border:1px solid var(--line);padding:26px}
+.step .n{font-weight:800;font-size:30px;color:var(--accent);margin-bottom:12px;display:block}
+.step h3{font-size:16px;margin-bottom:8px}
+.step p{color:#666;font-size:14px}
+
+.consulta-form-wrap{margin-top:40px;display:flex;justify-content:center}
+.form-card{background:#fff;border:1px solid var(--line);padding:2rem;max-width:520px;width:100%}
+.form-card label{font-weight:700;color:var(--ink);font-size:12.5px;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);font-size:14.5px;font-family:var(--sans);outline:none;background:var(--white-pure);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:#666;margin-top:10px;line-height:1.5}
+
+.testis{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+@media(max-width:760px){.testis{grid-template-columns:1fr}}
+.testi{background:#fff;border:1px solid var(--line);padding:1.6rem}
+.testi p{font-size:14px;color:var(--ink);font-style:italic}
+.testi .who{margin-top:12px;font-weight:700;font-size:12.5px}
+.testi .who span{display:block;font-weight:500;color:#666;font-size:11.5px;margin-top:1px}
+
+.faq-item{border-bottom:1px solid var(--line);padding:20px 0}
+.faq-item summary{font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:20px;color:var(--accent);flex:none}
+.faq-item[open] summary::after{content:'−'}
+.faq-item p{color:#666;font-size:14px;margin-top:10px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1rem}
+.citem{display:flex;gap:14px;align-items:flex-start}
+.citem .ic{width:32px;height:32px;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:13px}
+.citem h4{font-size:14px;font-weight:600}
+.citem p{font-size:13.5px;color:#666}
+.map-embed{border:1px solid var(--line);aspect-ratio:4/3}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+.cta-final{background:var(--dark);border-radius:2px;text-align:center;padding:64px 40px;margin:0 24px}
+.cta-final h2{color:#fff;font-size:32px;margin-bottom:14px}
+.cta-final p{color:var(--muted);margin-bottom:28px}
+.cta-final .btn-primary{background:#fff;color:var(--dark)}
+
+footer{padding:34px 0;color:#666;font-size:13px;text-align:center}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;text-align:left}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:var(--ink)}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11.5px;color:#9A9A9F;line-height:1.6}
+
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px;color:var(--ink);border:1px solid var(--line);border-radius:100px}
+.cta-bar .btn-primary{color:#fff;border-color:var(--dark);background:var(--dark)}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--dark);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;opacity:.85;z-index:61;font-family:var(--sans)}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}{{nombre_negocio}}{{/logo_url}}</div>
+    <nav><ul>
+      {{#hay_casos}}<li><a href="#propiedades">Propiedades</a></li>{{/hay_casos}}
+      <li><a href="equipo.html">Equipo</a></li>
+      <li><a href="#consulta">Vender</a></li>
+      {{#hay_faqs}}<li><a href="#faq">FAQ</a></li>{{/hay_faqs}}
+    </ul></nav>
+    <a class="btn btn-primary" href="#consulta">Valora tu vivienda</a>
+  </div>
+</header>
+
+<section class="hero"><div class="wrap">
+  <span class="eyebrow">{{eyebrow_hero}}</span>
+  <h1>{{hero_title}}</h1>
+  <p>{{hero_subtitle}}</p>
+  <div class="hero-cta">
+    {{#hay_casos}}<a class="btn btn-primary" href="#propiedades">Nuestras propiedades</a>{{/hay_casos}}
+    <a class="btn btn-ghost" href="#consulta">Vende con nosotros</a>
+  </div>
+  <div class="trust">{{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}</div>
+</div></section>
+
+<section class="blk" id="areas"><div class="wrap">
+  <div class="section-head"><div class="eyebrow-c">Servicios</div><h2>{{h2_areas}}</h2><p>{{lead_areas}}</p></div>
+  <div class="grid-3">{{#areas}}<div class="card"><div class="card-body"><h3>{{titulo}}</h3><p>{{descripcion}}</p></div></div>{{/areas}}</div>
+</div></section>
+
+{{#hay_casos}}
+<section class="blk alt-bg" id="propiedades"><div class="wrap">
+  <div class="section-head"><div class="eyebrow-c">Propiedades destacadas</div><h2>{{h2_casos}}</h2><p>{{lead_casos}}</p></div>
+  <div class="grid-3">{{#casos}}<div class="card">{{#foto_url}}<div class="ph"><img src="{{foto_url}}" alt="{{titulo}}"></div>{{/foto_url}}{{^foto_url}}<div class="ph">Foto de la propiedad</div>{{/foto_url}}<div class="card-body"><h3>{{titulo}}</h3><p>{{descripcion}}</p></div></div>{{/casos}}</div>
+</div></section>
+{{/hay_casos}}
+
+<section class="blk" id="equipo"><div class="wrap">
+  <div class="section-head"><div class="eyebrow-c">Equipo</div><h2>Personas, no solo anuncios</h2></div>
+  <div class="team">{{#equipo}}<div class="member">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{nombre}}">{{/foto_url}}{{^foto_url}}<div class="ph">{{inicial_negocio}}</div>{{/foto_url}}<div class="name">{{nombre}}</div><div class="rol">{{rol}}</div><p class="cred">{{credencial}}</p></div>{{/equipo}}</div>
+</div></section>
+
+<section class="blk alt-bg" id="consulta"><div class="wrap">
+  <div class="section-head"><div class="eyebrow-c">Vender con nosotros</div><h2>{{h2_consulta}}</h2><p>{{lead_consulta}}</p></div>
+  <div class="steps">{{#consulta_points}}<div class="step"><span class="n">{{n}}</span><h3>{{titulo}}</h3><p>{{descripcion}}</p></div>{{/consulta_points}}</div>
+  <div class="consulta-form-wrap">
+    <div class="form-card">
+      <h3 style="font-size:18px;margin-bottom:16px">Hablemos de tu propiedad</h3>
+      <div class="field"><label>Qué necesitas</label><select name="area">{{#areas}}<option>{{titulo}}</option>{{/areas}}<option>Aún no lo sé</option></select></div>
+      <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+      <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+      <div class="field"><label>Dirección de la propiedad</label><input type="text" placeholder="Calle y número"></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%;display:block;text-align:center">Contactar ahora</a>
+      <p class="form-note">Al enviar este formulario aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+    </div>
+  </div>
+</div></section>
+
+{{#hay_testimonios}}
+<section class="blk"><div class="wrap">
+  <div class="section-head"><div class="eyebrow-c">Opiniones</div><h2>Lo que dicen nuestros clientes</h2></div>
+  <div class="testis">{{#testimonios}}<div class="testi"><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}<span>{{contexto}}</span></div></div>{{/testimonios}}</div>
+</div></section>
+{{/hay_testimonios}}
+
+{{#hay_faqs}}
+<section class="blk alt-bg" id="faq"><div class="wrap" style="max-width:760px">
+  <div class="section-head"><div class="eyebrow-c">Preguntas frecuentes</div><h2>Antes de que preguntes</h2></div>
+  {{#faqs}}<details class="faq-item"><summary>{{pregunta}}</summary><p>{{respuesta}}</p></details>{{/faqs}}
+</div></section>
+{{/hay_faqs}}
+
+<section class="blk" id="contacto"><div class="wrap">
+  <div class="section-head"><div class="eyebrow-c">Contacto</div><h2>Visítanos o escríbenos</h2></div>
+  <div class="contact-grid" style="margin-top:1rem">
+    <div class="contact-list">
+      <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+      <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+      <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-ghost" style="margin-top:6px;width:fit-content;color:var(--ink);border-color:var(--line)">Escribir por WhatsApp</a>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+  </div>
+</div></section>
+
+<section class="blk"><div class="wrap">
+  <div class="cta-final">
+    <h2>Hablemos de tu propiedad</h2>
+    <p>Sin compromiso, sin letra pequeña. Solo una conversación clara.</p>
+    <a class="btn btn-primary" href="https://wa.me/{{telefono_wa}}">Contactar ahora</a>
+  </div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Inmobiliaria</div>
+      <div class="foot-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Política de privacidad</a><a href="cookies.html">Cookies</a></div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar"><a href="tel:{{telefono}}" class="btn">Llamar</a><a href="#consulta" class="btn btn-primary">Valorar</a></div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>
