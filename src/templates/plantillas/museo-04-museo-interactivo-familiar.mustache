@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F2A413">
+<title>{{nombre_negocio}} — Museo</title>
+<meta name="description" content="{{hero_subtitle}}">
+{{#favicon_url}}<link rel="icon" href="{{favicon_url}}">{{/favicon_url}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   PLANTILLA · OCIO Y CULTURA · Museo / centro cultural
+   Diseño 4: Museo interactivo familiar
+   ═══════════════════════════════════════ */
+:root{
+  --accent:#F2A413; --accent-mid:#D68F0A; --accent-dim:#FFF3D6;
+  --ink:#1E3A5F; --ink-soft:#5C7089; --cream:#FFFBF0; --white-pure:#FFFFFF; --line:#FCE8C2;
+  --serif:'Baloo 2',sans-serif; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--sans);color:var(--ink);line-height:1.65;background:var(--cream)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:700}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+header{padding:26px 0}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:var(--serif);font-weight:700;font-size:21px;color:var(--accent);display:flex;align-items:center;gap:9px}
+.logo img{height:32px;width:auto;display:block}
+.logo .mark{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#1E3A5F;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-family:var(--sans)}
+nav ul{list-style:none;display:flex;gap:26px;font-size:13.5px}
+nav ul a{color:var(--ink);text-decoration:none}
+nav ul a:hover{color:var(--accent)}
+.btn{display:inline-block;padding:13px 28px;border-radius:16px;font-size:13px;font-weight:600;text-decoration:none;border:none;cursor:pointer;text-align:center}
+.btn-primary{background:var(--accent);color:#1E3A5F}
+.btn-primary:hover{background:var(--accent-mid)}
+.btn-ghost{color:var(--ink);border:1px solid var(--line);background:#fff}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent-mid)}
+@media(max-width:760px){nav ul{display:none}}
+
+.hero{padding:56px 0 84px}
+.hero-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+@media(max-width:860px){.hero-inner{grid-template-columns:1fr}}
+.eyebrow-pill{display:inline-block;background:var(--accent-dim);color:var(--accent-mid);font-size:12.5px;font-weight:600;padding:8px 18px;border-radius:100px;margin-bottom:20px}
+.hero h1{font-size:38px;line-height:1.2;margin-bottom:18px}
+.hero p{color:var(--ink-soft);font-size:15px;max-width:420px;margin-bottom:26px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-photo{background:var(--accent-dim);border-radius:20px;aspect-ratio:4/3;object-fit:cover;display:flex;align-items:center;justify-content:center;color:var(--accent-mid);font-family:var(--serif);font-size:14px;text-align:center;padding:20px}
+.trust{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:22px;color:var(--ink-soft);font-weight:600;font-size:13px}
+.trust span{display:flex;align-items:center;gap:8px}
+.trust span::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+
+section.blk{padding:64px 0}
+.alt-bg{background:var(--accent-dim)}
+.section-head{text-align:center;max-width:580px;margin:0 auto 40px}
+.eyebrow-c{display:block;color:var(--accent-mid);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.section-head h2{font-size:28px}
+.section-head p{color:var(--ink-soft);font-size:14.5px;margin-top:10px}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:860px){.grid-3{grid-template-columns:1fr}}
+.unit{background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;border:2px solid var(--line)}
+.unit .ph{aspect-ratio:16/10;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;color:var(--accent-mid);font-family:var(--serif);font-size:13px}
+.unit .info{padding:22px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.unit .detalle{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-mid);background:var(--accent-dim);padding:5px 10px;border-radius:100px;align-self:flex-start}
+.unit h3{font-size:17px}
+.unit p{color:var(--ink-soft);font-size:13.5px}
+
+.tarifas{margin-top:0;max-width:680px}
+.trow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:1rem 0;border-bottom:1px dashed var(--line)}
+.trow .c{font-weight:600;font-size:15.5px}
+.trow .p{font-family:var(--serif);font-weight:700;font-size:16px;color:var(--accent-mid);flex:none}
+
+.reserva{background:var(--ink);color:#fff;border-radius:24px;padding:3rem}
+@media(max-width:640px){.reserva{padding:2rem 1.4rem;border-radius:18px}}
+.reserva .section-head h2,.reserva .section-head p{color:#fff}
+.reserva .section-head p{color:rgba(255,255,255,.75)}
+.reserva-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.6rem;align-items:start}
+@media(max-width:860px){.reserva-grid{grid-template-columns:1fr}}
+.reserva-points{display:flex;flex-direction:column;gap:1.2rem}
+.rpoint{display:flex;gap:14px}
+.rpoint .ic{width:36px;height:36px;border-radius:50%;background:var(--accent);flex:none;display:flex;align-items:center;justify-content:center;color:#1E3A5F;font-weight:700}
+.rpoint h4{font-size:15px;font-weight:600;color:#fff}
+.rpoint p{font-size:13.5px;color:rgba(255,255,255,.7);margin-top:3px}
+.form-card{background:#fff;border-radius:18px;padding:1.8rem}
+.form-card label{font-weight:600;color:var(--ink);font-size:13.5px;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.field2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14.5px;font-family:var(--sans);outline:none;background:var(--cream);color:var(--ink)}
+.field textarea{resize:vertical;min-height:80px}
+.form-note{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.5}
+
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+@media(max-width:760px){.reviews{grid-template-columns:1fr}}
+.review{background:#fff;border-radius:18px;padding:1.5rem;border:2px solid var(--line)}
+.review .stars{color:var(--accent-mid);font-size:14px;margin-bottom:10px}
+.review p{font-size:14px;color:var(--ink);font-style:italic}
+.review .who{margin-top:12px;font-weight:700;font-size:12.5px;color:var(--ink-soft)}
+
+.faq-wrap{max-width:720px;margin:0 auto}
+.faq details{border-bottom:1px solid var(--line);padding:18px 0}
+.faq summary{font-weight:600;font-size:15px;font-family:var(--serif);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';font-family:var(--sans);font-size:20px;color:var(--accent-mid);flex:none;transition:.2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{color:var(--ink-soft);font-size:13.5px;margin-top:10px}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;align-items:start}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.contact-list{display:flex;flex-direction:column;gap:1rem}
+.citem{display:flex;gap:14px;align-items:flex-start}
+.citem .ic{width:34px;height:34px;border-radius:50%;background:var(--accent-dim);color:var(--accent-mid);display:flex;align-items:center;justify-content:center;flex:none;font-weight:700;font-size:14px}
+.citem h4{font-size:14px;font-weight:600}
+.citem p{font-size:13.5px;color:var(--ink-soft)}
+.hours{background:#fff;border:2px solid var(--line);border-radius:14px;padding:1rem 1.2rem;margin-top:4px}
+.hrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.hrow:last-child{border-bottom:0}
+.hrow .d{font-weight:600}
+.hrow .h{color:var(--ink-soft)}
+.map-embed{border-radius:18px;overflow:hidden;aspect-ratio:4/3}
+.map-embed iframe{width:100%;height:100%;border:0}
+
+.cta-final{text-align:center;padding:60px 40px;background:var(--accent);color:#1E3A5F;border-radius:24px}
+.cta-final h2{color:#1E3A5F;font-size:28px;margin-bottom:14px}
+.cta-final p{color:rgba(30,58,95,.75);margin-bottom:22px}
+
+footer{padding:28px 0;color:var(--ink-soft);font-size:12.5px}
+.foot-grid{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a:hover{color:var(--accent-mid)}
+.legal-note{max-width:760px;margin:16px auto 0;text-align:center;font-size:11px;color:#9FADC0;line-height:1.6}
+
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:60}
+.wa-float svg{width:28px;height:28px}
+@media(max-width:600px){.wa-float{bottom:78px}}
+.cta-bar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:59;background:rgba(255,251,240,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 16px;gap:10px}
+.cta-bar .btn{flex:1;padding:.8rem 1rem;font-size:12px}
+@media(max-width:600px){.cta-bar{display:flex}}
+.tpl-badge{position:fixed;left:16px;bottom:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 14px;border-radius:100px;opacity:.85;z-index:61}
+@media(max-width:600px){.tpl-badge{bottom:78px}}
+@media(max-width:860px){.grid-3,.hero-inner{grid-template-columns:1fr} nav ul{display:none}}
+</style>
+</head>
+<body>
+
+{{#preview}}<div class="tpl-badge">VISTA PREVIA · {{nombre_negocio}}</div>{{/preview}}
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">{{#logo_url}}<img src="{{logo_url}}" alt="{{nombre_negocio}}">{{/logo_url}}{{^logo_url}}<span class="mark">{{inicial_negocio}}</span> {{nombre_negocio}}{{/logo_url}}</div>
+    <nav><ul>
+      <li><a href="actividades.html">Salas</a></li>
+      <li><a href="tarifas.html">Familias</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+    </ul></nav>
+    <a class="btn btn-primary" href="#reserva">Comprar entradas</a>
+  </div>
+</header>
+
+<section class="hero"><div class="wrap hero-inner">
+  <div>
+    <span class="eyebrow-pill">{{eyebrow_hero}}</span>
+    <h1>{{hero_title}}</h1>
+    <p>{{hero_subtitle}}</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#reserva">Comprar entradas</a>
+      <a class="btn btn-ghost" href="tel:{{telefono}}">Llamar ahora</a>
+    </div>
+    <div class="trust">{{#trust_badges}}<span>{{.}}</span>{{/trust_badges}}</div>
+  </div>
+  {{#foto_hero_url}}<img class="hero-photo" src="{{foto_hero_url}}" alt="{{nombre_negocio}}">{{/foto_hero_url}}{{^foto_hero_url}}<div class="hero-photo">Foto del museo</div>{{/foto_hero_url}}
+</div></section>
+
+<section class="blk" id="actividades"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Salas</span><h2>{{h2_actividades}}</h2><p>{{lead_actividades}}</p></div>
+  <div class="grid-3">{{#actividades}}<div class="unit">{{#foto_url}}<img class="ph" src="{{foto_url}}" alt="{{titulo}}">{{/foto_url}}{{^foto_url}}<div class="ph">Foto de la sala</div>{{/foto_url}}<div class="info">{{#detalle}}<span class="detalle">{{detalle}}</span>{{/detalle}}<h3>{{titulo}}</h3><p>{{descripcion}}</p></div></div>{{/actividades}}</div>
+</div></section>
+
+<section class="blk alt-bg" id="tarifas"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Tarifas</span><h2>{{h2_tarifas}}</h2><p>{{lead_tarifas}}</p></div>
+  <div class="tarifas">{{#tarifas}}<div class="trow"><span class="c">{{concepto}}</span><span class="p">{{precio}}</span></div>{{/tarifas}}</div>
+</div></section>
+
+<section class="blk" id="reserva"><div class="wrap">
+  <div class="reserva">
+    <div class="section-head" style="text-align:left;max-width:none;margin-bottom:0">
+      <span class="eyebrow-c" style="color:var(--accent)">Familias</span><h2>{{h2_reserva}}</h2><p>{{lead_reserva}}</p>
+    </div>
+    <div class="reserva-grid" style="margin-top:2rem">
+      <div class="reserva-points">
+        {{#reserva_points}}<div class="rpoint"><div class="ic">{{n}}</div><div><h4>{{titulo}}</h4><p>{{descripcion}}</p></div></div>{{/reserva_points}}
+      </div>
+      <div class="form-card">
+        <div class="field"><label>Actividad</label><select name="actividad">{{#actividades}}<option>{{titulo}}</option>{{/actividades}}<option>Otra / consulta general</option></select></div>
+        <div class="field2">
+          <div class="field"><label>Fecha</label><input type="date"></div>
+          <div class="field"><label>Personas</label><select><option>1-2</option><option>3-4</option><option>5-6</option><option>7 o más</option></select></div>
+        </div>
+        <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+        <div class="field"><label>Teléfono o email</label><input type="text" placeholder="Cómo te contactamos"></div>
+        <a href="https://wa.me/{{telefono_wa}}" class="btn btn-primary" style="width:100%">Comprar entradas</a>
+        <p class="form-note">Al enviar aceptas nuestra política de privacidad. Tus datos se tratan conforme al RGPD y no se ceden a terceros.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+{{#hay_reviews}}
+<section class="blk"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Opiniones</span><h2>Lo que dicen las familias</h2></div>
+  <div class="reviews">{{#reviews}}<div class="review"><div class="stars">★★★★★</div><p>&quot;{{cita}}&quot;</p><div class="who">{{nombre}}</div></div>{{/reviews}}</div>
+</div></section>
+{{/hay_reviews}}
+
+{{#hay_faqs}}
+<section class="blk alt-bg" id="faq"><div class="wrap faq-wrap">
+  <div class="section-head"><span class="eyebrow-c">Preguntas frecuentes</span><h2>Preguntas de las familias</h2></div>
+  <div class="faq">{{#faqs}}<details><summary>{{pregunta}}</summary><p>{{respuesta}}</p></details>{{/faqs}}</div>
+</div></section>
+{{/hay_faqs}}
+
+<section class="blk" id="contacto"><div class="wrap">
+  <div class="section-head"><span class="eyebrow-c">Contacto</span><h2>Horarios y ubicación</h2></div>
+  <div class="contact-grid">
+    <div class="contact-list">
+      <div class="citem"><div class="ic">📍</div><div><h4>Ciudad</h4><p>{{ciudad}}</p></div></div>
+      <div class="citem"><div class="ic">☎</div><div><h4>Teléfono</h4><p>{{telefono}}</p></div></div>
+      <div class="citem"><div class="ic">✉</div><div><h4>Email</h4><p>{{email}}</p></div></div>
+      <div class="citem"><div class="ic">🕑</div><div style="flex:1"><h4>Horario</h4><div class="hours">{{#horarios}}<div class="hrow"><span class="d">{{dia}}</span><span class="h">{{horas}}</span></div>{{/horarios}}</div></div></div>
+      <a href="https://wa.me/{{telefono_wa}}" class="btn btn-ghost" style="margin-top:6px;width:fit-content">Escribir por WhatsApp</a>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps?q={{ciudad_url}},Spain&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+  </div>
+</div></section>
+
+<section class="blk"><div class="wrap">
+  <div class="cta-final">
+    <h2>Reserva la visita de tu familia</h2>
+    <p>Franjas horarias limitadas los fines de semana.</p>
+    <a class="btn btn-ghost" href="https://wa.me/{{telefono_wa}}" style="background:#fff;color:var(--accent-mid);border-color:#fff">Comprar entradas</a>
+  </div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>{{nombre_negocio}} — Museo</div>
+      <div class="foot-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Política de privacidad</a><a href="cookies.html">Cookies</a></div>
+    </div>
+    <p class="legal-note">© {{anio}} {{nombre_negocio}}. Todos los derechos reservados. Web creada con Valentia Web.</p>
+  </div>
+</footer>
+
+<div class="cta-bar"><a href="tel:{{telefono}}" class="btn btn-ghost">Llamar</a><a href="#reserva" class="btn btn-primary">Entradas</a></div>
+
+<a href="https://wa.me/{{telefono_wa}}" class="wa-float" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.485 1.34 5.003l-1.42 5.183 5.309-1.394a9.96 9.96 0 0 0 4.768 1.214h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.935 9.935 0 0 0-7.072-2.937zm5.878 15.845a8.257 8.257 0 0 1-4.879 1.535h-.003a8.276 8.276 0 0 1-4.217-1.155l-.303-.18-3.15.827.84-3.07-.198-.315a8.234 8.234 0 0 1-1.264-4.398c0-4.564 3.713-8.277 8.28-8.277a8.226 8.226 0 0 1 5.856 2.428 8.222 8.222 0 0 1 2.42 5.857c0 4.564-3.713 8.276-8.28 8.276z"/></svg>
+</a>
+
+</body>
+</html>
