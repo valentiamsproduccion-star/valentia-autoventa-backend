@@ -25,6 +25,8 @@
   .cat-card{background:#F3F4F6;border:1px solid #D1D5DB;border-radius:8px;padding:14px;margin-top:12px;position:relative}
   .dish-row{background:#fff;border:1px solid #E5E7EB;border-radius:6px;padding:10px;margin-top:8px;position:relative}
   button.add{margin-top:10px;background:#fff;border:1px solid #D1D5DB;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:13.5px}
+  .spinner{width:16px;height:16px;border:2px solid #D1D5DB;border-top-color:#20242E;border-radius:50%;flex:none;animation:girar .7s linear infinite}
+  @keyframes girar{to{transform:rotate(360deg)}}
   button.add:disabled{opacity:.4;cursor:default}
   button.add.small{font-size:12px;padding:6px 10px;margin-top:6px}
   button.primary{background:#20242E;color:#fff;border:none;border-radius:6px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:24px}
@@ -192,6 +194,10 @@
 
   <div id="logo-ia-generador" style="display:none">
     <button type="button" class="add" id="btn-generar-logo">Generar opciones de logo</button>
+    <div id="logo-ia-generando" style="display:none;align-items:center;gap:10px;margin-top:10px;padding:10px 14px;border-radius:8px;background:#F3F4F6">
+      <span class="spinner" aria-hidden="true"></span>
+      <span style="font-size:13px;color:#374151">Generando tu logo con IA… espera aquí, tardará hasta 30 segundos. No cierres ni recargues la página.</span>
+    </div>
     <p id="logo-ia-error" class="hint" style="display:none;color:#DC2626"></p>
 
     <div id="logo-ia-opciones" style="display:none;margin-top:12px">
@@ -1541,9 +1547,16 @@ async function generarOpcionesLogo() {
     return;
   }
 
+  // El botón deshabilitado solo (con opacidad reducida, ver .add:disabled)
+  // se leía como "esto no está haciendo nada" -- por eso, en vez de limitarnos
+  // a cambiar su texto, lo ocultamos del todo mientras se genera y mostramos
+  // en su lugar un aviso con spinner que dice explícitamente que hay que
+  // esperar aquí, para que quede claro que el logo se genera AHORA (antes de
+  // pagar) y no después.
   btnGenerarLogo.disabled = true;
-  const textoOriginal = btnGenerarLogo.textContent;
-  btnGenerarLogo.textContent = 'Generando 3 propuestas… (puede tardar ~30s)';
+  btnGenerarLogo.style.display = 'none';
+  const logoIaGenerandoEl = document.getElementById('logo-ia-generando');
+  logoIaGenerandoEl.style.display = 'flex';
   try {
     const resp = await fetch('/api/logo/opciones', {
       method: 'POST',
@@ -1572,7 +1585,8 @@ async function generarOpcionesLogo() {
     mostrarErrorLogoIa(e.message);
   } finally {
     btnGenerarLogo.disabled = false;
-    btnGenerarLogo.textContent = textoOriginal;
+    btnGenerarLogo.style.display = '';
+    logoIaGenerandoEl.style.display = 'none';
   }
 }
 
