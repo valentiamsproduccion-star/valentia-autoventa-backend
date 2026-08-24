@@ -1449,6 +1449,18 @@ function hexToRgba(hex, alpha) {
   return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
 }
 
+// Declarado aquí (y no más abajo, junto a solicitarAparienciaEnDirecto) a
+// propósito: pintarColorPreview() se llama de forma inmediata al cargar la
+// página (ver más abajo, tras darle de alta los listeners de color) y a su
+// vez llama a solicitarAparienciaEnDirecto(), que usa esta variable -- si
+// se declarara con `let` más abajo, esa primera llamada explotaría con un
+// ReferenceError (temporal dead zone) porque el `let` de más abajo aún no
+// se habría ejecutado, y como es un error sin capturar en un <script> de
+// nivel superior, corta la ejecución del resto del fichero: ningún listener
+// definido después (comprobar dominio, generar vista previa, etc.) llega a
+// engancharse y el formulario entero deja de responder a los clics.
+let aparienciaEnDirectoTimeout = null;
+
 const colorPickerEl = document.getElementById('color_primario_picker');
 const colorHexEl = document.getElementById('color_primario_hex');
 const colorPreviewEl = document.getElementById('color-preview');
@@ -1565,8 +1577,9 @@ FUENTES.forEach(f => {
 // iframe -- SIN volver a generar el contenido ni llamar a la IA (ver
 // server.js, POST /api/alta/:orderId/apariencia). En modo edición
 // post-compra (editToken) no se usa -- ese flujo ya tiene su propio guardado
-// (ver más abajo, "Guardar cambios").
-let aparienciaEnDirectoTimeout = null;
+// (ver más abajo, "Guardar cambios"). `aparienciaEnDirectoTimeout` está
+// declarada más arriba, junto a los elementos de color -- ver el comentario
+// de allí.
 
 function recargarPreviewFrame() {
   const frame = document.getElementById('preview-frame');
