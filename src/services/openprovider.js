@@ -116,17 +116,26 @@ async function comprobarDisponibilidad(nombre, tlds) {
     with_price: true,
   });
   const resultados = (resp.data && resp.data.results) || [];
-  return resultados.map(r => ({
-    tld: (r.domain || '').split('.').slice(1).join('.'),
-    dominio: r.domain,
-    disponible: r.status === 'free' && !r.is_premium, // los premium quedan fuera del flujo automático (precio impredecible)
-    premium: !!r.is_premium,
-    razon: r.reason || null,
-    // La forma exacta del objeto de precio no está fijada aquí a propósito
-    // (varía por TLD/promoción) -- se guarda tal cual para depurar/mostrar
-    // internamente, sin asumir una forma concreta.
-    precio_raw: r.price || null,
-  }));
+  return resultados.map(r => {
+    // r.price.reseller = lo que cuesta de verdad a Valentia (precio de coste
+    // del Membership Plan, ver docs.openprovider.com "Check Domain") --
+    // { price: number, currency: string }. Es el campo que se usa para
+    // filtrar qué TLDs se ofrecen al cliente (ver server.js, sección "Tu
+    // dominio": solo se enseñan los más baratos de <10€).
+    const reseller = r.price && r.price.reseller ? r.price.reseller : null;
+    return {
+      tld: (r.domain || '').split('.').slice(1).join('.'),
+      dominio: r.domain,
+      disponible: r.status === 'free' && !r.is_premium, // los premium quedan fuera del flujo automático (precio impredecible)
+      premium: !!r.is_premium,
+      razon: r.reason || null,
+      precio: reseller ? reseller.price : null,
+      precio_moneda: reseller ? reseller.currency : null,
+      // La forma completa tampoco se fija aquí a propósito (varía por
+      // TLD/promoción) -- se guarda tal cual para depurar internamente.
+      precio_raw: r.price || null,
+    };
+  });
 }
 
 // Crea (si hace falta) el "customer handle" que figura como titular del

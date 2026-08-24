@@ -1683,16 +1683,17 @@ document.getElementById('btn-check-dominio').addEventListener('click', async () 
         // dominio propio y cobra el suplemento correspondiente.
         if (typeof solicitarAparienciaEnDirecto === 'function') solicitarAparienciaEnDirecto(() => ({ dominio_elegido: dominioElegido }));
       });
+      const precioTexto = (r.disponible && typeof r.precio === 'number') ? ' — ' + r.precio.toFixed(2).replace('.', ',') + '€/año' : '';
       const span = document.createElement('span');
-      span.textContent = r.dominio + (r.disponible ? ' — disponible' : r.premium ? ' — dominio premium (no disponible por ahora)' : ' — no disponible');
+      span.textContent = r.dominio + (r.disponible ? ' — disponible' + precioTexto : r.premium ? ' — dominio premium (no disponible por ahora)' : ' — no disponible');
       row.appendChild(radio);
       row.appendChild(span);
       resEl.appendChild(row);
     });
-    if (!resultados.some(r => r.disponible)) {
+    if (!resultados.length) {
       const p = document.createElement('p');
       p.className = 'hint';
-      p.textContent = 'Ninguna de estas extensiones está libre para ese nombre. Prueba con otro nombre.';
+      p.textContent = 'No hay extensiones libres y baratas (menos de 10€/año) para ese nombre. Prueba con otro nombre.';
       resEl.appendChild(p);
     }
   } catch (e) {

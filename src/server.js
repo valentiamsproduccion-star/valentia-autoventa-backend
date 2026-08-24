@@ -512,6 +512,18 @@ router.post('/api/alta/:orderId/apariencia', async (req, res, params) => {
 // (public/alta.html, sección "Tu dominio") antes de pagar, para que el
 // cliente vea al momento si el nombre está libre. La compra real no pasa
 // aquí -- pasa sola tras el pago (ver webhook, "Compra de dominio").
+//
+// Solo se le enseñan al cliente los TLDS_MAX_PRECIO_EUR más baratos (precio
+// de coste real, r.precio -- ver openprovider.js) y nunca por encima de
+// TLDS_TOPE_PRECIO_EUR: con el saldo que se recarga a mano (ver
+// conversación, "solo lanzamos a la elección del cliente los dominios que
+// sean menos de 10 euros") hay que evitar que elija algo que luego no se
+// pueda comprar automáticamente por falta de saldo. Si el precio viene en
+// una moneda que no es EUR (no debería, la cuenta factura en EUR) se
+// descarta esa opción por seguridad en vez de comparar números que no son
+// comparables.
+const TLDS_TOPE_PRECIO_EUR = 10;
+const TLDS_MAX_OPCIONES = 3;
 router.get('/api/dominio/disponibilidad', async (req, res) => {
   if (!openprovider.estaConfigurado()) {
     return sendJson(res, 200, { configurado: false, resultados: [] });
@@ -522,8 +534,12 @@ router.get('/api/dominio/disponibilidad', async (req, res) => {
   if (!nombre) return sendJson(res, 400, { error: 'Falta el nombre de dominio a comprobar.' });
   const tlds = tldsParam.length ? tldsParam : openprovider.TLDS_PERMITIDOS;
   try {
-    const resultados = await openprovider.comprobarDisponibilidad(nombre, tlds);
-    sendJson(res, 200, { configurado: true, resultados });
+    const todos = await openprovider.comprobarDisponibilidad(nombre, tlds);
+    const baratos = todos
+      .filter(r => r.disponible && typeof r.precio === 'number' && r.precio_moneda === 'EUR' && r.precio < TLDS_TOPE_PRECIO_EUR)
+      .sort((a, b) => a.precio - b.precio)
+      .slice(0, TLDS_MAX_OPCIONES);
+    sendJson(res, 200, { configurado: true, resultados: baratos });
   } catch (e) {
     sendJson(res, 502, { error: 'No se pudo comprobar la disponibilidad: ' + e.message });
   }
