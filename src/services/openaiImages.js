@@ -19,6 +19,16 @@ const https = require('https');
 const OPENAI_API_HOST = 'api.openai.com';
 const MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
 
+// Modo prueba: NO llama a OpenAI, devuelve siempre el mismo PNG de relleno
+// (1x1 gris) -- coste cero. Pensado para poder probar todo el flujo del
+// alta (formulario, subida, vista previa, publicación) sin gastar saldo
+// real cada vez que alguien del equipo prueba la sección "Logo con IA".
+// Actívalo con OPENAI_IMAGES_MODO_PRUEBA=true en el .env/Render; NO lo
+// dejes activo en producción o los clientes verían ese PNG gris como logo.
+const MODO_PRUEBA = String(process.env.OPENAI_IMAGES_MODO_PRUEBA || '').toLowerCase() === 'true';
+const PNG_RELLENO_1X1_GRIS =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
 function apiKeyOrThrow() {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -137,25 +147,33 @@ function primerB64(respuesta) {
 }
 
 // prompt -> imagen nueva en base64 (PNG). size: '1024x1024' | '1536x1024' | '1024x1536'.
-async function generarImagen(prompt, size) {
+// quality: 'low' | 'medium' | 'high' -- se fija explícitamente en vez de
+// dejar el 'auto' de OpenAI, que en la práctica suele tirar a 'high' (la
+// tarifa más cara) incluso para un simple borrador (ver logoIA.js: 'low'
+// para las 3 opciones iniciales, que el cliente solo usa para elegir
+// dirección de estilo; el formato final ya elegido puede pedir 'medium').
+async function generarImagen(prompt, size, quality) {
+  if (MODO_PRUEBA) return PNG_RELLENO_1X1_GRIS;
   const apiKey = apiKeyOrThrow();
   const respuesta = await postJSON('/v1/images/generations', apiKey, {
     model: MODEL,
     prompt,
     size: size || '1024x1024',
+    quality: quality || 'low',
     n: 1,
   });
   return primerB64(respuesta);
 }
 
 // imagen de partida (base64) + prompt -> imagen derivada en base64 (PNG).
-async function editarImagen(prompt, size, imagenBase64Origen, mimeOrigen) {
+async function editarImagen(prompt, size, imagenBase64Origen, mimeOrigen, quality) {
+  if (MODO_PRUEBA) return PNG_RELLENO_1X1_GRIS;
   const apiKey = apiKeyOrThrow();
   const buffer = Buffer.from(imagenBase64Origen, 'base64');
   const respuesta = await postMultipart(
     '/v1/images/edits',
     apiKey,
-    { model: MODEL, prompt, size: size || '1536x1024', n: '1' },
+    { model: MODEL, prompt, size: size || '1536x1024', quality: quality || 'medium', n: '1' },
     { name: 'image', filename: 'logo-origen.png', mime: mimeOrigen || 'image/png', data: buffer }
   );
   return primerB64(respuesta);
