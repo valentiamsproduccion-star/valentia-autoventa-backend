@@ -170,7 +170,7 @@
 </div>
 
 <h2>Tu dominio</h2>
-<p class="hint">Puedes comprar un dominio propio (por ejemplo tunegocio.es) para tu web. Si más adelante quieres cambiarlo, puedes seguir usando el enlace de Valentia por ahora.</p>
+<p class="hint">Puedes comprar un dominio propio (por ejemplo tunegocio.es) para tu web, por +2 €/mes sobre tu cuota de mantenimiento, sea cual sea la extensión que elijas. Si más adelante quieres cambiarlo, puedes seguir usando el enlace de Valentia por ahora.</p>
 <div class="via">
   <label><input type="radio" name="via_dominio" value="comprar" checked> Quiero comprar un dominio</label>
   <label><input type="radio" name="via_dominio" value="luego"> Todavía no, lo decido más adelante</label>
@@ -1696,9 +1696,9 @@ document.getElementById('btn-check-dominio').addEventListener('click', async () 
         // dominio propio y cobra el suplemento correspondiente.
         if (typeof solicitarAparienciaEnDirecto === 'function') solicitarAparienciaEnDirecto(() => ({ dominio_elegido: dominioElegido }));
       });
-      const precioTexto = (r.disponible && typeof r.precio === 'number') ? ' — ' + r.precio.toFixed(2).replace('.', ',') + '€/año' : '';
+      // No se muestra el precio mayorista del dominio -- el cliente paga un fijo de +2€/mes sea cual sea el TLD elegido (ver stripe.js).
       const span = document.createElement('span');
-      span.textContent = r.dominio + (r.disponible ? ' — disponible' + precioTexto : r.premium ? ' — dominio premium (no disponible por ahora)' : ' — no disponible');
+      span.textContent = r.dominio + (r.disponible ? ' — disponible' : r.premium ? ' — dominio premium (no disponible por ahora)' : ' — no disponible');
       row.appendChild(radio);
       row.appendChild(span);
       resEl.appendChild(row);
