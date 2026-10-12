@@ -136,6 +136,14 @@ async function crearSesionCheckout({ priceMensualId, priceInicialId, priceSuplem
     // misma sesión en modo "subscription".
     params.line_items.push({ price: priceLogoIaId, quantity: 1 });
   }
+  // IVA: los precios de Valentia se anuncian sin IVA. STRIPE_TAX_RATE_IVA es
+  // el ID del tipo impositivo de Stripe (IVA 21 %, «no incluido»): se aplica a
+  // todas las líneas, así el IVA se suma al cobrar y sale desglosado en la
+  // factura. Si la variable está vacía, se cobra el precio tal cual.
+  const taxRate = process.env.STRIPE_TAX_RATE_IVA;
+  if (taxRate) {
+    params.line_items = params.line_items.map((li) => Object.assign({}, li, { tax_rates: [taxRate] }));
+  }
   return stripeRequest('/v1/checkout/sessions', params);
 }
 
