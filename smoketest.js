@@ -278,7 +278,10 @@ async function main() {
   if (!previewOk) throw new Error('Vista previa incorrecta');
 
   // 3) CHECKOUT
-  const checkoutResp = await request('POST', '/api/checkout', { orderId });
+  const sinConsentimiento = await request('POST', '/api/checkout', { orderId });
+  console.log('3-) POST /api/checkout sin consentimiento de inicio inmediato ->', sinConsentimiento.statusCode, sinConsentimiento.statusCode === 400 ? 'rechazado OK' : sinConsentimiento.body);
+  if (sinConsentimiento.statusCode !== 400) throw new Error('El checkout debería exigir el consentimiento de inicio inmediato');
+  const checkoutResp = await request('POST', '/api/checkout', { orderId, inicioInmediato: true });
   console.log('3) POST /api/checkout ->', checkoutResp.statusCode, checkoutResp.body.checkoutUrl ? 'checkoutUrl OK' : checkoutResp.body);
   if (checkoutResp.statusCode !== 200) throw new Error('Fallo en /api/checkout');
 
@@ -494,7 +497,7 @@ async function main() {
   console.log('    pedido.logo_ia_solicitado:', orderLogoIa.logo_ia_solicitado === true ? 'SI' : 'NO');
   if (orderLogoIa.logo_ia_solicitado !== true) throw new Error('El pedido no quedó marcado con logo_ia_solicitado');
 
-  const checkoutLogoIaResp = await request('POST', '/api/checkout', { orderId: altaLogoIaResp.body.orderId });
+  const checkoutLogoIaResp = await request('POST', '/api/checkout', { orderId: altaLogoIaResp.body.orderId, inicioInmediato: true });
   console.log('11) POST /api/checkout (con logo IA) ->', checkoutLogoIaResp.statusCode, checkoutLogoIaResp.body.checkoutUrl ? 'checkoutUrl OK' : checkoutLogoIaResp.body);
   if (checkoutLogoIaResp.statusCode !== 200) throw new Error('Fallo en /api/checkout con logo IA');
   const precioLogoIaEnviado = typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_LOGO_IA));
@@ -517,14 +520,14 @@ async function main() {
     paginaAdicional: false,
   });
   if (altaConDominioResp.statusCode !== 200) throw new Error('Fallo en /api/alta con dominio_elegido');
-  const checkoutConDominioResp = await request('POST', '/api/checkout', { orderId: altaConDominioResp.body.orderId });
+  const checkoutConDominioResp = await request('POST', '/api/checkout', { orderId: altaConDominioResp.body.orderId, inicioInmediato: true });
   console.log('11a) POST /api/checkout (con dominio elegido) ->', checkoutConDominioResp.statusCode, checkoutConDominioResp.body.checkoutUrl ? 'checkoutUrl OK' : checkoutConDominioResp.body);
   if (checkoutConDominioResp.statusCode !== 200) throw new Error('Fallo en /api/checkout con dominio elegido');
   const precioDominioEnviado = typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_DOMINIO_PROPIO));
   console.log('    price de dominio propio (+2€/mes) incluido en la sesión de Stripe:', precioDominioEnviado ? 'SI' : 'NO');
   if (!precioDominioEnviado) throw new Error('El checkout no incluyó el price de dominio propio');
 
-  const checkoutSinDominioResp = await request('POST', '/api/checkout', { orderId: altaLogoIaResp.body.orderId });
+  const checkoutSinDominioResp = await request('POST', '/api/checkout', { orderId: altaLogoIaResp.body.orderId, inicioInmediato: true });
   if (checkoutSinDominioResp.statusCode !== 200) throw new Error('Fallo en /api/checkout sin dominio elegido');
   const precioDominioNoEnviado = !(typeof global.__lastFakeStripeBody === 'string' && global.__lastFakeStripeBody.includes(encodeURIComponent(process.env.STRIPE_PRICE_DOMINIO_PROPIO)));
   console.log('    y NO se incluye para un pedido sin dominio elegido:', precioDominioNoEnviado ? 'SI' : 'NO');
@@ -577,7 +580,7 @@ async function main() {
     const previewOkSector = previewR.statusCode === 200 && previewR.raw.includes(nombreNegocio) && !previewR.raw.match(/\{\{[^}]*\}\}/);
     if (!previewOkSector) throw new Error(`[${sector}] vista previa incorrecta o con tags sin resolver`);
 
-    const checkout = await request('POST', '/api/checkout', { orderId: alta.body.orderId });
+    const checkout = await request('POST', '/api/checkout', { orderId: alta.body.orderId, inicioInmediato: true });
     if (checkout.statusCode !== 200) throw new Error(`[${sector}] fallo en /api/checkout: ${JSON.stringify(checkout.body)}`);
 
     const orderSector = await db.getOrder(alta.body.orderId);
@@ -613,7 +616,7 @@ async function main() {
   });
   if (altaPlantilla.statusCode !== 200) throw new Error('[plantilla_id] fallo en /api/alta: ' + JSON.stringify(altaPlantilla.body));
 
-  const checkoutPlantilla = await request('POST', '/api/checkout', { orderId: altaPlantilla.body.orderId });
+  const checkoutPlantilla = await request('POST', '/api/checkout', { orderId: altaPlantilla.body.orderId, inicioInmediato: true });
   if (checkoutPlantilla.statusCode !== 200) throw new Error('[plantilla_id] fallo en /api/checkout');
 
   const orderPlantilla = await db.getOrder(altaPlantilla.body.orderId);

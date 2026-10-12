@@ -77,6 +77,7 @@ async function sendMagicLinkEmail(client, urlPrincipal, urlMiPagina) {
       adicional a tu web (o revisarla si ya la contrataste), sin necesidad de
       usuario ni contraseña.</p>
       <p><a href="${urlMiPagina}" style="color: #1a56db;">${urlMiPagina}</a></p>
+      <p style="color: #6b7280; font-size: 13px;">Al contratar solicitaste que tu web se creara y publicara de inmediato, y reconociste que, una vez creada y publicada, pierdes el derecho de desistimiento sobre el pago único de creación. Puedes consultar las condiciones de contratación en <a href="https://web.valentiams.com/condiciones-de-contratacion.html" style="color: #1a56db;">web.valentiams.com/condiciones-de-contratacion.html</a>.</p>
       <p style="color: #6b7280; font-size: 13px;">Si no reconoces este correo, puedes ignorarlo.</p>
     </div>
   `.trim();

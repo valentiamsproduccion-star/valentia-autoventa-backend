@@ -169,7 +169,7 @@
 </div>
 
 <h2>Tu dominio</h2>
-<p class="hint">Puedes comprar un dominio propio (por ejemplo tunegocio.es) para tu web, por +2 €/mes sobre tu cuota de mantenimiento, sea cual sea la extensión que elijas. Si más adelante quieres cambiarlo, puedes seguir usando el enlace de Valentia por ahora.</p>
+<p class="hint">Puedes comprar un dominio propio (por ejemplo tunegocio.es) para tu web, por +2 €/mes + IVA sobre tu cuota de mantenimiento, sea cual sea la extensión que elijas. Si más adelante quieres cambiarlo, puedes seguir usando el enlace de Valentia por ahora.</p>
 <div class="via">
   <label><input type="radio" name="via_dominio" value="comprar" checked> Quiero comprar un dominio</label>
   <label><input type="radio" name="via_dominio" value="luego"> Todavía no, lo decido más adelante</label>
@@ -204,7 +204,7 @@
 <div id="logo-ia-opcion" style="display:none">
   <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-weight:500">
     <input type="checkbox" id="logo_ia" style="width:auto">
-    Quiero que la IA me diseñe un logo (+15€, pago único)
+    Quiero que la IA me diseñe un logo (+15 € + IVA, pago único)
   </label>
   <p class="hint">La IA genera tu logo ANTES de pagar, con 3 propuestas para elegir. Si no la marcas, tu web se publica con un logo de texto simple (las iniciales de tu negocio) hasta que nos envíes uno.</p>
 
@@ -369,7 +369,7 @@
 
 <label style="display:flex;align-items:center;gap:8px;margin-top:22px;font-weight:500">
   <input type="checkbox" id="pagina_adicional" style="width:auto">
-  Añadir página adicional (+5€/mes)
+  Añadir página adicional (+5 €/mes + IVA)
 </label>
 <p class="hint" id="hint-adicional" style="display:none">La página adicional se rellena igual que la principal, con la misma vía de texto elegida arriba.</p>
 
@@ -380,7 +380,7 @@
 
 <label style="display:flex;align-items:flex-start;gap:8px;margin-top:14px;font-weight:400;font-size:12.5px;color:#6B7280">
   <input type="checkbox" id="rgpd" style="width:auto;margin-top:2px">
-  Acepto que mis datos se usen para generar y publicar mi web, conforme al RGPD.
+  <span>He leído y acepto las <a href="https://web.valentiams.com/condiciones-de-contratacion.html" target="_blank" rel="noopener">condiciones de contratación</a> y la <a href="https://web.valentiams.com/politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</span>
 </label>
 
 <button class="primary" id="btn-generar">Generar vista previa</button>
@@ -405,6 +405,11 @@
       <iframe id="preview-frame"></iframe>
     </div>
     <p class="hint" id="preview-actualizando" style="display:none">Actualizando la vista previa…</p>
+    <label id="label-inicio-inmediato" style="display:flex;align-items:flex-start;gap:8px;margin-top:14px;font-weight:400;font-size:12.5px;color:#6B7280">
+      <input type="checkbox" id="inicio_inmediato" style="width:auto;margin-top:2px">
+      <span>Solicito que mi web se cree y publique de inmediato, antes de que termine el plazo de desistimiento de 14 días, y reconozco que, una vez creada y publicada, pierdo el derecho de desistimiento sobre el pago único de creación (<a href="https://web.valentiams.com/condiciones-de-contratacion.html#desistimiento" target="_blank" rel="noopener">más información</a>).</span>
+    </label>
+    <p id="error-pago" style="display:none;color:#B42318;font-size:13px;margin-top:8px"></p>
     <button class="primary" id="btn-pagar">Continuar al pago</button>
   </div>
 </div><!-- /.preview-col -->
@@ -2379,13 +2384,14 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
     document.getElementById('resultado').style.display = 'block';
     document.querySelector('#resultado strong').textContent = 'Cambios guardados. Así se ve tu web ahora:';
     document.getElementById('btn-pagar').style.display = 'none';
+    document.getElementById('label-inicio-inmediato').style.display = 'none';
     document.getElementById('preview-frame').src = data.url + '?t=' + Date.now(); // evita ver la versión en caché
     return;
   }
 
   if (!document.getElementById('rgpd').checked) {
     errorDiv.style.display = 'block';
-    errorDiv.textContent = 'Marca la casilla de RGPD para continuar.';
+    errorDiv.textContent = 'Para continuar, acepta las condiciones de contratación y la política de privacidad.';
     return;
   }
 
@@ -2555,7 +2561,14 @@ document.getElementById('btn-generar').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-pagar').addEventListener('click', async () => {
-  const resp = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: ultimoOrderId }) });
+  const errorPago = document.getElementById('error-pago');
+  if (!document.getElementById('inicio_inmediato').checked) {
+    errorPago.style.display = 'block';
+    errorPago.textContent = 'Para continuar al pago, marca la casilla de inicio inmediato del servicio.';
+    return;
+  }
+  errorPago.style.display = 'none';
+  const resp = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: ultimoOrderId, inicioInmediato: true }) });
   const data = await resp.json();
   if (!resp.ok) { alert(data.error); return; }
   window.location.href = data.checkoutUrl;

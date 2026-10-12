@@ -619,7 +619,13 @@ router.get('/preview/:orderId/pagina/:pagina', async (req, res, params) => {
 // POST /api/checkout -- paso 6 del flujo: cuota inicial + cuota mensual,
 // con el suplemento de página adicional ya incluido si se eligió en el alta.
 router.post('/api/checkout', async (req, res) => {
-  const { orderId } = await readJsonBody(req);
+  const { orderId, inicioInmediato } = await readJsonBody(req);
+  // Consentimiento expreso de inicio inmediato del servicio (art. 103.a
+  // TRLGDCU): sin él no se puede pagar. Queda registrado en los metadatos de
+  // la sesión de Stripe y se confirma después en el email de "web publicada".
+  if (inicioInmediato !== true) {
+    return sendJson(res, 400, { error: 'Para continuar al pago, marca la casilla de inicio inmediato del servicio.' });
+  }
   const order = await db.getOrder(orderId);
   if (!order) return sendJson(res, 404, { error: 'Pedido no encontrado.' });
   const client = await db.getClient(order.client_id);
@@ -664,7 +670,14 @@ router.post('/api/checkout', async (req, res) => {
     successUrl: PUBLIC_BASE_URL + '/gracias?order=' + order.id,
     cancelUrl: PUBLIC_BASE_URL + '/preview/' + order.id,
     clientReferenceId: order.id,
-    metadata: { order_id: order.id, client_id: order.client_id },
+    metadata: {
+      order_id: order.id,
+      client_id: order.client_id,
+      acepta_condiciones: 'si',
+      inicio_inmediato_consentido: 'si',
+      consentimiento_fecha: new Date().toISOString(),
+      condiciones_version: '2026-10-12',
+    },
   });
 
   await db.updateOrder(order.id, { stripe_session_id: session.id, status: 'pending_payment' });
