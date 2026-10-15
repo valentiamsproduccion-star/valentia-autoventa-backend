@@ -278,6 +278,9 @@ async function main() {
   if (!previewOk) throw new Error('Vista previa incorrecta');
 
   // 3) CHECKOUT
+  const pingResp = await request('GET', '/ping');
+  console.log('0) GET /ping ->', pingResp.statusCode, pingResp.statusCode === 204 ? 'OK' : 'FALLO');
+  if (pingResp.statusCode !== 204) throw new Error('/ping debería responder 204');
   const sinConsentimiento = await request('POST', '/api/checkout', { orderId });
   console.log('3-) POST /api/checkout sin consentimiento de inicio inmediato ->', sinConsentimiento.statusCode, sinConsentimiento.statusCode === 400 ? 'rechazado OK' : sinConsentimiento.body);
   if (sinConsentimiento.statusCode !== 400) throw new Error('El checkout debería exigir el consentimiento de inicio inmediato');
